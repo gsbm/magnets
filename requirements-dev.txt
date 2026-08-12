@@ -1,0 +1,7 @@
+# Dev/test deps for the bpy-free unit suite.
+# mathutils and numpy mirror what Blender bundles, so core code runs identically
+# in and out of Blender.
+pytest>=8
+numpy>=1.26
+mathutils>=3.3.0
+ruff>=0.6

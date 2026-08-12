@@ -1,0 +1,18 @@
+schema_version = "1.0.0"
+
+id = "magnets"
+version = "0.0.1"
+name = "Magnets"
+tagline = "Smart guides that snap to geometric relationships"
+maintainer = "gsbm"
+type = "add-on"
+
+# Targets Blender 4.2 LTS and newer (modern gpu module + Extensions packaging).
+blender_version_min = "4.2.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+copyright = ["2026 gsbm"]
+tags = ["Modeling", "Mesh"]
+
+# No wheels / external deps at runtime: the bpy-free core uses only mathutils
+# and numpy, both bundled with Blender.
