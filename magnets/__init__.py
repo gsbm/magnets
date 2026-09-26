@@ -1,9 +1,6 @@
 """Magnets Blender add-on entry point.
 
-Metadata is declared in ``blender_manifest.toml`` (Blender 4.2+ Extensions);
-there is no ``bl_info`` block.
-
-Registration order: preferences → operators → UI → keymaps → translations.
+Metadata lives in ``blender_manifest.toml``; there is no ``bl_info`` block.
 """
 
 from . import keymaps, ops, preferences, properties, transform_overlay, translations, ui

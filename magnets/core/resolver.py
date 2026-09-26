@@ -54,20 +54,11 @@ def resolve_translation(
 ) -> Vector:
     """Merge active translation constraints into one world-space offset.
 
-    Each direction is corrected once. Relationships are taken in family
-    priority order (``FAMILY_PRIORITY``, then ``base_priority``). Each delta is
-    projected off the directions already claimed (Gram-Schmidt), so orthogonal
-    constraints (X + Y alignment) still add, while overlapping ones (an X
-    alignment and a midpoint that also moves X) no longer stack. A satisfied
-    constraint (zero delta) still claims its ``constraint_dir``, so a
-    lower-priority guide cannot pull the selection off it.
-
-    Args:
-        active: Ranked relationships currently engaged.
-        frame: Unused; retained for call-site compatibility.
-
-    Returns:
-        Combined translation vector.
+    Relationships are taken in family priority order, and each delta is
+    projected off the directions already claimed (Gram-Schmidt): orthogonal
+    constraints add, overlapping ones do not stack. A satisfied constraint
+    still claims its ``constraint_dir``, so a lower-priority guide cannot pull
+    the selection off it. ``frame`` is unused.
     """
     del frame
     if not active:
@@ -105,15 +96,7 @@ def resolve_rotation(
     *,
     angle_snap_deg: float = 0.0,
 ) -> tuple[Vector, float]:
-    """Pick a rotation correction from active relationships.
-
-    Args:
-        active: Engaged relationships.
-        angle_snap_deg: Optional discrete angle increment in degrees.
-
-    Returns:
-        ``(axis, angle_radians)``. Defaults to ``(+Z, 0)`` when none apply.
-    """
+    """Return ``(axis, angle_radians)`` from active relationships, or ``(+Z, 0)``."""
     if not active:
         return Vector((0.0, 0.0, 1.0)), 0.0
     for rel in active:
@@ -127,14 +110,7 @@ def resolve_rotation(
 
 
 def resolve_scale(active: list[Relationship]) -> Vector:
-    """Pick per-axis scale factors from active relationships.
-
-    Args:
-        active: Engaged relationships.
-
-    Returns:
-        Scale factors. Uniform when only ``scale_factor`` is set.
-    """
+    """Return per-axis scale factors; uniform when only ``scale_factor`` is set."""
     if not active:
         return Vector((1.0, 1.0, 1.0))
     for rel in active:
@@ -147,15 +123,7 @@ def resolve_scale(active: list[Relationship]) -> Vector:
 
 
 def snap_angle(angle: float, increment_deg: float) -> float:
-    """Quantize ``angle`` (radians) to the nearest ``increment_deg`` step.
-
-    Args:
-        angle: Angle in radians.
-        increment_deg: Step size in degrees.
-
-    Returns:
-        Quantized angle in radians.
-    """
+    """Quantize ``angle`` (radians) to the nearest ``increment_deg`` step."""
     if increment_deg <= 1e-6:
         return angle
     inc = math.radians(increment_deg)
@@ -163,15 +131,7 @@ def snap_angle(angle: float, increment_deg: float) -> float:
 
 
 def clamp_translation_step(correction: Vector, max_length: float) -> Vector:
-    """Clamp ``correction`` length to ``max_length``.
-
-    Args:
-        correction: Translation delta.
-        max_length: Maximum allowed length (no-op if <= 0).
-
-    Returns:
-        Possibly shortened correction vector.
-    """
+    """Clamp ``correction`` to ``max_length`` (no-op when ``max_length <= 0``)."""
     if max_length <= 0.0:
         return correction
     limit_sq = max_length * max_length

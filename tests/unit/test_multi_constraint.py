@@ -173,8 +173,7 @@ def _aligned(axis, delta, direction):
 
 
 def test_overlapping_deltas_do_not_stack():
-    """Regression (live ``xlock``): alignment + spacing + midpoint all moving X
-    used to sum to +0.2035 instead of the alignment's +0.068."""
+    """Alignment, spacing and midpoint deltas along X apply once, not summed."""
     align_x = _aligned("X", (0.068, 0.0, 0.0), _X)
     align_y = _aligned("Y", (0.0, 0.07, 0.0), _Y)
     align_z = _aligned("Z", (0.0, 0.0, 0.0), _Z)  # already satisfied
@@ -194,8 +193,7 @@ def test_alignment_wins_its_axis_regardless_of_input_order():
 
 
 def test_satisfied_alignment_holds_its_axis():
-    """A zero-residual alignment still claims its axis, so a lower-priority
-    guide cannot pull the selection off it."""
+    """A zero-residual alignment still claims its axis."""
     align_z = _aligned("Z", (0.0, 0.0, 0.0), _Z)
     midpoint = _rel(
         "midpoint", "mid_T_T", ConstraintDelta.from_vector(Vector((0.0, 0.2, 0.5)))
@@ -213,8 +211,7 @@ def test_lower_priority_keeps_its_orthogonal_part():
 
 
 def test_non_axis_deltas_claim_their_own_direction():
-    """Without constraint_dir, the applied delta's direction is claimed, so two
-    parallel lower-priority corrections still apply once."""
+    """Without ``constraint_dir``, a delta claims its own direction."""
     a = _rel("spacing", "gap_A", ConstraintDelta.from_vector(Vector((0.2, 0.0, 0.0))))
     b = _rel("midpoint", "mid_B_B", ConstraintDelta.from_vector(Vector((0.5, 0.0, 0.0))))
     assert resolve_translation([a, b]) == Vector((0.2, 0.0, 0.0))

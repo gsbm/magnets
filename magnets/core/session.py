@@ -9,18 +9,7 @@ def selection_matches_session(
     selected_names: frozenset[str],
     active_name: str | None,
 ) -> bool:
-    """True while the objects being transformed are still the active selection.
-
-    Args:
-        session_moving: Entity names captured at session start.
-        session_edit: Whether the session began in Edit Mode.
-        edit_mode: Current Edit Mode flag.
-        selected_names: Currently selected object names.
-        active_name: Active object name, if any.
-
-    Returns:
-        Whether the session selection is still valid.
-    """
+    """Return True while the transformed objects are still the active selection."""
     if session_edit != edit_mode:
         return False
     if not session_moving:
@@ -35,17 +24,10 @@ def selection_matches_session(
 
 
 def native_snap_in_effect(tool_use_snap: bool, op_snap: bool | None) -> bool:
-    """True when Blender's own snapping governs the transform.
+    """Return True when Blender's own snapping governs the transform.
 
-    Magnets yields in that case so the two snaps never fight (native snaps to
-    a vertex, then Magnets drags it off on release).
-
-    Args:
-        tool_use_snap: The scene's ``tool_settings.use_snap`` toggle.
-        op_snap: The finished transform's saved ``snap`` flag, which also
-            records a held Ctrl snap toggle; None when unreadable (mid-drag).
-
-    Returns:
-        Whether native snapping is (or may be) active.
+    Magnets then yields so the two snaps never fight. ``op_snap`` is the
+    finished operator's ``snap`` flag (it records a held Ctrl toggle), or None
+    mid-drag.
     """
     return bool(tool_use_snap) or bool(op_snap)

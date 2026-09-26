@@ -25,18 +25,7 @@ def frame_axes(
     custom_matrix: Matrix | None = None,
     custom_object=None,
 ):
-    """Resolve X/Y/Z axis directions for a reference frame.
-
-    Args:
-        context: Blender context.
-        obj: Moving object (for local/parent frames).
-        frame: Requested Frame.
-        view_matrix: Optional view matrix for Frame.VIEW.
-        custom_obj: Optional custom reference object.
-
-    Returns:
-        Mapping of axis name to unit world Vector.
-    """
+    """Return unit world X/Y/Z axes of ``frame``, keyed by axis name."""
     if frame == Frame.WORLD:
         return world_axes()
     if frame == Frame.LOCAL:

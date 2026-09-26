@@ -56,11 +56,11 @@ opts = get_options(ctx)
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete()
 
-# ── Item 9: drag start on a 400-object scene ─────────────────────────────────
+# ── Drag start on a 400-object scene ─────────────────────────────────────────
 N_LIGHT, N_HEAVY = 390, 10
 for i in range(N_LIGHT):
     bpy.ops.mesh.primitive_cube_add(location=((i % 20) * 3.0, (i // 20) * 3.0, 0.0))
-for i in range(N_HEAVY):  # ~50k tris each: BVH builds used to dominate
+for i in range(N_HEAVY):  # ~50k tris each
     bpy.ops.mesh.primitive_uv_sphere_add(
         segments=160, ring_count=160, radius=1.0, location=(i * 3.0, -10.0, 0.0)
     )
@@ -142,7 +142,7 @@ ctx.view_layer.update()
 snapshot(True).surface_index.query_nearest(side, 1.0)
 check(scene_cache.stats.bvh_builds == 2, "a geometry edit rebuilds that BVH")
 
-# ── Item 10: Edit Mode ticks on a dense mesh ─────────────────────────────────
+# ── Edit Mode ticks on a dense mesh ──────────────────────────────────────────
 bpy.ops.object.select_all(action="DESELECT")
 bpy.ops.mesh.primitive_grid_add(
     x_subdivisions=500, y_subdivisions=500, size=10.0, location=(0.0, 0.0, 20.0)

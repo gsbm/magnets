@@ -1,8 +1,7 @@
 """Distribution solver: equal gaps between distinct objects.
 
-Supports rhythm (extend an even row) and equalize (center between neighbours).
-Uses ``SolveContext.spacing_metric`` (``center`` / ``edge`` / ``both``). Shares
-family ``spacing`` with the internal-span spacing solver.
+Supports rhythm (extend an even row) and equalize (center between
+neighbours), measured per ``SolveContext.spacing_metric``.
 """
 
 from __future__ import annotations
@@ -34,7 +33,7 @@ def _by_entity(points: list[PointFeature]) -> dict[str, list[PointFeature]]:
 
 
 def _representative(points: list[PointFeature]) -> PointFeature:
-    """The highest-priority point of an entity (origin/centroid) as its centre."""
+    """Return an entity's highest-priority point (origin/centroid) as its centre."""
     return max(points, key=lambda p: p.priority)
 
 
@@ -52,16 +51,7 @@ class DistributionSolver(Solver):
         candidates: list[PointFeature],
         ctx: SolveContext,
     ) -> list[Relationship]:
-        """Evaluate moving features against candidates.
-
-        Args:
-            moving: Features from the transformed selection.
-            candidates: Nearby static features.
-            ctx: Shared solve parameters.
-
-        Returns:
-            Candidate relationships.
-        """
+        """Return relationships between ``moving`` and ``candidates`` features."""
         tol = ctx.world_tol
         metric = getattr(ctx, "spacing_metric", "both")
         want_center = metric in ("center", "both")

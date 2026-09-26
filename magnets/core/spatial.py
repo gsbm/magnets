@@ -1,8 +1,7 @@
 """Spatial indexes for broad-phase candidate queries.
 
-Provides KDTree (default), uniform hash grid, and a BVH placeholder. All share
-the same query interface so the pipeline can swap strategies without touching
-callers.
+KDTree (default), uniform hash grid, and brute-force BVH stand-in share one
+query interface, so strategies are swappable.
 """
 
 from __future__ import annotations
@@ -27,28 +26,12 @@ class SpatialIndex(ABC):
 
     @abstractmethod
     def query_radius(self, center: Vector, radius: float) -> list:
-        """Return payloads within ``radius`` of ``center``.
-
-        Args:
-            center: Query origin.
-            radius: Search radius.
-
-        Returns:
-            Matching payloads.
-        """
+        """Return payloads within ``radius`` of ``center``."""
         ...
 
     @abstractmethod
     def query_nearest(self, center: Vector, n: int) -> list:
-        """Return up to ``n`` nearest payloads to ``center``.
-
-        Args:
-            center: Query origin.
-            n: Maximum results.
-
-        Returns:
-            Nearest payloads.
-        """
+        """Return up to ``n`` nearest payloads to ``center``."""
         ...
 
 
@@ -69,30 +52,14 @@ class PointIndex(SpatialIndex):
         return len(self._items)
 
     def query_radius(self, center: Vector, radius: float) -> list:
-        """Return payloads within ``radius`` of ``center``.
-
-        Args:
-            center: Query origin.
-            radius: Search radius.
-
-        Returns:
-            Matching payloads.
-        """
+        """Return payloads within ``radius`` of ``center``."""
         if self._tree is not None:
             return [self._items[i][1] for (_co, i, _d) in self._tree.find_range(center, radius)]
         r2 = radius * radius
         return [p for (co, p) in self._items if (co - center).length_squared <= r2]
 
     def query_nearest(self, center: Vector, n: int) -> list:
-        """Return up to ``n`` nearest payloads to ``center``.
-
-        Args:
-            center: Query origin.
-            n: Maximum results.
-
-        Returns:
-            Nearest payloads.
-        """
+        """Return up to ``n`` nearest payloads to ``center``."""
         if n <= 0 or not self._items:
             return []
         if self._tree is not None:
@@ -119,15 +86,7 @@ class HashGridIndex(SpatialIndex):
         return len(self._items)
 
     def query_radius(self, center: Vector, radius: float) -> list:
-        """Return payloads within ``radius`` of ``center``.
-
-        Args:
-            center: Query origin.
-            radius: Search radius.
-
-        Returns:
-            Matching payloads.
-        """
+        """Return payloads within ``radius`` of ``center``."""
         r2 = radius * radius
         cells = int(radius / self._cell_size) + 1
         cx, cy, cz = self._cell_key(center)
@@ -146,15 +105,7 @@ class HashGridIndex(SpatialIndex):
         return out
 
     def query_nearest(self, center: Vector, n: int) -> list:
-        """Return up to ``n`` nearest payloads to ``center``.
-
-        Args:
-            center: Query origin.
-            n: Maximum results.
-
-        Returns:
-            Nearest payloads.
-        """
+        """Return up to ``n`` nearest payloads to ``center``."""
         if n <= 0 or not self._items:
             return []
         ordered = sorted(self._items, key=lambda it: (it[0] - center).length_squared)
@@ -162,10 +113,7 @@ class HashGridIndex(SpatialIndex):
 
 
 class BVHIndex(SpatialIndex):
-    """Placeholder for mesh/surface broad phase (Phase 6 tangency).
-
-    Currently delegates to brute-force point queries over injected items.
-    """
+    """Brute-force stand-in for a mesh/surface broad phase."""
 
     def __init__(self, items: list[tuple[Vector, object]]):
         self._items = list(items)
@@ -174,28 +122,12 @@ class BVHIndex(SpatialIndex):
         return len(self._items)
 
     def query_radius(self, center: Vector, radius: float) -> list:
-        """Return payloads within ``radius`` of ``center``.
-
-        Args:
-            center: Query origin.
-            radius: Search radius.
-
-        Returns:
-            Matching payloads.
-        """
+        """Return payloads within ``radius`` of ``center``."""
         r2 = radius * radius
         return [p for (co, p) in self._items if (co - center).length_squared <= r2]
 
     def query_nearest(self, center: Vector, n: int) -> list:
-        """Return up to ``n`` nearest payloads to ``center``.
-
-        Args:
-            center: Query origin.
-            n: Maximum results.
-
-        Returns:
-            Nearest payloads.
-        """
+        """Return up to ``n`` nearest payloads to ``center``."""
         if n <= 0 or not self._items:
             return []
         ordered = sorted(self._items, key=lambda it: (it[0] - center).length_squared)
@@ -207,15 +139,10 @@ def build_point_index(
     strategy: str = "kdtree",
     cell_size: float = 1.0,
 ) -> SpatialIndex:
-    """Build a spatial index over ``(coordinate, payload)`` pairs.
+    """Build a spatial index over ``(co, payload)`` pairs.
 
-    Args:
-        items: Points to index.
-        strategy: ``kdtree`` (default), ``hash``, or ``bvh``.
-        cell_size: Hash-grid cell size when ``strategy='hash'``.
-
-    Returns:
-        Concrete ``SpatialIndex`` implementation.
+    ``strategy`` is ``kdtree`` (default), ``hash`` or ``bvh``; ``cell_size``
+    applies to ``hash`` only.
     """
     if strategy == "hash":
         return HashGridIndex(items, cell_size)
@@ -232,17 +159,9 @@ def broad_phase(
     radius_factor: float = 20.0,
     nearest_fallback: int = 64,
 ) -> list:
-    """Query nearby candidates; fall back to nearest-K if the radius is empty.
+    """Return candidates near ``center``, else the ``nearest_fallback`` nearest.
 
-    Args:
-        index: Broad-phase index.
-        center: Query origin in world space.
-        passive_world: Passive snap range used to scale the query radius.
-        radius_factor: Multiplier applied to ``passive_world``.
-        nearest_fallback: Count used when the radius query returns nothing.
-
-    Returns:
-        Candidate payloads near ``center``.
+    The query radius is ``passive_world * radius_factor``.
     """
     radius = max(passive_world * radius_factor, 1e-6)
     found = index.query_radius(center, radius)

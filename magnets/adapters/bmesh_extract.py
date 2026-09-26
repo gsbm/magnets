@@ -107,14 +107,10 @@ def _bbox_pool(obj, lo: Vector, hi: Vector) -> FeaturePool:
 class EditSelection:
     """The selected part of an edit mesh, captured once per drag.
 
-    Scanning every vertex, edge and face of the mesh on each tick made Edit
-    Mode drags on dense meshes crawl (~30 ms per tick with 64 of 250k vertices
-    selected, ~700 ms with half the mesh). The one full scan now happens here;
-    ticks touch only the selection (small ones) or a fixed sample (large ones).
-
-    Element references stay valid while the transform runs because it moves
-    vertices without changing topology. ``ReferenceError`` means the edit mesh
-    was rebuilt; callers then capture a new selection.
+    Ticks then touch only the selection (small) or a fixed sample (large)
+    instead of rescanning the mesh. References stay valid while the transform
+    runs, as topology does not change; ``ReferenceError`` means the edit mesh
+    was rebuilt and the caller must recapture.
     """
 
     def __init__(self, obj, bm):
@@ -163,7 +159,7 @@ class EditSelection:
         return mw @ (self._centroid_start + shift / len(self._sample))
 
     def feature_pool(self) -> FeaturePool:
-        """Moving features for the current vertex positions."""
+        """Return the moving features at the current vertex positions."""
         obj = self.obj
         if self.detailed:
             pool = _detailed_pool(obj, self.verts, self.edges, self.faces)
@@ -182,15 +178,10 @@ class EditSelection:
 
 
 def apply_edit_translation(obj, bm, delta: Vector, verts=None, update_normals=True):
-    """Translate selected mesh elements in world space.
+    """Translate the selected mesh elements by world-space ``delta``.
 
-    Args:
-        obj: Blender mesh object in Edit Mode.
-        bm: Active bmesh for ``obj``.
-        delta: World-space translation.
-        verts: The selected vertices, when already known (skips a full scan).
-        update_normals: Recompute normals (a full-mesh pass). Interactive
-            callers skip it per event and refresh once when done.
+    Passing ``verts`` skips a selection scan. ``update_normals`` costs a
+    full-mesh pass, so interactive callers refresh once when done.
     """
     inv = obj.matrix_world.inverted()
     local_delta = inv.to_3x3() @ delta

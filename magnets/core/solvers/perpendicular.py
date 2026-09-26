@@ -19,16 +19,7 @@ class PerpendicularSolver(Solver):
         return (FeatureType.LINE, FeatureType.LINE)
 
     def solve(self, moving: list[LineFeature], candidates: list[LineFeature], ctx: SolveContext):
-        """Evaluate moving features against candidates.
-
-        Args:
-            moving: Features from the transformed selection.
-            candidates: Nearby static features.
-            ctx: Shared solve parameters.
-
-        Returns:
-            Candidate relationships.
-        """
+        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         for m in moving:

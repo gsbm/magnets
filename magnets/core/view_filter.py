@@ -20,10 +20,9 @@ def guide_direction_visible(
     *,
     parallel_threshold: float = 0.15,
 ) -> bool:
-    """Return False when a guide runs into/out of the screen (2D ortho view).
+    """Return False when a guide runs into or out of the screen.
 
-    Visible guides lie in the view plane: their direction is perpendicular to
-    the view normal (camera look direction).
+    Visible guides lie in the view plane, perpendicular to the view normal.
     """
     if view_normal.length_squared < 1e-12 or direction.length_squared < 1e-12:
         return True
@@ -38,16 +37,7 @@ def relationship_visible_in_view(
     *,
     parallel_threshold: float = 0.15,
 ) -> bool:
-    """Return False if this relationship should be hidden and non-magnetic.
-
-    Args:
-        rel: Relationship to test.
-        view_normal: Camera look direction, or None to keep visible.
-        parallel_threshold: Threshold for edge-on / into-screen culling.
-
-    Returns:
-        Whether the guide should remain active.
-    """
+    """Return False if ``rel`` should be hidden and non-magnetic in this view."""
     if view_normal is None:
         return True
 
@@ -82,15 +72,7 @@ def filter_relationships_for_view(
     rels: list[Relationship],
     view_normal: Vector | None,
 ) -> list[Relationship]:
-    """Drop relationships invisible in the current view.
-
-    Args:
-        rels: Candidate relationships.
-        view_normal: Camera look direction, or None to keep all.
-
-    Returns:
-        Filtered list.
-    """
+    """Drop relationships invisible in the view (``view_normal`` None keeps all)."""
     if view_normal is None:
         return rels
     return [rel for rel in rels if relationship_visible_in_view(rel, view_normal)]
@@ -100,16 +82,7 @@ def restrict_snap_axes(
     rels: list[Relationship],
     enabled_axes: set[str],
 ) -> list[Relationship]:
-    """Drop alignment relationships whose axis is not in ``enabled_axes``.
-
-    Args:
-        rels: Candidate relationships.
-        enabled_axes: Subset of ``{"X", "Y", "Z"}``. Non-alignment families
-            are unchanged.
-
-    Returns:
-        Filtered relationship list.
-    """
+    """Drop alignment relationships whose axis is not in ``enabled_axes``."""
     return [
         rel
         for rel in rels

@@ -1,8 +1,7 @@
 """Score, rank, and suppress overlapping guide candidates.
 
-Screen-space distances are supplied by adapters; ranking itself has no bpy
-dependency. Score combines family priority, feature priority, screen proximity,
-and residual tightness.
+Screen-space distances are supplied by adapters. The score combines family
+priority, feature priority, screen proximity, and residual tightness.
 """
 
 from __future__ import annotations
@@ -38,16 +37,9 @@ def relationship_score(
     passive_px: float,
     world_tol: float,
 ) -> float:
-    """Compute a ranking score for a candidate relationship.
+    """Return a ranking score, higher is better.
 
-    Args:
-        rel: Candidate relationship.
-        screen_dist_px: Screen-space distance from pointer to guide anchor.
-        passive_px: Passive (visible) snap radius in pixels.
-        world_tol: World-space residual tolerance.
-
-    Returns:
-        Score where higher is better. Family priority dominates pixel distance.
+    Family priority dominates; screen proximity and residual refine it.
     """
     w_type = FAMILY_PRIORITY.get(rel.family, 0)
     w_feature = rel.base_priority
@@ -65,15 +57,7 @@ def relationship_score(
 
 
 def screen_score(family: str, screen_dist_px: float) -> float:
-    """Legacy family/screen score used by existing unit tests.
-
-    Args:
-        family: Marker family id.
-        screen_dist_px: Screen-space distance in pixels.
-
-    Returns:
-        Simple priority-minus-distance score.
-    """
+    """Return a family-priority-minus-distance score (legacy, used by tests)."""
     return FAMILY_PRIORITY.get(family, 0) * _TYPE_WEIGHT - screen_dist_px
 
 
@@ -105,15 +89,8 @@ def rank(
 ) -> tuple[list[RankItem], list[RankItem]]:
     """Filter, score-sort, and keep at most one guide per snap slot.
 
-    Args:
-        items: Scored candidates.
-        passive_px: Maximum screen distance for a guide to remain visible.
-        top_k: Maximum number of guides to keep.
-        nms_px: Unused; retained for call-site compatibility.
-
-    Returns:
-        ``(kept, visible)`` where ``kept`` is the top-K after slot suppression
-        and ``visible`` is every item within ``passive_px``.
+    Returns ``(kept, visible)``: the top ``top_k`` after slot suppression, and
+    every item within ``passive_px``. ``nms_px`` is unused.
     """
     del nms_px  # one-per-slot suppression replaces pixel NMS
     visible = [it for it in items if it.screen_dist <= passive_px]

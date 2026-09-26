@@ -44,24 +44,7 @@ def object_feature_pool(
     use_bbox: bool = True,
     use_circles: bool = True,
 ) -> FeaturePool:
-    """Extract a FeaturePool for one Blender object.
-
-    Args:
-        obj: Blender object.
-        use_origin: Include object origin.
-        use_pivot: Include pivot point.
-        use_corners: Include bbox corners.
-        use_face_centers: Include bbox face centers.
-        use_centroid: Include bbox centroid.
-        use_edges: Include bbox edges as lines.
-        use_face_planes: Include bbox face planes.
-        use_axes: Include local axes as directions.
-        use_bbox: Include BBoxFeature.
-        use_circles: Include derived circle features when applicable.
-
-    Returns:
-        FeaturePool for ``obj``.
-    """
+    """Extract a FeaturePool for ``obj``; ``use_*`` flags select feature kinds."""
     mw = obj.matrix_world
     ref = EntityRef(name=obj.name)
     pool = FeaturePool()
@@ -146,29 +129,12 @@ def object_feature_pool(
 
 
 def object_point_features(obj, **kwargs) -> list[PointFeature]:
-    """Extract point features for one object.
-
-    Args:
-        obj: Blender object.
-        **kwargs: Forwarded to ``object_feature_pool``.
-
-    Returns:
-        List of PointFeature values.
-    """
+    """Return the point features of ``obj``."""
     return object_feature_pool(obj, **kwargs).points
 
 
 def candidate_feature_pool(context, exclude, **kwargs) -> FeaturePool:
-    """Build a FeaturePool for candidate objects in the view layer.
-
-    Args:
-        context: Blender context.
-        exclude: Objects to skip.
-        **kwargs: Forwarded to ``entity_feature_pool``.
-
-    Returns:
-        Combined FeaturePool.
-    """
+    """Build a FeaturePool of view-layer objects, skipping ``exclude``."""
     from . import scene_cache
 
     exclude_names = {o.name for o in exclude}
@@ -185,14 +151,5 @@ def candidate_feature_pool(context, exclude, **kwargs) -> FeaturePool:
 
 
 def candidate_features(context, exclude, **kwargs) -> list[PointFeature]:
-    """Flatten candidate point features for proximity queries.
-
-    Args:
-        context: Blender context.
-        exclude: Objects to skip.
-        **kwargs: Forwarded to extractors.
-
-    Returns:
-        Flat list of PointFeature values.
-    """
+    """Return candidate point features as a flat list for proximity queries."""
     return candidate_feature_pool(context, exclude, **kwargs).points

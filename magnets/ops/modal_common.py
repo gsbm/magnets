@@ -52,7 +52,7 @@ class AxisConstraint:
         return out
 
     def axis_vector(self) -> Vector | None:
-        """Unit world vector for the locked axis, or None."""
+        """Return the unit world vector of the locked axis, or None."""
         if self.index is None:
             return None
         v = Vector((0.0, 0.0, 0.0))
@@ -61,17 +61,12 @@ class AxisConstraint:
 
 
 def is_nav_event(event) -> bool:
-    """True if the event should pass through for viewport zoom."""
+    """Return True if the event should pass through for viewport zoom."""
     return event.type in _NAV_PASSTHROUGH
 
 
 def set_header(context, text: str) -> None:
-    """Set the 3D View header text during a modal.
-
-    Args:
-        context: Blender context.
-        text: Header string.
-    """
+    """Set the 3D View header text during a modal."""
     area = getattr(context, "area", None)
     if area is not None:
         area.header_text_set(text)

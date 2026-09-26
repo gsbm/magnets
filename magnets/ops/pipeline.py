@@ -47,16 +47,7 @@ from ..properties import (
 
 
 def world_per_pixel(region, rv3d, depth_co: Vector) -> float:
-    """World units per screen pixel at ``depth_co``.
-
-    Args:
-        region: 3D region.
-        rv3d: Region view 3D.
-        depth_co: World depth reference.
-
-    Returns:
-        World length of one pixel.
-    """
+    """Return the world length of one screen pixel at ``depth_co``."""
     a = view3d_utils.region_2d_to_location_3d(region, rv3d, (0.0, 0.0), depth_co)
     b = view3d_utils.region_2d_to_location_3d(region, rv3d, (1.0, 0.0), depth_co)
     return (a - b).length or 1e-6
@@ -97,17 +88,7 @@ class InferenceResult:
 
 
 def screen_metrics(region, rv3d, rel: Relationship):
-    """Screen distance and anchor for a relationship.
-
-    Args:
-        region: 3D region.
-        rv3d: Region view 3D.
-        rel: Relationship.
-        cursor: Optional cursor region coordinates.
-
-    Returns:
-        ``(screen_dist_px, screen_anchor)``.
-    """
+    """Return ``(screen_dist_px, screen_anchor)`` for ``rel``."""
     moving_co = rel.moving_co
     snapped = moving_co + rel.delta.translation
     a = view3d_utils.location_3d_to_region_2d(region, rv3d, moving_co)
@@ -134,21 +115,9 @@ def run_inference(
     transform_mode: TransformMode = TransformMode.TRANSLATE,
     frozen_world_tol: float | None = None,
 ) -> InferenceResult:
-    """Run extract → solve → rank → resolve for one modal event.
+    """Run extract, solve, rank and resolve for one modal event.
 
-    Args:
-        context: Blender context.
-        region: Active 3D region.
-        rv3d: Region view 3D.
-        snapshot: Cached scene features for the interaction.
-        moving: Features for the transformed selection.
-        anchor_world: World-space anchor used for screen projection.
-        snap: Engage/hold/break hysteresis state.
-        transform_mode: Translate, rotate, or scale.
-        frozen_world_tol: Optional fixed world tolerance overriding pixel scale.
-
-    Returns:
-        Ranked guides and the resolved transform deltas.
+    ``frozen_world_tol`` overrides the pixel-derived world tolerance.
     """
     options = get_options(context)
     if not options.enabled:
@@ -313,17 +282,15 @@ def _fade_alpha(
     is_active: bool,
     fade_enabled: bool,
 ) -> tuple:
-    """Return colour with proximity-faded alpha.
+    """Return ``color`` with proximity-faded alpha.
 
-    Active guides are always full alpha.  Passive guides ramp from ~20 % at
-    the edge of the passive zone to 100 % at snap distance.
+    Active guides are opaque; passive ones ramp from ~20 % at the passive zone
+    edge to 100 % at snap distance.
     """
     r, g, b, a = color
     if is_active or not fade_enabled:
         return (r, g, b, a)
-    # Normalised distance: 0 = right on target, 1 = at passive zone edge
     t = max(0.0, min(1.0, screen_dist / max(passive_px, 1.0)))
-    # Fade: starts at 20 % and grows to 100 % as t → 0
     fade = 0.20 + 0.80 * (1.0 - t)
     return (r, g, b, a * fade)
 
@@ -331,10 +298,9 @@ def _fade_alpha(
 def _segment_intersection_3d(
     a0: Vector, a1: Vector, b0: Vector, b1: Vector, tol: float
 ) -> Vector | None:
-    """Closest point between two line segments in 3D (for intersection dots).
+    """Return the midpoint of the closest approach of two 3D segments, or None.
 
-    Returns the midpoint of the closest approach if the lines pass within
-    ``tol`` (world units) of each other, otherwise None.
+    None when the segments stay farther than ``tol`` apart.
     """
     da = a1 - a0
     db = b1 - b0
@@ -378,15 +344,8 @@ def push_guides(
 ):
     """Push ranked guides and the landing preview into the draw handler.
 
-    Args:
-        context: Blender context.
-        region: 3D region.
-        rv3d: Region view 3D.
-        result: Inference output for this tick.
-        depth_co: World point whose depth sizes screen-relative geometry.
-        ghost_co: Landing point of the selection anchor (translate ring).
-        ghost_edges: Bounding-box outlines of the snapped pose.
-        preview_labels: ``(world_pos, text)`` notes such as ``→ 45°``.
+    ``depth_co`` sizes screen-relative geometry; ``ghost_co`` and ``ghost_edges``
+    show the snapped landing; ``preview_labels`` are ``(world_pos, text)`` notes.
     """
     options = get_options(context)
     prefs = get_prefs(context)
@@ -423,7 +382,6 @@ def push_guides(
     labels = []
     tick_size = wpp * 8.0 * px
 
-    # Collect guide segments keyed for intersection detection
     active_segments: list[tuple[Vector, Vector]] = []
 
     for item in ranked:
@@ -445,7 +403,6 @@ def push_guides(
             base_color = passive_color
         color = _fade_alpha(base_color, item.screen_dist, passive_px, is_active, fade_enabled)
 
-        # Build world-space segments
         if extend_vp and isinstance(rel.guide, GuideLine):
             segs = [_span_guide_line(rel.guide, span_extent)]
         else:
@@ -458,7 +415,7 @@ def push_guides(
             if is_active:
                 active_segments.append(seg)
 
-        # Ticks at the two reference points (not on spanning lines)
+        # Ticks mark the two reference points, not the spanning line's ends.
         if options.show_guide_ticks and isinstance(rel.guide, GuideLine):
             tick_color = (color[0], color[1], color[2], color[3] * 0.85)
             for ta, tb in guide_ticks(
@@ -466,7 +423,6 @@ def push_guides(
             ):
                 tick_items.append(GuideDrawItem(a=ta, b=tb, color=tick_color))
 
-        # Snap dot: place at the target feature anchor
         if is_active and prefs.show_snap_dot:
             snap_dots.append((feature_anchor(rel.target), color))
 
@@ -477,7 +433,6 @@ def push_guides(
             anchor_co = feature_anchor(rel.target)
             labels.append(((anchor_co + moving_co) * 0.5, rel.label, hint, color))
 
-    # Intersection dots between all pairs of active segments
     if prefs.show_intersection_dot and len(active_segments) >= 2:
         tol = wpp * _INTERSECT_PX * px
         for i, (a0, a1) in enumerate(active_segments):
@@ -516,43 +471,21 @@ def push_guides(
 
 
 def set_world_location(obj, world_co: Vector):
-    """Set an object's world translation.
-
-    Args:
-        obj: Blender object.
-        location: World-space location.
-    """
+    """Set ``obj``'s world translation to ``world_co``."""
     mw = obj.matrix_world.copy()
     mw.translation = world_co
     obj.matrix_world = mw
 
 
 def apply_object_rotation(obj, axis: Vector, angle: float, pivot: Vector):
-    """Apply a rotation delta about ``pivot``.
-
-    Args:
-        obj: Blender object.
-        axis: Rotation axis.
-        angle: Angle in radians.
-        pivot: World-space pivot.
-    """
+    """Rotate ``obj`` by ``angle`` (radians) about ``axis`` through ``pivot``."""
     if abs(angle) < 1e-9:
         return
-    # Delegate to the unit-tested core helper so the rotate math lives in one
-    # place. Setting the translation before ``rot @ mw`` (as this used to) would
-    # re-rotate the origin twice, orbiting an off-world-origin object about the
-    # pivot instead of spinning it in place.
     obj.matrix_world = rotated_matrix(obj.matrix_world, axis, angle, pivot)
 
 
 def apply_object_scale(obj, scale: Vector, pivot: Vector):
-    """Apply a scale delta about ``pivot``.
-
-    Args:
-        obj: Blender object.
-        scale: Per-axis scale factors.
-        pivot: World-space pivot.
-    """
+    """Scale ``obj`` per axis by ``scale`` about ``pivot``."""
     if abs(scale.x - 1.0) < 1e-9 and abs(scale.y - 1.0) < 1e-9 and abs(scale.z - 1.0) < 1e-9:
         return
     mw = obj.matrix_world.copy()

@@ -232,10 +232,8 @@ def test_solve_context_carries_frame():
 def test_break_blocks_only_the_guide_that_broke():
     """A guide parked in the snap zone must not keep snapping disabled.
 
-    Regression: after any break, re-engaging waited for the *best* candidate
-    to leave the zone. A relationship held at a fixed distance (already
-    satisfied, or pinned by an axis lock) never leaves, so snapping stayed
-    dead for the rest of the drag.
+    A satisfied or axis-locked guide never leaves the zone, so waiting for
+    the best candidate to leave would disable snapping for the whole drag.
     """
     snap = SnapHysteresis()
     x_key = ("alignment", "X", "A")

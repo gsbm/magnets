@@ -1,8 +1,7 @@
-"""Ranking/active-set regression tests for the even-spacing engagement fix.
+"""Ranking and active-set tests for secondary snaps (e.g. even spacing).
 
-These lock the two shared-engine changes that let distribution (and any other
-secondary-family) snap engage in an aligned row: one guide per slot in ranking,
-and snap-tolerance (not release-tolerance) gating for *newly* engaged secondaries.
+Covers one guide per slot in ranking, and snap-tolerance (not
+release-tolerance) gating for newly engaged secondaries.
 """
 
 from core.features import PointFeature, PointKind

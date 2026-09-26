@@ -15,18 +15,9 @@ def dash_segments(
     gap: float = 0.08,
     max_count: int | None = None,
 ):
-    """Return dashed world-space segments along a→b.
+    """Return dashed segments from ``a`` to ``b``.
 
-    Args:
-        a: Segment start.
-        b: Segment end.
-        dash: Dash length.
-        gap: Gap length.
-        max_count: Optional cap on the dash count; beyond it dash and gap
-            grow proportionally so a very long line stays cheap to draw.
-
-    Returns:
-        List of ``(p0, p1)`` pairs.
+    Past ``max_count`` dashes, dash and gap grow so long lines stay cheap.
     """
     ab = b - a
     length = ab.length
@@ -49,16 +40,7 @@ def dash_segments(
 
 
 def extend_segment(a: Vector, b: Vector, margin: float = 0.2):
-    """Extend a→b by ``margin`` fraction on each side.
-
-    Args:
-        a: Segment start.
-        b: Segment end.
-        margin: Fractional extension.
-
-    Returns:
-        Extended ``(p0, p1)``.
-    """
+    """Extend ``a``-``b`` by the ``margin`` fraction on each side."""
     d = b - a
     return (a - d * margin, b + d * margin)
 
@@ -69,16 +51,9 @@ def axis_parallel_segment(
     extent_point: Vector,
     margin: float = 0.25,
 ):
-    """Build a segment along ``direction`` through ``anchor``.
+    """Return ``(p0, p1)`` along ``direction`` through ``anchor``.
 
-    Args:
-        anchor: Point on the guide axis.
-        direction: Guide direction.
-        extent_point: Point used to size the segment.
-        margin: Fractional extension.
-
-    Returns:
-        ``(p0, p1)`` endpoints.
+    The segment reaches ``extent_point``, extended by the ``margin`` fraction.
     """
     if direction.length_squared == 0.0:
         return (anchor.copy(), anchor.copy())
@@ -103,16 +78,7 @@ def endpoint_ticks(
     direction: Vector,
     size: float = 0.08,
 ) -> tuple[tuple[Vector, Vector], tuple[Vector, Vector]]:
-    """Perpendicular tick marks at a segment endpoint.
-
-    Args:
-        point: Tick center.
-        direction: Guide direction.
-        size: Tick length.
-
-    Returns:
-        Tick segment endpoints.
-    """
+    """Return a tick of length ``size`` across ``direction`` at ``point``."""
     n = _perpendicular_unit(direction)
     half = size * 0.5
     a = point - n * half
@@ -126,17 +92,7 @@ def guide_ticks(
     direction: Vector,
     size: float = 0.08,
 ) -> list[tuple[Vector, Vector]]:
-    """Tick marks along a guide segment.
-
-    Args:
-        anchor: Guide anchor.
-        extent: Extent point.
-        direction: Guide direction.
-        size: Tick size.
-
-    Returns:
-        List of tick segments.
-    """
+    """Return ticks across ``direction`` at ``anchor`` and ``extent``."""
     return [endpoint_ticks(anchor, direction, size), endpoint_ticks(extent, direction, size)]
 
 
@@ -165,17 +121,7 @@ def circle_2d_line_pairs(
     radius: float,
     segments: int = 20,
 ) -> list[tuple[tuple[float, float], tuple[float, float]]]:
-    """Return consecutive screen-space pairs outlining a circle.
-
-    Args:
-        cx: Center X in pixels.
-        cy: Center Y in pixels.
-        radius: Radius in pixels.
-        segments: Number of segments.
-
-    Returns:
-        List of ``((x0, y0), (x1, y1))`` pairs.
-    """
+    """Return consecutive screen-space pairs outlining a circle."""
     verts = circle_2d_verts(cx, cy, radius, segments)
     pairs = []
     n = len(verts)
@@ -189,16 +135,7 @@ def square_2d_verts(
     cy: float,
     half: float,
 ) -> list[tuple[tuple[float, float], tuple[float, float]]]:
-    """Return four screen-space corners of an axis-aligned square.
-
-    Args:
-        cx: Center X.
-        cy: Center Y.
-        half: Half side length.
-
-    Returns:
-        Tuple of four ``(x, y)`` corners.
-    """
+    """Return the four corners of a screen-space square."""
     tl = (cx - half, cy + half)
     tr = (cx + half, cy + half)
     br = (cx + half, cy - half)
@@ -211,16 +148,7 @@ def crosshair_2d_verts(
     cy: float,
     half: float,
 ) -> list[tuple[tuple[float, float], tuple[float, float]]]:
-    """Return screen-space crosshair line pairs.
-
-    Args:
-        cx: Center X.
-        cy: Center Y.
-        half: Half arm length.
-
-    Returns:
-        Horizontal and vertical segment pairs.
-    """
+    """Return horizontal and vertical screen-space crosshair line pairs."""
     return [
         ((cx - half, cy), (cx + half, cy)),
         ((cx, cy - half), (cx, cy + half)),

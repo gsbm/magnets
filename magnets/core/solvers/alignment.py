@@ -16,7 +16,7 @@ from .base import SolveContext, Solver
 
 
 def _fallback_perp(direction: Vector) -> Vector:
-    """A unit vector perpendicular to ``direction`` (for a degenerate guide)."""
+    """Return a unit vector perpendicular to ``direction`` (degenerate guide)."""
     ref = Vector((0.0, 0.0, 1.0)) if abs(direction.z) < 0.9 else Vector((1.0, 0.0, 0.0))
     perp = direction.cross(ref)
     return perp.normalized() if perp.length > 1e-9 else Vector((0.0, 1.0, 0.0))
@@ -31,16 +31,7 @@ class AlignmentSolver(Solver):
         return (FeatureType.POINT, FeatureType.POINT)
 
     def solve(self, moving: list[PointFeature], candidates: list[PointFeature], ctx: SolveContext):
-        """Evaluate moving features against candidates.
-
-        Args:
-            moving: Features from the transformed selection.
-            candidates: Nearby static features.
-            ctx: Shared solve parameters.
-
-        Returns:
-            Candidate relationships.
-        """
+        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         for m in moving:
@@ -80,9 +71,10 @@ class AlignmentSolver(Solver):
 
 
 class EdgeAlignmentSolver(Solver):
-    """Per-axis alignment for parallel edges, the edge counterpart of
-    ``AlignmentSolver``. Requires true parallelism (not just a coincidental
-    shared coordinate) before an axis engages.
+    """Per-axis alignment for parallel edges.
+
+    Unlike ``AlignmentSolver``, an axis engages only for truly parallel edges,
+    not a coincidental shared coordinate.
     """
 
     family = "alignment"
@@ -92,16 +84,7 @@ class EdgeAlignmentSolver(Solver):
         return (FeatureType.LINE, FeatureType.LINE)
 
     def solve(self, moving: list[LineFeature], candidates: list[LineFeature], ctx: SolveContext):
-        """Evaluate moving features against candidates.
-
-        Args:
-            moving: Features from the transformed selection.
-            candidates: Nearby static features.
-            ctx: Shared solve parameters.
-
-        Returns:
-            Candidate relationships.
-        """
+        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         for m in moving:

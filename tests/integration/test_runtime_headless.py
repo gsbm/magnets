@@ -1,11 +1,8 @@
-"""Headless coverage for the bpy-dependent runtime surface.
+"""Headless coverage for the bpy-dependent runtime.
 
-The fast unit suite only exercises the ``bpy``-free core. This module drives the
-parts that *require* Blender - the crash-safe timer/draw wrappers, multi-window
-viewport selection, the undo-collapse helpers, and object extraction - inside a
-real ``blender --background`` process. Skipped when no Blender binary is found.
-
-Point the runner at Blender via ``BLENDER_BIN`` or have ``blender`` on PATH.
+Runs the crash-safe timer/draw wrappers, viewport selection, undo-collapse
+helpers and extraction in ``blender --background``. Skipped when no Blender
+binary is found (``BLENDER_BIN`` or ``blender`` on PATH).
 """
 
 import os

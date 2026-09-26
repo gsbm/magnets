@@ -32,20 +32,8 @@ class InteractionSnapshot:
     ):
         """Build a snapshot from the current Blender context.
 
-        Object features come from a cache that survives between drags (see
-        ``scene_cache``), so only objects changed since the last drag are
-        re-extracted.
-
-        Args:
-            context: Blender context.
-            exclude: Objects to skip.
-            surfaces: Collect surface candidates (only tangency needs them).
-            strategy: Spatial index strategy.
-            cell_size: Hash-grid cell size.
-            **extract_kwargs: Forwarded to feature extractors.
-
-        Returns:
-            InteractionSnapshot instance.
+        ``surfaces`` collects surface candidates (only tangency needs them);
+        ``extract_kwargs`` are forwarded to the feature extractors.
         """
         from .extract import candidate_feature_pool
 

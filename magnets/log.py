@@ -20,7 +20,7 @@ def set_debug(enabled: bool) -> None:
 
 
 def debug_enabled() -> bool:
-    """True when DEBUG logging is enabled."""
+    """Return True when DEBUG logging is enabled."""
     return _logger.isEnabledFor(logging.DEBUG)
 
 

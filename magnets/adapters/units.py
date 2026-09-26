@@ -4,11 +4,7 @@ from __future__ import annotations
 
 
 def scene_unit_info(context) -> tuple[float, str]:
-    """Return ``(scale, suffix)`` for displaying world-unit distances.
-
-    Blender's unit scale maps one Blender Unit to ``unit_settings.scale_length``
-    real-world units. We show distances in meters by default.
-    """
+    """Return ``(scale, suffix)`` for displaying world-unit distances."""
     scale = context.scene.unit_settings.scale_length or 1.0
     system = context.scene.unit_settings.system
 
@@ -23,9 +19,8 @@ def scene_unit_info(context) -> tuple[float, str]:
 def length_formatter(context):
     """Return a callable formatting world lengths in the scene's units.
 
-    Uses Blender's own unit display (``1.2 mm``, ``4.84"``, ``2.5 km``) so guide
-    labels read like the rest of the UI. Returns None when unavailable, which
-    makes labels fall back to plain numbers.
+    Uses Blender's unit display (``1.2 mm``, ``2.5 km``) so labels match the UI.
+    Returns None when unavailable; labels then fall back to plain numbers.
     """
     try:
         from bpy.utils import units

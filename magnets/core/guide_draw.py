@@ -30,16 +30,9 @@ def axis_parallel_segment(
     extent_point: Vector,
     margin: float = 0.25,
 ):
-    """Build a segment along ``direction`` through ``anchor``.
+    """Return ``(p0, p1)`` along ``direction`` through ``anchor``.
 
-    Args:
-        anchor: Point on the guide axis.
-        direction: Guide direction.
-        extent_point: Point used to size the segment.
-        margin: Fractional extension beyond the extent.
-
-    Returns:
-        ``(p0, p1)`` segment endpoints.
+    The segment reaches ``extent_point``, extended by the ``margin`` fraction.
     """
     if direction.length_squared == 0.0:
         return (anchor.copy(), anchor.copy())
@@ -57,17 +50,7 @@ def circle_segments(
     radius: float,
     segments: int = 32,
 ) -> list[tuple[Vector, Vector]]:
-    """Approximate a circle as consecutive line segments.
-
-    Args:
-        center: Circle center.
-        normal: Circle plane normal.
-        radius: Circle radius.
-        segments: Number of segments.
-
-    Returns:
-        List of drawable segment pairs.
-    """
+    """Approximate a circle as ``segments`` consecutive line segments."""
     if radius <= 0.0:
         return []
     n = _perpendicular_unit(normal)
@@ -87,16 +70,7 @@ def plane_cross(
     normal: Vector,
     size: float = 0.25,
 ) -> list[tuple[Vector, Vector]]:
-    """Return two segments forming a cross on a plane.
-
-    Args:
-        point: Plane point / cross center.
-        normal: Plane normal.
-        size: Cross arm length.
-
-    Returns:
-        Two drawable segment pairs.
-    """
+    """Return two segments forming a cross of arm ``size`` on a plane."""
     n = _perpendicular_unit(normal)
     t = normal.cross(n).normalized()
     half = size * 0.5
@@ -111,16 +85,7 @@ def equal_span_marks(
     end: Vector,
     axis: Vector,
 ) -> list[tuple[Vector, Vector]]:
-    """Return bar, end caps, and midpoint hash strokes for one equal gap.
-
-    Args:
-        start: Gap start point.
-        end: Gap end point.
-        axis: Spacing axis (orients ticks).
-
-    Returns:
-        List of drawable segment pairs.
-    """
+    """Return bar, end-cap, and hash strokes for one equal gap along ``axis``."""
     length = (end - start).length
     if length < 1e-9:
         return [(start.copy(), end.copy())]
@@ -142,15 +107,7 @@ def guide_to_drawables(
     guide: Guide,
     moving_co: Vector,
 ) -> list[tuple[Vector, Vector]]:
-    """Convert a Guide into drawable world-space segments.
-
-    Args:
-        guide: Guide geometry.
-        moving_co: Moving feature anchor (sizes infinite guides).
-
-    Returns:
-        List of ``(a, b)`` segments.
-    """
+    """Convert a Guide into world segments; ``moving_co`` sizes infinite guides."""
     if isinstance(guide, GuideLine):
         return [axis_parallel_segment(guide.point, guide.direction, moving_co)]
     if isinstance(guide, GuideSegment):

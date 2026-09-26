@@ -43,20 +43,12 @@ class Solver(ABC):
     family: str
 
     def consumes(self, a: FeatureType, b: FeatureType) -> bool:
-        """True if this solver handles the unordered feature-type pair.
-
-        Args:
-            a: First feature type.
-            b: Second feature type.
-
-        Returns:
-            Whether the pair is accepted.
-        """
+        """Return True if this solver handles the unordered pair ``(a, b)``."""
         want = self.feature_types()
         return (a, b) == want or (b, a) == want
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Moving and candidate feature types this solver expects."""
+        """Return the (moving, candidate) feature types this solver expects."""
         return (FeatureType.POINT, FeatureType.POINT)
 
     @abstractmethod
@@ -66,13 +58,4 @@ class Solver(ABC):
         candidates,
         ctx: SolveContext,
     ) -> list[Relationship]:
-        """Evaluate ``moving`` against ``candidates`` and return relationships.
-
-        Args:
-            moving: Features from the transformed selection.
-            candidates: Nearby static features of the paired type.
-            ctx: Shared solve parameters.
-
-        Returns:
-            Zero or more candidate relationships.
-        """
+        """Evaluate ``moving`` against ``candidates`` and return relationships."""

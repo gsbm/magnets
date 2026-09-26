@@ -17,16 +17,7 @@ class EqualSizeSolver(Solver):
         return (FeatureType.BBOX, FeatureType.BBOX)
 
     def solve(self, moving: list[BBoxFeature], candidates: list[BBoxFeature], ctx: SolveContext):
-        """Evaluate moving features against candidates.
-
-        Args:
-            moving: Features from the transformed selection.
-            candidates: Nearby static features.
-            ctx: Shared solve parameters.
-
-        Returns:
-            Candidate relationships.
-        """
+        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         axis_names = ("X", "Y", "Z")

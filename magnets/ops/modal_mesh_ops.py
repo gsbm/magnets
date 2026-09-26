@@ -31,15 +31,7 @@ class _MagnetsMeshOpBase:
         return mesh_op("EXEC_DEFAULT")
 
     def invoke(self, context, event):
-        """Begin the operator and enter modal if needed.
-
-        Args:
-            context: Blender context.
-            event: Invoking event.
-
-        Returns:
-            Blender operator return set.
-        """
+        """Run the operator, then enter modal if needed."""
         res = self.execute(context)
         if res != {"FINISHED"}:
             return res

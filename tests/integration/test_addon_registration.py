@@ -1,11 +1,8 @@
 """Headless registration smoke test.
 
-Runs the add-on inside a real Blender in background mode: register, invoke the
-placeholder operator, unregister. Skipped automatically when no Blender binary
-is available (so the fast unit suite stays dependency-free).
-
-Point the runner at Blender via the ``BLENDER_BIN`` env var, or have ``blender``
-on PATH.
+Registers, exercises and unregisters the add-on in a background Blender.
+Skipped when no Blender binary is found (``BLENDER_BIN`` or ``blender`` on
+PATH).
 """
 
 import os

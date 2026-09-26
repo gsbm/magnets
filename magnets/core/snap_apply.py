@@ -26,11 +26,10 @@ def snap_apply_mode(
 
 
 def masked_translation(translation, axis_mask):
-    """Keep only the translation components allowed by a boolean axis mask.
+    """Keep only the translation components allowed by ``axis_mask``.
 
-    ``axis_mask`` is ``None`` (unconstrained: return the translation unchanged)
-    or a 3-tuple of booleans. Used to respect a native axis/plane lock (``G X``,
-    ``G Shift+Z``): the snap correction may only move along the locked axes.
+    ``axis_mask`` is None (unconstrained) or a 3-tuple of booleans, so a native
+    axis/plane lock (``G X``, ``G Shift+Z``) is respected.
     """
     if axis_mask is None:
         return type(translation)(
@@ -42,15 +41,9 @@ def masked_translation(translation, axis_mask):
 
 
 def project_out_direction(vec, normal):
-    """Remove the component of ``vec`` along ``normal``.
+    """Remove the component of ``vec`` along ``normal`` (need not be unit).
 
-    Args:
-        vec: Input vector-like (supports indexing).
-        normal: Direction to project out (need not be unit length).
-
-    Returns:
-        Vector of the same type as ``vec``, lying in the plane orthogonal to
-        ``normal``. Used in orthographic views to drop the depth axis.
+    Returns the same type as ``vec``. Used in orthographic views to drop depth.
     """
     nx, ny, nz = normal[0], normal[1], normal[2]
     nlen = (nx * nx + ny * ny + nz * nz) ** 0.5
@@ -65,15 +58,7 @@ def max_active_screen_dist(
     active_keys: set[tuple],
     items: list,
 ) -> float:
-    """Largest screen distance among currently active constraint keys.
-
-    Args:
-        active_keys: Keys of engaged constraints.
-        items: Rank items with screen distances.
-
-    Returns:
-        Maximum screen distance, or 0 if none.
-    """
+    """Return the largest screen distance among active keys, or 0."""
     if not active_keys or not items:
         return 0.0
     by_key: dict[tuple, float] = {}

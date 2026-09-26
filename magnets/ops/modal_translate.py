@@ -43,15 +43,7 @@ class MAGNETS_OT_translate(bpy.types.Operator):
         return False
 
     def invoke(self, context, event):
-        """Begin the operator and enter modal if needed.
-
-        Args:
-            context: Blender context.
-            event: Invoking event.
-
-        Returns:
-            Blender operator return set.
-        """
+        """Start the modal snapping session."""
         self.obj = context.active_object
         self.region = context.region
         self.rv3d = context.region_data
@@ -103,15 +95,7 @@ class MAGNETS_OT_translate(bpy.types.Operator):
             v.co = co
 
     def modal(self, context, event):
-        """Handle a modal event.
-
-        Args:
-            context: Blender context.
-            event: Current event.
-
-        Returns:
-            Blender operator return set.
-        """
+        """Handle a modal event."""
         if is_nav_event(event):
             return {"PASS_THROUGH"}
 

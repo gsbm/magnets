@@ -221,15 +221,7 @@ def extract_options(options) -> dict:
 
 
 def custom_frame_object(context, options):
-    """Custom reference object, if configured.
-
-    Args:
-        context: Blender context.
-        options: MagnetsOptions property group.
-
-    Returns:
-        Blender object or None.
-    """
+    """Return the custom reference object, if configured."""
     obj = options.custom_frame_object
     if obj is None or context.view_layer.objects.get(obj.name) is None:
         return None

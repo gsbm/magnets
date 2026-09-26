@@ -10,9 +10,8 @@ from ..core.features import EntityRef, FeaturePool, SurfaceFeature
 class SurfaceIndex:
     """Nearest-on-surface queries against candidate meshes.
 
-    Holds only a world bounding sphere per candidate; each mesh's BVH is built
-    (and cached across drags) the first time a query comes within reach of it,
-    so starting a drag costs no BVH builds at all.
+    Stores a world bounding sphere per candidate; a mesh's BVH is built (and
+    cached) only once a query comes within reach of it.
     """
 
     def __init__(self, candidates: list[tuple[object, Vector, float]], depsgraph):
@@ -28,16 +27,7 @@ class SurfaceIndex:
         max_dist: float,
         limit: int = 8,
     ) -> list[SurfaceFeature]:
-        """Return up to ``limit`` nearest surface samples within ``max_dist``.
-
-        Args:
-            co: World-space query point.
-            max_dist: World-space search radius.
-            limit: Maximum samples to return.
-
-        Returns:
-            SurfaceFeature samples, nearest first.
-        """
+        """Return up to ``limit`` surface samples within ``max_dist``, nearest first."""
         from . import scene_cache
 
         hits: list[tuple[float, SurfaceFeature]] = []
@@ -86,17 +76,10 @@ def _nearest_world(obj, tree, co: Vector, max_dist: float):
 
 
 def build_surface_index(context, exclude) -> SurfaceIndex | None:
-    """Collect candidate meshes for surface queries (no BVH is built here).
+    """Collect candidate meshes for surface queries, or None if there are none.
 
-    Objects in Edit Mode are skipped: their geometry changes every frame of
-    the drag, so a surface index of them would be rebuilt on every tick.
-
-    Args:
-        context: Blender context.
-        exclude: Objects to skip (the moving selection).
-
-    Returns:
-        SurfaceIndex, or None when there are no candidate meshes.
+    No BVH is built here. Edit Mode objects are skipped: their geometry changes
+    on every tick.
     """
     exclude_names = {o.name for o in exclude}
     candidates: list[tuple[object, Vector, float]] = []
@@ -121,26 +104,12 @@ def surface_features_for_point(
     max_dist: float,
     limit: int = 8,
 ) -> list[SurfaceFeature]:
-    """Nearest surface samples near a point.
-
-    Args:
-        index: SurfaceIndex to query.
-        point: World-space query point.
-        limit: Maximum samples.
-
-    Returns:
-        List of SurfaceFeature values.
-    """
+    """Return up to ``limit`` surface samples within ``max_dist`` of ``co``."""
     if index is None:
         return []
     return index.query_nearest(co, max_dist, limit=limit)
 
 
 def append_surfaces(pool: FeaturePool, surfaces: list[SurfaceFeature]) -> None:
-    """Append surface features into a FeaturePool.
-
-    Args:
-        pool: Destination FeaturePool.
-        features: Surface features to append.
-    """
+    """Append ``surfaces`` to ``pool``."""
     pool.surfaces.extend(surfaces)

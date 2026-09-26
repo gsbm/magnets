@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
-"""Package the ``magnets/`` extension into a distributable zip.
+"""Package ``magnets/`` into ``dist/magnets-<version>.zip``.
 
-For Blender 4.2+ Extensions the ``blender_manifest.toml`` must sit at the root
-of the zip, so this script zips the *contents* of ``magnets/`` at the archive
-root. Output: ``dist/magnets-<version>.zip``.
+The manifest must sit at the zip root (Blender 4.2+ Extensions). Unlike
+``blender --command extension build``, this needs no Blender binary.
 
-Usage:
-    python build/build_zip.py
-
-The official alternative is ``blender --command extension build``; this script
-keeps CI dependency-free (no Blender binary required to package).
+Usage: ``python build/build_zip.py``
 """
 
 from __future__ import annotations
@@ -64,13 +59,10 @@ def build() -> Path:
         for path in sorted(PKG_DIR.rglob("*")):
             if not path.is_file() or not _included(path):
                 continue
-            # Manifest at zip root -> arcname relative to PKG_DIR.
             zf.write(path, path.relative_to(PKG_DIR).as_posix())
             count += 1
 
-        # GPL requires shipping the license text alongside the code. The
-        # manifest only *declares* the SPDX id; the full text lives at the
-        # zip root so every install carries it.
+        # GPL requires shipping the license text; the manifest only names it.
         if LICENSE_FILE.exists():
             zf.write(LICENSE_FILE, "LICENSE")
             count += 1

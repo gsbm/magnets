@@ -1,15 +1,10 @@
 """Scene feature and surface caches that survive between drags.
 
-Starting a drag used to re-extract features for every visible object and build
-a BVH for every visible mesh (~140 ms on a 400-object scene). Both are now
-cached across drags:
-
-- **Object features** (mesh objects) depend only on ``matrix_world`` and
-  ``bound_box`` (see ``extract.object_feature_pool``), so an entry is reused
-  while that fingerprint and the extraction options are unchanged.
-- **Surface BVHs** are built lazily, in object-local space, only for objects a
-  query actually reaches. Moving an object does not invalidate its BVH; a
-  geometry change (reported by the depsgraph) or undo / file load does.
+- Mesh features depend only on ``matrix_world`` and ``bound_box``, so an
+  entry is reused while that fingerprint and the extraction options match.
+- Surface BVHs are built lazily, in object-local space, for objects a query
+  reaches. Moving an object keeps its BVH; a geometry change, undo or file
+  load drops it.
 """
 
 from __future__ import annotations
@@ -70,14 +65,9 @@ def _fingerprint(obj, options_key: tuple) -> tuple:
 
 
 def object_features(obj, **extract_kwargs) -> FeaturePool:
-    """Features of ``obj``, reused while its transform and bounds are unchanged.
+    """Return ``obj``'s features, cached while its transform and bounds hold.
 
-    Args:
-        obj: Blender object.
-        **extract_kwargs: Extraction options (part of the cache key).
-
-    Returns:
-        The cached or freshly extracted FeaturePool. Treat it as read-only.
+    The returned FeaturePool is shared: treat it as read-only.
     """
     from .entities import entity_feature_pool
 

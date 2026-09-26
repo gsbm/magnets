@@ -129,12 +129,10 @@ def _selection_valid_for_session(context) -> bool:
 
 
 def _iter_view3d(context):
-    """Yield ``(area, region, rv3d)`` for every 3D viewport across all windows.
+    """Yield ``(area, region, rv3d)`` for every 3D viewport in every window.
 
-    A ``bpy.app.timers`` callback cannot see the mouse, so it cannot know which
-    viewport the drag is in. Scanning *all* windows (not just the active one)
-    at least makes second-monitor / multi-window layouts work, and lets the
-    caller apply a deterministic, frame-stable choice.
+    A timer cannot see the mouse, so it cannot tell which viewport the drag is
+    in; scanning all windows supports multi-window layouts.
     """
     wm = getattr(context, "window_manager", None)
     windows = list(getattr(wm, "windows", []) or [])
@@ -233,7 +231,7 @@ def _moving_target(context):
 
 
 def _edit_selection(obj, *, fresh: bool = False) -> EditSelection:
-    """The session's captured Edit Mode selection, captured on first use."""
+    """Return the session's Edit Mode selection, capturing it on first use."""
     sel = _session.edit_selection if _session is not None else None
     if fresh or sel is None or sel.obj != obj:
         sel = EditSelection(obj, bmesh.from_edit_mesh(obj.data))
@@ -376,7 +374,7 @@ def _op_prop(op, name: str):
 
 
 def _finished_transform(context):
-    """The just-finished native transform operator, or None."""
+    """Return the just-finished native transform operator, or None."""
     op = getattr(context, "active_operator", None)
     if op is None or getattr(op, "bl_idname", None) not in _TRANSFORM_OPS:
         return None
@@ -384,11 +382,10 @@ def _finished_transform(context):
 
 
 def _yield_to_native_snap(context, options, *, finished: bool) -> bool:
-    """True when Magnets should stand aside for Blender's own snapping.
+    """Return True when Magnets should stand aside for Blender's own snapping.
 
-    Mid-drag only the scene toggle is visible (a timer cannot see the held
-    Ctrl key). At release the finished operator's saved ``snap`` flag also
-    records a Ctrl toggle, so native-snapped moves are left untouched.
+    Mid-drag only the scene toggle is visible (a timer cannot see a held Ctrl).
+    At release the operator's saved ``snap`` flag also records a Ctrl toggle.
     """
     if not getattr(options, "defer_to_native_snap", True):
         return False
@@ -403,11 +400,10 @@ def _yield_to_native_snap(context, options, *, finished: bool) -> bool:
 
 
 def _read_native_constraint(context) -> tuple | None:
-    """Global-axis mask of the running transform's lock, or None if free.
+    """Return the global-axis mask of the running transform's lock, or None.
 
-    Returns a 3-tuple of booleans for a global ``G X`` / ``G Shift+Z`` style
-    lock, else None (free drag, or a non-global orientation we do not restrict).
-    Best effort: the native transform's constraint is read from the operator.
+    A 3-tuple of booleans for a global ``G X`` / ``G Shift+Z`` lock; None for a
+    free drag or a non-global orientation.
     """
     op = _finished_transform(context)
     if op is None:
@@ -424,14 +420,10 @@ def _read_native_constraint(context) -> tuple | None:
 
 
 def _snap_correction(translation: Vector, rv3d, native_mask: tuple | None) -> Vector:
-    """Constrain a snap correction to axes the selection may move on.
+    """Constrain a snap correction to the axes the selection may move on.
 
-    Priority:
-        1. Native axis/plane lock (``G X``, ``G Shift+Z``): those axes only.
-        2. Orthographic view: drop the view-normal (depth) axis.
-        3. Perspective drag: full 3-axis correction.
-
-    Used by both the drag ghost and the release commit.
+    A native axis/plane lock wins; otherwise orthographic views drop the depth
+    axis and perspective views keep all three. Shared by preview and commit.
     """
     if native_mask is not None:
         return Vector(masked_translation(translation, native_mask))
@@ -562,7 +554,7 @@ def _tick(context):
 
 
 def _translate_poses(context, correction: Vector) -> dict:
-    """Final world matrices of the moving objects shifted by ``correction``."""
+    """Return final world matrices of the moving objects shifted by ``correction``."""
     poses = {}
     for moving_obj in _moving_objects(context):
         m = moving_obj.matrix_world.copy()
@@ -592,7 +584,7 @@ def _rotate_snap(context, obj, edit_mode: bool):
 
 
 def _rotate_poses(context, axis: Vector, angle: float, pivot: Vector) -> dict:
-    """Final world matrices for a snapped rotation of every moving object."""
+    """Return final world matrices for a snapped rotation of the moving objects."""
     poses = {}
     for moving_obj in _moving_objects(context):
         start = _session.start_matrices.get(moving_obj.name)
@@ -616,9 +608,7 @@ def _scale_snap(context, obj, edit_mode: bool):
     if not tol or tol <= 0.0:
         return None
 
-    # Confirm vs cancel: a cancelled scale restores the start size exactly, so
-    # an unchanged scale means "nothing to snap" (else a cancelled edit would be
-    # resized just because a neighbour happened to be within tolerance).
+    # A cancelled scale restores the start size exactly: nothing to snap.
     start_scale = start_m.to_scale()
     if (obj.matrix_world.to_scale() - start_scale).length < 1e-6 * (
         1.0 + start_scale.length
@@ -638,7 +628,7 @@ def _scale_snap(context, obj, edit_mode: bool):
 
 
 def _scale_poses(context, factor: float, pivot: Vector) -> dict:
-    """Final world matrices for a snapped uniform scale of the moving objects.
+    """Return final world matrices for a snapped uniform scale of the selection.
 
     The factor is relative to the *current* (post-native-scale) size, so the
     poses are built from the live matrices.
@@ -699,8 +689,7 @@ def _commit_release(context):
 
 
 def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm):
-    # Confirm vs cancel: a cancelled transform restores the start position
-    # exactly, so an unmoved anchor means "nothing to snap".
+    # A cancelled transform restores the start position exactly: nothing to snap.
     if _session.start_anchor is None:
         return
     if (anchor - _session.start_anchor).length_squared < 1e-9:
@@ -854,11 +843,10 @@ def _finish_object_commit(context, poses: dict, label: str) -> bool:
 
 
 def _returned_to_start(start_matrices: dict) -> bool:
-    """True if every moving object is back at its session-start pose.
+    """Return True if every moving object is back at its session-start pose.
 
-    Called right after ``ed.undo()`` to confirm the step we removed really was
-    the native transform (and not something else that slipped onto the stack),
-    scaled to the scene so it holds for millimetre and kilometre work alike.
+    Confirms that ``ed.undo()`` removed the native transform step. The
+    tolerance scales with the scene.
     """
     if not start_matrices:
         return False

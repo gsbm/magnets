@@ -30,17 +30,7 @@ def dispatch(
     ctx: SolveContext,
     enabled_families: set[str],
 ) -> list[Relationship]:
-    """Run enabled solvers for matching feature-type pairs.
-
-    Args:
-        moving: Features belonging to the transformed selection.
-        candidates: Nearby static features.
-        ctx: Shared solve parameters (tolerances, axes, mode).
-        enabled_families: Family ids currently enabled in options.
-
-    Returns:
-        Concatenated list of candidate relationships.
-    """
+    """Run the enabled solvers on each matching feature-type pair."""
     out: list[Relationship] = []
     for solver in _REGISTRY:
         if solver.family not in enabled_families:

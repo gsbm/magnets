@@ -140,11 +140,7 @@ def set_state(
     dash_world: float | None = None,
     gap_world: float | None = None,
 ):
-    """Replace the active draw-handler state.
-
-    Args:
-        **kwargs: Fields of ``_State`` to assign.
-    """
+    """Replace the draw state; keyword arguments are ``_State`` fields."""
     s = _state
     # Pulse detection: flash once on the frame a guide engages.
     if active and not s.snapped_prev and pulse_enabled:
@@ -226,7 +222,7 @@ def _draw_groups(shader, groups: dict):
 
 
 def _pulse_now(context) -> float:
-    """Current engage-pulse strength; keeps the viewport redrawing until done."""
+    """Return the engage-pulse strength, redrawing the viewport until it ends."""
     s = _state
     if s.pulse_start is None:
         return 0.0

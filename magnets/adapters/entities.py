@@ -83,15 +83,7 @@ def light_camera_empty_pool(obj) -> FeaturePool:
 
 
 def entity_feature_pool(obj, **kwargs) -> FeaturePool:
-    """Dispatch feature extraction by Blender object type.
-
-    Args:
-        obj: Blender object.
-        **kwargs: Forwarded to mesh extractors when ``obj`` is a mesh.
-
-    Returns:
-        FeaturePool for ``obj``.
-    """
+    """Extract features for ``obj`` by type; ``kwargs`` go to mesh extractors."""
     if obj.type == "MESH":
         return object_feature_pool(obj, **kwargs)
     if obj.type == "ARMATURE":

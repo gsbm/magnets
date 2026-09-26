@@ -42,13 +42,8 @@ def format_length(
 ) -> str:
     """Format a world-space length for a guide label.
 
-    Args:
-        value: World-space length (Blender units).
-        unit_scale: Scene unit scale, used by the plain-number fallback.
-        fmt: Scene-aware formatter (e.g. ``12.3 cm``); takes the world value.
-
-    Returns:
-        Display string.
+    ``fmt`` is the scene-aware formatter (e.g. ``12.3 cm``); without it the
+    value is scaled by ``unit_scale`` and shown as a plain number.
     """
     if fmt is not None:
         return fmt(value)
@@ -67,18 +62,7 @@ def alignment_label(
     unit_scale: float,
     fmt: LengthFormat | None = None,
 ) -> str:
-    """Format an alignment guide label with optional distance.
-
-    Args:
-        axis: Axis name (X/Y/Z).
-        target_kind: Target PointKind (unused in text; reserved).
-        residual: World-space residual.
-        unit_scale: Scene unit scale for display.
-        fmt: Optional scene-aware length formatter.
-
-    Returns:
-        Label string.
-    """
+    """Format an alignment label with its residual; ``target_kind`` is unused."""
     if residual <= 1e-6:
         return axis
     return f"{axis} · {format_length(residual, unit_scale, fmt)}"

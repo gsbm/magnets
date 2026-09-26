@@ -65,15 +65,7 @@ class FeatureRef:
 
     @classmethod
     def for_point(cls, entity: EntityRef, kind: PointKind) -> FeatureRef:
-        """Build a point FeatureRef from entity and PointKind.
-
-        Args:
-            entity: Owning entity.
-            kind: PointKind value.
-
-        Returns:
-            FeatureRef for the point.
-        """
+        """Build a point FeatureRef for ``entity``."""
         return cls(entity=entity, feature_type=FeatureType.POINT, kind=kind.value)
 
 
@@ -86,16 +78,7 @@ class PointFeature:
 
     @classmethod
     def from_name(cls, co: Vector, kind: PointKind, name: str) -> PointFeature:
-        """Build a PointFeature from coordinates and entity name.
-
-        Args:
-            co: World-space coordinates.
-            kind: PointKind value.
-            name: Entity name.
-
-        Returns:
-            PointFeature instance.
-        """
+        """Build a PointFeature at ``co`` owned by the entity ``name``."""
         return cls(co, kind, EntityRef(name=name))
 
     @property

@@ -1,17 +1,8 @@
-"""Regression test: multi-axis alignment must engage reliably for two nearby
-objects (the "two cubes, snapping is random on some axis" reliability bug).
+"""Regression: all three alignment axes engage for two nearby objects.
 
-Before the fix, ``scoring.rank``'s spatial non-maximum-suppression treated
-any two guides whose on-screen anchors were close as duplicates, regardless
-of whether they represented compatible, composable axes (X vs Y vs Z). Two
-objects near each other naturally produce X/Y/Z alignment guides whose
-anchors cluster on screen (they are computed from the same nearby pair of
-points), so NMS would randomly keep only 1-2 of the 3 axes depending on tiny
-score differences. This test drives the real alignment solver, scoring, and
-multi-constraint resolver together (everything but the bpy screen
-projection, which is stood in for) and asserts all three axes engage and
-compose into one translation, exactly the "align two boxes on 2-3 axes at
-once" scenario that was unreliable.
+X/Y/Z guides of nearby objects cluster on screen, and must not suppress each
+other. Drives the real solver, scoring and resolver (screen projection
+stubbed) and checks the axes compose into one translation.
 """
 
 from __future__ import annotations

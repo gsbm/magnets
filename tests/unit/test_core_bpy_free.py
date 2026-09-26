@@ -1,7 +1,6 @@
-"""Enforce that the inference core never imports bpy (PLAN.md decision 1.2).
+"""Enforce that the inference core never imports bpy.
 
-If this test fails, some module under ``magnets/core/`` reached for ``bpy`` and
-broke the guarantee that the engine is unit-testable without Blender.
+This keeps ``magnets/core/`` unit-testable without Blender.
 """
 
 import ast
