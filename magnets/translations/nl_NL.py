@@ -259,6 +259,38 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Blender snapping takes over"): "Blender-vastklikken gaat voor",
     ("*", "Blender Snap"): "Blender-vastklikken",
     ("*", "Yield"): "Voorrang geven",
+    # ── Header toggle, engaged colours, shortcut ──────────────────────────────
+    ("*", "Header Toggle"): (
+        "Knop in de kopbalk"
+    ),
+    ("*", "Show the Magnets on/off button and settings popover in the 3D Viewport header"): (
+        "De aan/uit-knop van Magneten en het instellingenmenu in de kopbalk van de 3D-viewport tonen"
+    ),
+    ("*", "Engaged Colors"): (
+        "Kleuren bij vastklikken"
+    ),
+    ("*", "How engaged guides are colored"): (
+        "Hoe vastgeklikte hulplijnen worden gekleurd"
+    ),
+    ("*", "Axis Colors"): (
+        "Askleuren"
+    ),
+    ("*", "Alignment guides use the theme's X/Y/Z axis colors; other guides use the Active Color"): (
+        "Uitlijnhulplijnen gebruiken de X/Y/Z-askleuren van het thema; andere hulplijnen de actieve kleur"
+    ),
+    ("*", "Every engaged guide uses the Active Color"): (
+        "Alle vastgeklikte hulplijnen gebruiken de actieve kleur"
+    ),
+    ("*", "Shortcut"): (
+        "Sneltoets"
+    ),
+    ("Operator", "Toggle Magnets"): (
+        "Magneten aan/uit"
+    ),
+    ("*", "Turn Magnets guides and snapping on or off"): (
+        "Hulplijnen en vastklikken van Magneten aan- of uitzetten"
+    ),
+    ("*", "More options in the sidebar (N)"): "Meer opties in de zijbalk (N)",
     # ── Preset enum ────────────────────────────────────────────────────────────
     ("*", "Preset"): "Voorinstelling",
     ("*", "Precise"): "Precies",

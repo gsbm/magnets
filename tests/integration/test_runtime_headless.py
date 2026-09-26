@@ -155,9 +155,33 @@ bpy.ops.mesh.primitive_cube_add(location=(10.0, 0.0, 0.0))
 neighbour = bpy.context.active_object
 neighbour.scale = (3.0, 3.0, 3.0)
 bpy.context.view_layer.update()
-dims = ov._nearby_dimensions(bpy.context, Vector((0.0, 0.0, 0.0)), frozenset({{cube.name}}))
+dims = ov._nearby_dimensions(bpy.context, frozenset({{cube.name}}))
 check(len(dims) >= 1, "nearby-size gather finds the neighbour")
-check(any(abs(d - 6.0) < 1e-3 for d in dims), "neighbour size (3x 2m cube = 6m) is gathered")
+check(cube.name not in {{n for n, _ in dims}}, "moving object is excluded")
+check(
+    any(n == neighbour.name and abs(d - 6.0) < 1e-3 for n, d in dims),
+    "neighbour size (3x 2m cube = 6m) is gathered with its name",
+)
+
+# Landing-preview outline: 12 bbox edges per object, placed at the final pose.
+edges = ov._pose_edges({{cube.name: Matrix.Translation((100.0, 0.0, 0.0))}})
+check(len(edges) == 12, "a box outline has 12 edges")
+check(all(a.x > 90.0 and b.x > 90.0 for a, b in edges), "outline sits at the final pose")
+check(
+    all(sum(1 for i in range(3) if abs(a[i] - b[i]) > 1e-6) == 1 for a, b in edges),
+    "outline edges are box edges, not face diagonals",
+)
+
+# Extraction: a cube's bbox face centers include its top and bottom faces.
+from magnets.core.features import PointKind
+
+cube.matrix_world = Matrix.Identity(4)
+bpy.context.view_layer.update()
+faces = [p.co for p in object_feature_pool(cube).points if p.kind == PointKind.BBOX_FACE_CENTER]
+check(
+    any(abs(c.z - 1.0) < 1e-4 and abs(c.x) < 1e-4 and abs(c.y) < 1e-4 for c in faces),
+    "top face center (0, 0, 1) is extracted",
+)
 
 # ── Native operator property reads (C ops expose them on .properties) ─────────
 class _Props:
@@ -262,6 +286,9 @@ class _Layout:
     def separator(self, **kwargs):
         pass
 
+    def popover(self, panel, **kwargs):
+        check(hasattr(bpy.types, panel), f"popover of unknown panel {{panel!r}}")
+
 
 class _Self:
     layout = _Layout()
@@ -272,13 +299,21 @@ class _Self:
 import types
 
 ui_panel.get_prefs = lambda _ctx: types.SimpleNamespace(
-    precision_mode=False, guide_fade_passive=True
+    precision_mode=False, guide_fade_passive=True, show_header_toggle=True
 )
 ts.use_snap = True
 for cls in ui_panel._CLASSES:
     cls.draw(_Self(), bpy.context)
 ts.use_snap = False
 check("defer_to_native_snap" in _drawn, "snapping panel offers the yield toggle")
+ui_panel.draw_view3d_header(_Self(), bpy.context)  # header button + popover
+
+# ── On/off toggle operator ───────────────────────────────────────────────────
+was = opts.enabled
+bpy.ops.magnets.toggle()
+check(opts.enabled is (not was), "toggle flips Magnets on/off")
+bpy.ops.magnets.toggle()
+check(opts.enabled is was, "toggle flips back")
 check(
     "Blender snapping takes over" in _drawn,
     "panel explains when Blender snapping takes over",

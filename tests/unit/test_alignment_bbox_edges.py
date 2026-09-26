@@ -150,3 +150,39 @@ def test_endpoint_tick_is_perpendicular_to_guide():
     tick = endpoint_ticks(Vector((0.0, 0.0, 0.0)), Vector((1.0, 0.0, 0.0)), size=0.2)
     seg = tick[1] - tick[0]
     assert abs(seg.dot(Vector((1.0, 0.0, 0.0)))) < 1e-5
+
+
+# Blender's Object.bound_box corner order (swaps 2<->3 and 6<->7 vs ours).
+_BLENDER_BOUND_BOX = [
+    (-1.0, -1.0, -1.0),
+    (-1.0, -1.0, 1.0),
+    (-1.0, 1.0, 1.0),
+    (-1.0, 1.0, -1.0),
+    (1.0, -1.0, -1.0),
+    (1.0, -1.0, 1.0),
+    (1.0, 1.0, 1.0),
+    (1.0, 1.0, -1.0),
+]
+
+
+def test_blender_bound_box_edges_are_axis_aligned():
+    from core.bbox import bbox_edges, from_blender_bound_box
+
+    corners = from_blender_bound_box([Vector(c) for c in _BLENDER_BOUND_BOX])
+    edges = bbox_edges(corners)
+    assert len(edges) == 12
+    for a, b in edges:
+        # A real box edge changes exactly one coordinate (no face diagonals).
+        assert sum(1 for i in range(3) if abs(a[i] - b[i]) > 1e-9) == 1
+
+
+def test_blender_bound_box_face_centers_include_top_and_bottom():
+    from core.bbox import from_blender_bound_box
+
+    corners = from_blender_bound_box([Vector(c) for c in _BLENDER_BOUND_BOX])
+    centers = {tuple(round(v, 6) for v in c) for c in bbox_face_centers(corners)}
+    assert centers == {
+        (-1.0, 0.0, 0.0), (1.0, 0.0, 0.0),
+        (0.0, -1.0, 0.0), (0.0, 1.0, 0.0),
+        (0.0, 0.0, -1.0), (0.0, 0.0, 1.0),
+    }

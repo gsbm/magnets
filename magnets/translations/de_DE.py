@@ -259,6 +259,38 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Blender snapping takes over"): "Blender-Einrasten hat Vorrang",
     ("*", "Blender Snap"): "Blender-Einrasten",
     ("*", "Yield"): "Vorrang geben",
+    # ── Header toggle, engaged colours, shortcut ──────────────────────────────
+    ("*", "Header Toggle"): (
+        "Schalter in der Kopfzeile"
+    ),
+    ("*", "Show the Magnets on/off button and settings popover in the 3D Viewport header"): (
+        "Den Magnete-Ein/Aus-Schalter und das Einstellungs-Popover in der Kopfzeile des 3D-Viewports anzeigen"
+    ),
+    ("*", "Engaged Colors"): (
+        "Farben beim Einrasten"
+    ),
+    ("*", "How engaged guides are colored"): (
+        "Wie eingerastete Hilfslinien eingefärbt werden"
+    ),
+    ("*", "Axis Colors"): (
+        "Achsenfarben"
+    ),
+    ("*", "Alignment guides use the theme's X/Y/Z axis colors; other guides use the Active Color"): (
+        "Ausrichtungs-Hilfslinien nutzen die X/Y/Z-Achsenfarben des Themes; andere Hilfslinien die aktive Farbe"
+    ),
+    ("*", "Every engaged guide uses the Active Color"): (
+        "Alle eingerasteten Hilfslinien nutzen die aktive Farbe"
+    ),
+    ("*", "Shortcut"): (
+        "Tastenkürzel"
+    ),
+    ("Operator", "Toggle Magnets"): (
+        "Magnete umschalten"
+    ),
+    ("*", "Turn Magnets guides and snapping on or off"): (
+        "Magnete-Hilfslinien und Einrasten ein- oder ausschalten"
+    ),
+    ("*", "More options in the sidebar (N)"): "Weitere Optionen in der Seitenleiste (N)",
     # ── Preset enum ────────────────────────────────────────────────────────────
     ("*", "Preset"): "Voreinstellung",
     ("*", "Precise"): "Präzise",

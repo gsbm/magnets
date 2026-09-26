@@ -8,7 +8,13 @@ from mathutils import Vector
 
 # ── World-space guide geometry ─────────────────────────────────────────────────
 
-def dash_segments(a: Vector, b: Vector, dash: float = 0.12, gap: float = 0.08):
+def dash_segments(
+    a: Vector,
+    b: Vector,
+    dash: float = 0.12,
+    gap: float = 0.08,
+    max_count: int | None = None,
+):
     """Return dashed world-space segments along a→b.
 
     Args:
@@ -16,6 +22,8 @@ def dash_segments(a: Vector, b: Vector, dash: float = 0.12, gap: float = 0.08):
         b: Segment end.
         dash: Dash length.
         gap: Gap length.
+        max_count: Optional cap on the dash count; beyond it dash and gap
+            grow proportionally so a very long line stays cheap to draw.
 
     Returns:
         List of ``(p0, p1)`` pairs.
@@ -26,6 +34,10 @@ def dash_segments(a: Vector, b: Vector, dash: float = 0.12, gap: float = 0.08):
         return []
     direction = ab / length
     step = dash + gap
+    if max_count and length / step > max_count:
+        grow = length / (step * max_count)
+        dash *= grow
+        step *= grow
     out = []
     t = 0.0
     while t < length:

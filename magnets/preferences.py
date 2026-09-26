@@ -1,7 +1,13 @@
 """Add-on preferences (Edit → Preferences → Extensions)."""
 
 import bpy
-from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, IntProperty
+from bpy.props import (
+    BoolProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+)
 
 
 def _update_precision_mode(self, context):
@@ -39,13 +45,23 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
         update=_update_debug,
     )
 
+    show_header_toggle: BoolProperty(
+        name="Header Toggle",
+        description="Show the Magnets on/off button and settings popover in the "
+        "3D Viewport header",
+        default=True,
+    )
+
     # ── Guide colors ───────────────────────────────────────────────────────────
+    # Approaching guides are a quiet neutral and engaged ones a saturated
+    # accent, so the moment a guide locks on reads at a glance. Magenta stays
+    # clear of Blender's red/green/blue axis colours.
     guide_color_passive: FloatVectorProperty(
         name="Passive Color",
         description="Guide color while approaching the snap zone",
         subtype="COLOR",
         size=4,
-        default=(1.0, 0.031, 0.219, 0.70),
+        default=(0.85, 0.87, 0.92, 0.5),
         min=0.0,
         max=1.0,
     )
@@ -54,9 +70,25 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
         description="Guide color while engaged",
         subtype="COLOR",
         size=4,
-        default=(1.0, 0.012, 0.141, 1.0),
+        default=(1.0, 0.2, 0.75, 1.0),
         min=0.0,
         max=1.0,
+    )
+    guide_color_mode: EnumProperty(
+        name="Engaged Colors",
+        description="How engaged guides are colored",
+        items=[
+            (
+                "AXIS",
+                "Axis Colors",
+                (
+                    "Alignment guides use the theme's X/Y/Z axis colors; other "
+                    "guides use the Active Color"
+                ),
+            ),
+            ("SINGLE", "Active Color", "Every engaged guide uses the Active Color"),
+        ],
+        default="AXIS",
     )
 
     # ── Line style ─────────────────────────────────────────────────────────────
@@ -117,11 +149,13 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
         layout.use_property_decorate = False
 
         layout.prop(self, "precision_mode")
+        layout.prop(self, "show_header_toggle")
         layout.prop(self, "debug")
 
         col = layout.column()
         col.prop(self, "guide_color_passive")
         col.prop(self, "guide_color_active")
+        col.prop(self, "guide_color_mode")
         col.prop(self, "guide_line_width")
         col.prop(self, "guide_solid_lines")
 
@@ -135,6 +169,10 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
         sub = col.row()
         sub.active = self.show_snap_dot
         sub.prop(self, "snap_dot_radius_px")
+
+        from . import keymaps
+
+        keymaps.draw_toggle_keymap(context, layout)
 
 
 def get_prefs(context) -> "MagnetsPreferences":

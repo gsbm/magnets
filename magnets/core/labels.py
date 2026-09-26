@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 
 from .features import (
@@ -100,3 +101,14 @@ def feature_hint(feature: Feature) -> str:
     if isinstance(feature, SurfaceFeature):
         return "surface"
     return ""
+
+
+def rotation_snap_label(angle_rad: float) -> str:
+    """Preview text for a rotate snap, e.g. ``→ 45°`` or ``→ 7.5°``."""
+    deg = f"{math.degrees(angle_rad):.1f}".rstrip("0").rstrip(".")
+    return f"→ {deg}°"
+
+
+def size_match_label(name: str, size_text: str) -> str:
+    """Preview text for a scale snap, e.g. ``= Cube.002 · 2 m``."""
+    return f"= {name} · {size_text}"

@@ -227,3 +227,46 @@ def test_solve_context_carries_frame():
         snap_px=12.0,
     )
     assert ctx.frame == Frame.LOCAL
+
+
+def test_break_blocks_only_the_guide_that_broke():
+    """A guide parked in the snap zone must not keep snapping disabled.
+
+    Regression: after any break, re-engaging waited for the *best* candidate
+    to leave the zone. A relationship held at a fixed distance (already
+    satisfied, or pinned by an axis lock) never leaves, so snapping stayed
+    dead for the rest of the drag.
+    """
+    snap = SnapHysteresis()
+    x_key = ("alignment", "X", "A")
+    y_key = ("alignment", "Y", "A")
+    parked = RankItem(key=y_key, score=1.0, screen_dist=0.0, payload="y")
+
+    snap.pick_active(
+        [RankItem(key=x_key, score=1.0, screen_dist=8.0, payload="x")],
+        snap_px=12.0, hysteresis_px=4.0,
+    )
+    # X breaks away while Y sits in the zone.
+    snap.pick_active(
+        [parked, RankItem(key=x_key, score=1.0, screen_dist=20.0, payload="x")],
+        snap_px=12.0, hysteresis_px=4.0,
+    )
+    # Another guide may engage straight away...
+    active, snapped = snap.pick_active([parked], snap_px=12.0, hysteresis_px=4.0)
+    assert snapped and active.payload == "y"
+
+
+def test_broken_guide_still_needs_to_leave_before_reengaging():
+    snap = SnapHysteresis()
+    x_key = ("alignment", "X", "A")
+    snap.pick_active(
+        [RankItem(key=x_key, score=1.0, screen_dist=8.0, payload="x")],
+        snap_px=12.0, hysteresis_px=4.0,
+    )
+    snap.pick_active(
+        [RankItem(key=x_key, score=1.0, screen_dist=20.0, payload="x")],
+        snap_px=12.0, hysteresis_px=4.0,
+    )
+    back = RankItem(key=x_key, score=1.0, screen_dist=8.0, payload="x")
+    _active, snapped = snap.pick_active([back], snap_px=12.0, hysteresis_px=4.0)
+    assert not snapped

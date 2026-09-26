@@ -15,6 +15,9 @@ class SnapHysteresis:
     _miss_frames: int = 0
     _latched: RankItem | None = field(default=None, repr=False)
     _sticky_keys: set[tuple] = field(default_factory=set, repr=False)
+    # The guide that broke away. Only it must leave the snap zone before it
+    # may engage again; other guides stay free to engage meanwhile.
+    _broken_key: tuple | None = field(default=None, repr=False)
 
     def reset(self) -> None:
         """Clear latch and sticky state."""
@@ -23,6 +26,7 @@ class SnapHysteresis:
         self._miss_frames = 0
         self._latched = None
         self._sticky_keys = set()
+        self._broken_key = None
 
     def remember_active_keys(self, keys: set[tuple]) -> None:
         """Store keys for sticky re-attachment."""
@@ -36,6 +40,10 @@ class SnapHysteresis:
 
     def force_break(self) -> None:
         """Release latch immediately (user dragged beyond break distance)."""
+        self._break()
+
+    def _break(self) -> None:
+        self._broken_key = self.active_key
         self.active_key = None
         self._latched = None
         self._sticky_keys = set()
@@ -67,11 +75,21 @@ class SnapHysteresis:
         best = ranked[0] if ranked else None
 
         if self.broken:
-            probe = best or (lookup[0] if lookup else None)
-            if probe is not None and probe.screen_dist > snap_px + reengage_margin_px:
-                self.broken = False
+            reengage_px = snap_px + reengage_margin_px
+            if self._broken_key is None:
+                # Unknown culprit: wait for the best candidate to leave.
+                probe = best or (lookup[0] if lookup else None)
+                if probe is not None and probe.screen_dist > reengage_px:
+                    self.broken = False
+                else:
+                    return None, False
             else:
-                return None, False
+                culprit = next(
+                    (it for it in lookup if it.key == self._broken_key), None
+                )
+                if culprit is None or culprit.screen_dist > reengage_px:
+                    self.broken = False
+                    self._broken_key = None
 
         if self.active_key is not None:
             current = next((it for it in lookup if it.key == self.active_key), None)
@@ -79,27 +97,29 @@ class SnapHysteresis:
                 self._miss_frames += 1
                 if self._miss_frames < 4 and self._latched is not None:
                     return self._latched, True
-                self.active_key = None
-                self._latched = None
-                self._miss_frames = 0
-                self._sticky_keys = set()
-                self.broken = True
+                self._break()
                 return None, False
             self._miss_frames = 0
             self._latched = current
             if current.screen_dist <= release_px:
                 return current, True
-            self.active_key = None
-            self._latched = None
-            self._sticky_keys = set()
-            self.broken = True
+            self._break()
             return None, False
 
-        if best is not None and best.screen_dist <= snap_px:
-            self.active_key = best.key
-            self._latched = best
-            self.broken = False
+        # Engage the closest in-zone guide, skipping one still breaking away.
+        blocked = self._broken_key if self.broken else None
+        pick = next(
+            (
+                it
+                for it in ranked
+                if it.screen_dist <= snap_px and it.key != blocked
+            ),
+            None,
+        )
+        if pick is not None:
+            self.active_key = pick.key
+            self._latched = pick
             self._miss_frames = 0
-            return best, True
+            return pick, True
 
         return None, False

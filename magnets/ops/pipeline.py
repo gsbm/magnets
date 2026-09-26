@@ -28,6 +28,7 @@ from ..core.snap_apply import (
 )
 from ..core.solvers.base import SolveContext
 from ..core.spatial import broad_phase
+from ..core.style import engaged_color
 from ..core.tolerance import SnapHysteresis
 from ..core.transform import TransformMode
 from ..core.transform_snap import rotated_matrix
@@ -287,18 +288,22 @@ def run_inference(
     )
 
 
-# ── Viewport spanning ─────────────────────────────────────
-# For GuideLine types we extend segments to a large world distance so they
-# appear to cross the entire viewport regardless of scene scale.  800 BU is
-# enough for anything from millimetre jewellery to city-scale architecture.
-_SPAN_EXTENT = 800.0
+# ── Screen-relative sizing ─────────────────────────────────
+# Guide geometry is sized from the viewport zoom at the selection's depth so it
+# looks the same for millimetre jewellery and city-scale architecture.
+_SPAN_VIEWPORTS = 3.0     # spanning lines reach this many viewport diagonals
+_DASH_PX = 8.0            # dash / gap length on screen (at the anchor depth)
+_GAP_PX = 5.0
+_INTERSECT_PX = 3.0       # engaged guides this close on screen "cross"
 
 
-def _span_guide_line(guide: GuideLine, moving_co: Vector) -> tuple[Vector, Vector]:
-    """Return a very long world-space segment along the guide axis."""
+def _span_guide_line(
+    guide: GuideLine, extent: float
+) -> tuple[Vector, Vector]:
+    """Return a world-space segment ``extent`` long each way along the guide."""
     d = guide.direction.normalized()
     anchor = guide.point.copy()
-    return (anchor - d * _SPAN_EXTENT, anchor + d * _SPAN_EXTENT)
+    return (anchor - d * extent, anchor + d * extent)
 
 
 def _fade_alpha(
@@ -324,12 +329,12 @@ def _fade_alpha(
 
 
 def _segment_intersection_3d(
-    a0: Vector, a1: Vector, b0: Vector, b1: Vector
+    a0: Vector, a1: Vector, b0: Vector, b1: Vector, tol: float
 ) -> Vector | None:
     """Closest point between two line segments in 3D (for intersection dots).
 
-    Returns the midpoint of the closest approach if within a small threshold,
-    otherwise None.
+    Returns the midpoint of the closest approach if the lines pass within
+    ``tol`` (world units) of each other, otherwise None.
     """
     da = a1 - a0
     db = b1 - b0
@@ -342,9 +347,22 @@ def _segment_intersection_3d(
     s = dc.cross(da).dot(dab) / denom
     pa = a0 + da * t
     pb = b0 + db * s
-    if (pa - pb).length > 0.05:
+    if (pa - pb).length > tol:
         return None
     return (pa + pb) * 0.5
+
+
+def _axis_colors(context) -> dict[str, tuple] | None:
+    """Theme X/Y/Z axis colours (RGBA), or None if the theme is unreadable."""
+    try:
+        ui = context.preferences.themes[0].user_interface
+        return {
+            "X": (*ui.axis_x, 1.0),
+            "Y": (*ui.axis_y, 1.0),
+            "Z": (*ui.axis_z, 1.0),
+        }
+    except (AttributeError, IndexError):
+        return None
 
 
 def push_guides(
@@ -355,41 +373,55 @@ def push_guides(
     result: InferenceResult,
     depth_co: Vector,
     ghost_co: Vector | None = None,
+    ghost_edges: list[tuple[Vector, Vector]] | None = None,
+    preview_labels: list[tuple[Vector, str]] | None = None,
 ):
-    """Push ranked guides into the draw handler.
+    """Push ranked guides and the landing preview into the draw handler.
 
     Args:
-        ranked: Ranked guide items.
-        active_item: Currently engaged item, if any.
-        prefs: Add-on preferences for colors.
-        options: Scene options.
-        unit_scale: Scene unit scale.
+        context: Blender context.
         region: 3D region.
         rv3d: Region view 3D.
+        result: Inference output for this tick.
+        depth_co: World point whose depth sizes screen-relative geometry.
+        ghost_co: Landing point of the selection anchor (translate ring).
+        ghost_edges: Bounding-box outlines of the snapped pose.
+        preview_labels: ``(world_pos, text)`` notes such as ``→ 45°``.
     """
     options = get_options(context)
     prefs = get_prefs(context)
     ranked = result.ranked
     snapped = result.snapped
+    ghost_edges = ghost_edges or []
+    preview_labels = preview_labels or []
 
-    if not ranked or (not snapped and not options.show_passive_guides):
+    show_guides = bool(ranked) and (snapped or options.show_passive_guides)
+    if not show_guides and not ghost_edges and not preview_labels:
         draw.clear_state()
         return
+    if not show_guides:
+        ranked = []
 
     active_keys = {rank_key(r) for r in result.active_set} if snapped else set()
     active_color = tuple(prefs.guide_color_active)
     passive_color = tuple(prefs.guide_color_passive)
+    use_axis_colors = getattr(prefs, "guide_color_mode", "AXIS") == "AXIS"
+    axis_colors = _axis_colors(context) if use_axis_colors else None
     px = ui_scale(context)
     passive_px = options.passive_range_px * px
     extend_vp = getattr(options, "extend_guides_to_viewport", True)
     fade_enabled = prefs.guide_fade_passive
 
+    wpp = world_per_pixel(region, rv3d, depth_co)
+    diag_px = (region.width**2 + region.height**2) ** 0.5
+    span_extent = wpp * diag_px * _SPAN_VIEWPORTS
+
     guide_items: list[GuideDrawItem] = []
     tick_items: list[GuideDrawItem] = []
-    snap_dots: list[Vector] = []
+    snap_dots: list[tuple[Vector, tuple]] = []
     intersection_dots: list[Vector] = []
     labels = []
-    tick_size = world_per_pixel(region, rv3d, depth_co) * 8.0 * px
+    tick_size = wpp * 8.0 * px
 
     # Collect guide segments keyed for intersection detection
     active_segments: list[tuple[Vector, Vector]] = []
@@ -397,22 +429,32 @@ def push_guides(
     for item in ranked:
         rel = item.payload
         is_active = snapped and item.key in active_keys
-        apply_delta = is_active
         moving_co = rel.moving_co + (
-            rel.delta.translation if apply_delta else Vector((0, 0, 0))
+            rel.delta.translation if is_active else Vector((0, 0, 0))
         )
 
-        base_color = active_color if is_active else passive_color
+        if is_active:
+            base_color = engaged_color(
+                rel.family,
+                rel.axis,
+                use_axis_colors=use_axis_colors,
+                active_color=active_color,
+                axis_colors=axis_colors,
+            )
+        else:
+            base_color = passive_color
         color = _fade_alpha(base_color, item.screen_dist, passive_px, is_active, fade_enabled)
 
         # Build world-space segments
         if extend_vp and isinstance(rel.guide, GuideLine):
-            segs = [_span_guide_line(rel.guide, moving_co)]
+            segs = [_span_guide_line(rel.guide, span_extent)]
         else:
             segs = guide_to_drawables(rel.guide, moving_co)
 
         for seg in segs:
-            guide_items.append(GuideDrawItem(a=seg[0], b=seg[1], color=color))
+            guide_items.append(
+                GuideDrawItem(a=seg[0], b=seg[1], color=color, active=is_active)
+            )
             if is_active:
                 active_segments.append(seg)
 
@@ -426,25 +468,28 @@ def push_guides(
 
         # Snap dot: place at the target feature anchor
         if is_active and prefs.show_snap_dot:
-            anchor_co = feature_anchor(rel.target)
-            snap_dots.append(anchor_co)
+            snap_dots.append((feature_anchor(rel.target), color))
 
         # Label only engaged guides: approaching guides stay quiet so the
         # viewport is not buried in text while dragging.
         if is_active:
             hint = feature_hint(rel.target) if options.show_feature_hints else ""
             anchor_co = feature_anchor(rel.target)
-            labels.append(((anchor_co + moving_co) * 0.5, rel.label, hint))
+            labels.append(((anchor_co + moving_co) * 0.5, rel.label, hint, color))
 
     # Intersection dots between all pairs of active segments
     if prefs.show_intersection_dot and len(active_segments) >= 2:
+        tol = wpp * _INTERSECT_PX * px
         for i, (a0, a1) in enumerate(active_segments):
             for j, (b0, b1) in enumerate(active_segments):
                 if j <= i:
                     continue
-                pt = _segment_intersection_3d(a0, a1, b0, b1)
+                pt = _segment_intersection_3d(a0, a1, b0, b1, tol)
                 if pt is not None:
                     intersection_dots.append(pt)
+
+    for world_pos, text in preview_labels:
+        labels.append((world_pos, text, "", active_color))
 
     ghost_points = [ghost_co] if ghost_co is not None else []
 
@@ -464,6 +509,9 @@ def push_guides(
         show_intersection_dot=prefs.show_intersection_dot,
         pulse_enabled=prefs.guide_active_pulse,
         ghost_points=ghost_points,
+        ghost_edges=ghost_edges,
+        dash_world=wpp * _DASH_PX * px,
+        gap_world=wpp * _GAP_PX * px,
     )
 
 

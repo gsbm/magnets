@@ -24,6 +24,58 @@ def _mode_hint(opts, precision_mode: bool) -> str:
     return "Snaps when you release G/R/S"
 
 
+def _draw_essentials(layout, context, opts):
+    """Mode, snapping switch and presets: shared by the sidebar and popover."""
+    prefs = get_prefs(context)
+    col = layout.column()
+    col.prop(opts, "soft_snap")
+    col.prop(prefs, "precision_mode")
+    col.label(text=_mode_hint(opts, prefs.precision_mode), icon="INFO")
+
+    current = matching_preset(opts)
+    row = layout.row(align=True)
+    row.label(text="", icon="PRESET")
+    for preset, text in _PRESET_BUTTONS:
+        op = row.operator(
+            "magnets.options_preset", text=text, depress=current == preset
+        )
+        op.preset = preset
+    row.separator()
+    row.operator("magnets.options_reset", text="", icon="LOOP_BACK")
+
+
+class MAGNETS_PT_header_popover(bpy.types.Panel):
+    """Compact settings popover opened from the 3D Viewport header.
+
+    Deliberately flat (no child panels): drawing a panel with sub-panels as a
+    popover crashed Blender 5.2 inside ``Layout::panel_prop``.
+    """
+    bl_label = "Magnets"
+    bl_idname = "MAGNETS_PT_header_popover"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "HEADER"
+    bl_ui_units_x = 13
+
+    def draw(self, context):
+        """Draw UI controls into ``layout``."""
+        opts = get_options(context)
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        layout.prop(opts, "enabled")
+        body = layout.column()
+        body.active = opts.enabled
+        _draw_essentials(body, context, opts)
+
+        col = body.column(align=True)
+        col.prop(opts, "snap_tolerance_px")
+        col.prop(opts, "angle_snap_increment")
+        body.prop(opts, "show_passive_guides")
+        col = body.column(heading="Blender Snap")
+        col.prop(opts, "defer_to_native_snap", text="Yield")
+        body.label(text="More options in the sidebar (N)", icon="MENU_PANEL")
+
+
 class MAGNETS_PT_panel(bpy.types.Panel):
     """Root Magnets N-panel."""
     bl_label = "Magnets"
@@ -43,23 +95,7 @@ class MAGNETS_PT_panel(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
         layout.active = opts.enabled
-        prefs = get_prefs(context)
-
-        col = layout.column()
-        col.prop(opts, "soft_snap")
-        col.prop(prefs, "precision_mode")
-        col.label(text=_mode_hint(opts, prefs.precision_mode), icon="INFO")
-
-        current = matching_preset(opts)
-        row = layout.row(align=True)
-        row.label(text="", icon="PRESET")
-        for preset, text in _PRESET_BUTTONS:
-            op = row.operator(
-                "magnets.options_preset", text=text, depress=current == preset
-            )
-            op.preset = preset
-        row.separator()
-        row.operator("magnets.options_reset", text="", icon="LOOP_BACK")
+        _draw_essentials(layout, context, opts)
 
 
 class MAGNETS_PT_snapping(bpy.types.Panel):
@@ -180,7 +216,29 @@ class MAGNETS_PT_families(bpy.types.Panel):
             grid.prop(opts, f"enable_{fid}")
 
 
+def draw_view3d_header(self, context):
+    """Magnets on/off button + settings popover in the 3D Viewport header.
+
+    The button is an operator (not the raw property) so its tooltip shows the
+    shortcut and right-click offers Assign / Change Shortcut.
+    """
+    try:
+        if not get_prefs(context).show_header_toggle:
+            return
+    except KeyError:
+        return
+    opts = get_options(context)
+    row = self.layout.row(align=True)
+    row.operator(
+        "magnets.toggle", text="", icon="FORCE_MAGNETIC", depress=opts.enabled
+    )
+    sub = row.row(align=True)
+    sub.active = opts.enabled
+    sub.popover(panel=MAGNETS_PT_header_popover.bl_idname, text="")
+
+
 _CLASSES = (
+    MAGNETS_PT_header_popover,
     MAGNETS_PT_panel,
     MAGNETS_PT_snapping,
     MAGNETS_PT_guides,
@@ -193,9 +251,11 @@ def register():
     """Register Blender classes / handlers for this module."""
     for cls in _CLASSES:
         bpy.utils.register_class(cls)
+    bpy.types.VIEW3D_HT_header.append(draw_view3d_header)
 
 
 def unregister():
     """Unregister Blender classes / handlers for this module."""
+    bpy.types.VIEW3D_HT_header.remove(draw_view3d_header)
     for cls in reversed(_CLASSES):
         bpy.utils.unregister_class(cls)

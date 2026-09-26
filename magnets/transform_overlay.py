@@ -21,15 +21,18 @@ from .adapters.bmesh_extract import (
 )
 from .adapters.extract import object_feature_pool
 from .adapters.snapshot import InteractionSnapshot
+from .adapters.units import length_formatter
 from .adapters.view import ui_scale
+from .core.bbox import bbox_edges, from_blender_bound_box
 from .core.features import FeaturePool
+from .core.labels import format_length, rotation_snap_label, size_match_label
 from .core.session import native_snap_in_effect, selection_matches_session
 from .core.snap_apply import masked_translation, project_out_direction
 from .core.tolerance import SnapHysteresis
 from .core.transform import TransformMode
 from .core.transform_snap import (
     adaptive_interval,
-    equal_size_scale,
+    nearest_size_match,
     rotated_matrix,
     scaled_matrix,
     snap_rotation_delta,
@@ -57,6 +60,9 @@ _ACTIVE_INTERVAL = 1.0 / 120.0
 # Fraction of a screen pixel at the anchor depth treated as no movement.
 _ANCHOR_MOVE_FRACTION = 0.05
 
+# Landing-preview outlines are drawn for at most this many objects.
+_GHOST_MAX_OBJECTS = 16
+
 
 @dataclass
 class _Session:
@@ -83,6 +89,11 @@ class _Session:
     # stationary cursor skips recompute.
     last_anchor: Vector | None = None
     last_view: object | None = None
+    # Active object's matrix on the last computed frame: rotate/scale change
+    # it without moving the anchor.
+    last_matrix: object | None = None
+    # (name, size) of non-moving objects, gathered once for the scale snap.
+    size_candidates: list | None = None
     # Wall-clock cost of the last inference tick, feeding the adaptive throttle.
     last_infer_s: float = 0.0
 
@@ -432,6 +443,12 @@ def _tick(context):
     # Skip inference when selection pose and view matrix are unchanged.
     probe = _cheap_anchor(context)
     view_mat = rv3d.view_matrix
+    primary = context.active_object
+    primary_m = (
+        primary.matrix_world
+        if primary is not None and not _session.edit_mode
+        else None
+    )
     if (
         probe is not None
         and _session.last_anchor is not None
@@ -441,10 +458,11 @@ def _tick(context):
         if (
             (probe - _session.last_anchor).length_squared < move_eps * move_eps
             and _session.last_view == view_mat
+            and (primary_m is None or _session.last_matrix == primary_m)
         ):
             return
 
-    obj, moving, anchor, _edit_mode, _bm = _moving_target(context)
+    obj, moving, anchor, edit_mode, _bm = _moving_target(context)
     if obj is None:
         _end_session()
         _redraw(context)
@@ -452,6 +470,7 @@ def _tick(context):
 
     _session.last_anchor = anchor.copy()
     _session.last_view = view_mat.copy()
+    _session.last_matrix = primary_m.copy() if primary_m is not None else None
 
     transform_mode = _TRANSFORM_OPS.get(_session.op, TransformMode.TRANSLATE)
     _t0 = time.perf_counter()
@@ -479,17 +498,31 @@ def _tick(context):
     # commit both respect it.
     _session.constraint = _read_native_constraint(context)
 
-    # Ghost: where the selection lands if released now (translate only; for
-    # rotate/scale the anchor barely moves, so a ghost point is not meaningful).
+    # Landing preview: show where a release would put the selection, using the
+    # same helpers as the commit so the preview and the result always agree.
     ghost_co = None
-    if (
-        result.snapped
-        and transform_mode == TransformMode.TRANSLATE
-        and options.soft_snap
-    ):
-        corr = _snap_correction(result.translation, rv3d, _session.constraint)
-        if corr.length_squared > 1e-12:
-            ghost_co = anchor + corr
+    ghost_poses: dict = {}
+    preview_labels: list = []
+    if options.soft_snap and transform_mode == TransformMode.TRANSLATE:
+        if result.snapped:
+            corr = _snap_correction(result.translation, rv3d, _session.constraint)
+            if corr.length_squared > 1e-12:
+                ghost_co = anchor + corr
+                if not edit_mode:
+                    ghost_poses = _translate_poses(context, corr)
+    elif options.soft_snap and transform_mode == TransformMode.ROTATE:
+        rot = _rotate_snap(context, obj, edit_mode)
+        if rot is not None:
+            axis, angle, pivot = rot
+            ghost_poses = _rotate_poses(context, axis, angle, pivot)
+            preview_labels.append((pivot, rotation_snap_label(angle)))
+    elif options.soft_snap and transform_mode == TransformMode.SCALE:
+        match = _scale_snap(context, obj, edit_mode)
+        if match is not None:
+            factor, name, size, pivot = match
+            ghost_poses = _scale_poses(context, factor, pivot)
+            size_text = format_length(size, fmt=length_formatter(context))
+            preview_labels.append((pivot, size_match_label(name, size_text)))
 
     push_guides(
         context,
@@ -498,8 +531,110 @@ def _tick(context):
         result=result,
         depth_co=anchor,
         ghost_co=ghost_co,
+        ghost_edges=_pose_edges(ghost_poses),
+        preview_labels=preview_labels,
     )
     _redraw(context)
+
+
+def _translate_poses(context, correction: Vector) -> dict:
+    """Final world matrices of the moving objects shifted by ``correction``."""
+    poses = {}
+    for moving_obj in _moving_objects(context):
+        m = moving_obj.matrix_world.copy()
+        m.translation = m.translation + correction
+        poses[moving_obj.name] = m
+    return poses
+
+
+def _rotate_snap(context, obj, edit_mode: bool):
+    """``(axis, angle, pivot)`` a release would rotate to, or None.
+
+    Object mode only. The angle is the net rotation from the session start,
+    snapped to the Angle Snap increment (see ``snap_rotation_delta``).
+    """
+    if edit_mode or not _session.start_matrices:
+        return None
+    start_m = _session.start_matrices.get(obj.name)
+    if start_m is None:
+        return None
+    increment = get_options(context).angle_snap_increment
+    snap = snap_rotation_delta(start_m, obj.matrix_world, increment)
+    if snap is None:
+        return None
+    axis, angle = snap
+    pivot = _session.start_anchor or start_m.translation.copy()
+    return axis, angle, pivot
+
+
+def _rotate_poses(context, axis: Vector, angle: float, pivot: Vector) -> dict:
+    """Final world matrices for a snapped rotation of every moving object."""
+    poses = {}
+    for moving_obj in _moving_objects(context):
+        start = _session.start_matrices.get(moving_obj.name)
+        if start is not None:
+            poses[moving_obj.name] = rotated_matrix(start, axis, angle, pivot)
+    return poses
+
+
+def _scale_snap(context, obj, edit_mode: bool):
+    """``(factor, name, size, pivot)`` a release would scale to, or None.
+
+    Matches the active object's overall size to the nearest non-moving
+    object's within the session tolerance. Object mode only.
+    """
+    if edit_mode or not _session.start_matrices:
+        return None
+    start_m = _session.start_matrices.get(obj.name)
+    if start_m is None:
+        return None
+    tol = _session.world_tol
+    if not tol or tol <= 0.0:
+        return None
+
+    # Confirm vs cancel: a cancelled scale restores the start size exactly, so
+    # an unchanged scale means "nothing to snap" (else a cancelled edit would be
+    # resized just because a neighbour happened to be within tolerance).
+    start_scale = start_m.to_scale()
+    if (obj.matrix_world.to_scale() - start_scale).length < 1e-6 * (
+        1.0 + start_scale.length
+    ):
+        return None
+
+    if _session.size_candidates is None:
+        _session.size_candidates = _nearby_dimensions(context, _session.moving_names)
+    dims = obj.dimensions
+    current_dim = max(dims) if len(dims) else 0.0
+    match = nearest_size_match(current_dim, _session.size_candidates, tol)
+    if match is None:
+        return None
+    name, size, factor = match
+    pivot = _session.start_anchor or obj.matrix_world.translation.copy()
+    return factor, name, size, pivot
+
+
+def _scale_poses(context, factor: float, pivot: Vector) -> dict:
+    """Final world matrices for a snapped uniform scale of the moving objects.
+
+    The factor is relative to the *current* (post-native-scale) size, so the
+    poses are built from the live matrices.
+    """
+    return {
+        moving_obj.name: scaled_matrix(moving_obj.matrix_world, factor, pivot)
+        for moving_obj in _moving_objects(context)
+    }
+
+
+def _pose_edges(poses: dict) -> list:
+    """Bounding-box outline edges of each object placed at its final pose."""
+    edges: list = []
+    for name, matrix in list(poses.items())[:_GHOST_MAX_OBJECTS]:
+        obj = bpy.data.objects.get(name)
+        if obj is None:
+            continue
+        corners = [matrix @ Vector(corner) for corner in obj.bound_box]
+        edges.extend(bbox_edges(from_blender_bound_box(corners)))
+    return edges
 
 
 def _commit_release(context):
@@ -536,7 +671,7 @@ def _commit_release(context):
     elif mode == TransformMode.ROTATE:
         _commit_rotate(context, obj, edit_mode)
     elif mode == TransformMode.SCALE:
-        _commit_scale(context, obj, anchor, edit_mode)
+        _commit_scale(context, obj, edit_mode)
 
 
 def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm):
@@ -598,11 +733,7 @@ def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm)
 
     # Object mode: fold the native move + snap into ONE undo step so a single
     # Ctrl+Z reverts the whole grab (native + snap), matching Blender's feel.
-    poses = {}
-    for moving_obj in _moving_objects(context):
-        m = moving_obj.matrix_world.copy()
-        m.translation = m.translation + correction
-        poses[moving_obj.name] = m
+    poses = _translate_poses(context, correction)
     collapsed = _finish_object_commit(context, poses, "Magnets Move")
     log.debug(
         f"commit APPLIED (translate, collapsed={collapsed}): "
@@ -615,26 +746,12 @@ def _commit_rotate(context, obj, edit_mode):
     if edit_mode:
         log.debug("commit skip: edit-mode rotate snap not supported")
         return
-    if not _session.start_matrices:
-        return
-    start_m = _session.start_matrices.get(obj.name)
-    if start_m is None:
-        return
-
-    increment = get_options(context).angle_snap_increment
-    snap = snap_rotation_delta(start_m, obj.matrix_world, increment)
-    if snap is None:
+    rot = _rotate_snap(context, obj, edit_mode)
+    if rot is None:
         log.debug("commit skip: rotation not near a snap increment")
         return
-    axis, total_angle = snap
-    pivot = _session.start_anchor or start_m.translation.copy()
-
-    poses = {}
-    for moving_obj in _moving_objects(context):
-        s = _session.start_matrices.get(moving_obj.name)
-        if s is None:
-            continue
-        poses[moving_obj.name] = rotated_matrix(s, axis, total_angle, pivot)
+    axis, total_angle, pivot = rot
+    poses = _rotate_poses(context, axis, total_angle, pivot)
     if not poses:
         return
 
@@ -646,67 +763,38 @@ def _commit_rotate(context, obj, edit_mode):
     )
 
 
-def _commit_scale(context, obj, anchor, edit_mode):
+def _commit_scale(context, obj, edit_mode):
     if edit_mode:
         log.debug("commit skip: edit-mode scale snap not supported")
         return
-    if not _session.start_matrices:
+    match = _scale_snap(context, obj, edit_mode)
+    if match is None:
+        log.debug("commit skip: scale unchanged or size not near a neighbour")
         return
-    start_m = _session.start_matrices.get(obj.name)
-    if start_m is None:
-        return
-    tol = _session.world_tol
-    if not tol or tol <= 0.0:
-        return
-
-    # Confirm vs cancel: a cancelled scale restores the start size exactly, so an
-    # unchanged scale means "nothing to snap" (else we'd resize a cancelled edit
-    # just because a neighbour happened to be within tolerance).
-    start_scale = start_m.to_scale()
-    if (obj.matrix_world.to_scale() - start_scale).length < 1e-6 * (
-        1.0 + start_scale.length
-    ):
-        log.debug("commit skip: scale unchanged (cancelled or zero scale)")
-        return
-
-    dims = obj.dimensions
-    current_dim = max(dims) if len(dims) else 0.0
-    candidates = _nearby_dimensions(context, anchor, _session.moving_names)
-    factor = equal_size_scale(current_dim, candidates, tol)
-    if factor is None:
-        log.debug("commit skip: size not near a neighbour")
-        return
-    pivot = _session.start_anchor or obj.matrix_world.translation.copy()
-
-    # Scale factor is relative to the *current* (post-native-scale) size, so
-    # build finals from the live matrices; the collapse re-applies them as
-    # absolute poses regardless of the undo reset.
-    poses = {
-        moving_obj.name: scaled_matrix(moving_obj.matrix_world, factor, pivot)
-        for moving_obj in _moving_objects(context)
-    }
-    collapsed = _finish_object_commit(context, poses, "Magnets Resize")
+    factor, name, size, pivot = match
+    collapsed = _finish_object_commit(
+        context, _scale_poses(context, factor, pivot), "Magnets Resize"
+    )
     log.debug(
         f"commit APPLIED (scale, collapsed={collapsed}): "
-        f"factor={factor:.4f} target_dim={current_dim * factor:.4f}"
+        f"factor={factor:.4f} matched={name!r} size={size:.4f}"
     )
 
 
-def _nearby_dimensions(context, anchor: Vector, exclude_names) -> list[float]:
-    """Overall sizes (largest bbox dimension) of non-moving scene objects.
+def _nearby_dimensions(context, exclude_names) -> list[tuple[str, float]]:
+    """``(name, size)`` of non-moving scene objects (size = largest bbox dim).
 
-    Runs once per commit, not per frame, so a full scan is fine.
+    Gathered once per session (cached on it), so a full scan is fine.
     """
-    del anchor  # full scan; kept for signature symmetry with the callers
     exclude = set(exclude_names or ())
-    out: list[float] = []
+    out: list[tuple[str, float]] = []
     for other in context.view_layer.objects:
         if other.name in exclude:
             continue
         d = other.dimensions
         biggest = max(d) if len(d) else 0.0
         if biggest > 1e-9:
-            out.append(biggest)
+            out.append((other.name, biggest))
     return out
 
 

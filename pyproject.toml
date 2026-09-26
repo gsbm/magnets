@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 testpaths = ["tests/unit"]
 markers = [
     "integration: requires a Blender binary (BLENDER_BIN or on PATH)",
+    "live: windowed Blender with simulated input (MAGNETS_LIVE=1, needs a display)",
 ]
 
 [tool.ruff]

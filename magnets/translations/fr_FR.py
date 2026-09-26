@@ -259,6 +259,38 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Blender snapping takes over"): "L’accrochage Blender prime",
     ("*", "Blender Snap"): "Accrochage Blender",
     ("*", "Yield"): "Céder",
+    # ── Header toggle, engaged colours, shortcut ──────────────────────────────
+    ("*", "Header Toggle"): (
+        "Bouton dans l’en-tête"
+    ),
+    ("*", "Show the Magnets on/off button and settings popover in the 3D Viewport header"): (
+        "Afficher le bouton marche/arrêt Aimants et le menu des réglages dans l’en-tête de la vue 3D"
+    ),
+    ("*", "Engaged Colors"): (
+        "Couleurs engagées"
+    ),
+    ("*", "How engaged guides are colored"): (
+        "Couleur des guides engagés"
+    ),
+    ("*", "Axis Colors"): (
+        "Couleurs des axes"
+    ),
+    ("*", "Alignment guides use the theme's X/Y/Z axis colors; other guides use the Active Color"): (
+        "Les guides d’alignement prennent les couleurs d’axe X/Y/Z du thème ; les autres guides la couleur active"
+    ),
+    ("*", "Every engaged guide uses the Active Color"): (
+        "Tous les guides engagés utilisent la couleur active"
+    ),
+    ("*", "Shortcut"): (
+        "Raccourci"
+    ),
+    ("Operator", "Toggle Magnets"): (
+        "Activer/désactiver Aimants"
+    ),
+    ("*", "Turn Magnets guides and snapping on or off"): (
+        "Activer ou désactiver les guides et l’accrochage Aimants"
+    ),
+    ("*", "More options in the sidebar (N)"): "Plus d’options dans la barre latérale (N)",
     # ── Preset enum ────────────────────────────────────────────────────────────
     ("*", "Preset"): "Préréglage",
     ("*", "Precise"): "Précis",

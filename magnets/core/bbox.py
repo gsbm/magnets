@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from mathutils import Vector
 
+# Corner convention used by every helper here: index bits are (x, y, z), so
+# corner i sits at (-/+ x, -/+ y, -/+ z) for bits (i>>2 & 1, i>>1 & 1, i & 1).
+# Blender's ``Object.bound_box`` orders them differently (it swaps 2<->3 and
+# 6<->7); convert with ``from_blender_bound_box`` first.
+_BLENDER_TO_BINARY = (0, 1, 3, 2, 4, 5, 7, 6)
+
 _FACE_CORNER_GROUPS = (
     (0, 1, 2, 3),
     (4, 5, 6, 7),
@@ -27,6 +33,17 @@ _EDGE_PAIRS = (
     (5, 7),
     (6, 7),
 )
+
+
+def from_blender_bound_box(corners: list[Vector]) -> list[Vector]:
+    """Reorder Blender ``bound_box`` corners into this module's convention.
+
+    Without this, edges include face diagonals and the top/bottom face
+    centers collapse onto the box center.
+    """
+    if len(corners) != 8:
+        return list(corners)
+    return [corners[i] for i in _BLENDER_TO_BINARY]
 
 
 def bbox_face_centers(corners: list[Vector]) -> list[Vector]:

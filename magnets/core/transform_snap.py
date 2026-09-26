@@ -49,12 +49,48 @@ def snap_rotation_delta(
     return axis.normalized(), nearest
 
 
+def nearest_size_match(
+    current_dim: float,
+    candidates: list[tuple[str, float]],
+    world_tol: float,
+) -> tuple[str, float, float] | None:
+    """Equal-size snap target for a scale, with the neighbour it matches.
+
+    Args:
+        current_dim: The object's current overall size (largest bbox dim).
+        candidates: ``(name, size)`` of nearby objects.
+        world_tol: Largest size difference that still snaps.
+
+    Returns:
+        ``(name, size, factor)`` where ``factor`` scales the *current* size
+        onto the nearest candidate, or None when nothing is close enough (or
+        the sizes already match exactly).
+    """
+    if current_dim <= 1e-9 or world_tol <= 0.0 or not candidates:
+        return None
+    best = None
+    best_gap = world_tol
+    for name, dim in candidates:
+        if dim <= 1e-9:
+            continue
+        gap = abs(current_dim - dim)
+        if gap <= best_gap:
+            best_gap = gap
+            best = (name, dim)
+    if best is None:
+        return None
+    factor = best[1] / current_dim
+    if abs(factor - 1.0) < 1e-9:
+        return None
+    return best[0], best[1], factor
+
+
 def equal_size_scale(
     current_dim: float,
     candidate_dims: list[float],
     world_tol: float,
 ) -> float | None:
-    """Equal-size snap for a scale.
+    """Equal-size snap factor for a scale (see ``nearest_size_match``).
 
     Given the object's current overall size (``current_dim``, e.g. its largest
     world bounding-box dimension) and the sizes of nearby objects, return the
@@ -62,23 +98,10 @@ def equal_size_scale(
     nearest candidate within ``world_tol``, or ``None`` if nothing is close
     enough (or the match is already exact).
     """
-    if current_dim <= 1e-9 or world_tol <= 0.0 or not candidate_dims:
-        return None
-    best = None
-    best_gap = world_tol
-    for dim in candidate_dims:
-        if dim <= 1e-9:
-            continue
-        gap = abs(current_dim - dim)
-        if gap <= best_gap:
-            best_gap = gap
-            best = dim
-    if best is None:
-        return None
-    factor = best / current_dim
-    if abs(factor - 1.0) < 1e-9:
-        return None
-    return factor
+    match = nearest_size_match(
+        current_dim, [("", d) for d in candidate_dims], world_tol
+    )
+    return match[2] if match is not None else None
 
 
 def rotated_matrix(

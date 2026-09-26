@@ -86,7 +86,26 @@ class MAGNETS_OT_options_reset(bpy.types.Operator):
         return {"FINISHED"}
 
 
-_classes = (MAGNETS_OT_options_preset, MAGNETS_OT_options_reset)
+class MAGNETS_OT_toggle(bpy.types.Operator):
+    """Turn Magnets guides and snapping on or off for this scene."""
+    bl_idname = "magnets.toggle"
+    bl_label = "Toggle Magnets"
+    bl_description = "Turn Magnets guides and snapping on or off"
+    bl_options = {"REGISTER"}
+
+    def execute(self, context):
+        """Run a non-modal operator action."""
+        opts = get_options(context)
+        opts.enabled = not opts.enabled
+        self.report({"INFO"}, "Magnets on" if opts.enabled else "Magnets off")
+        for window in context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == "VIEW_3D":
+                    area.tag_redraw()
+        return {"FINISHED"}
+
+
+_classes = (MAGNETS_OT_options_preset, MAGNETS_OT_options_reset, MAGNETS_OT_toggle)
 
 
 def register():

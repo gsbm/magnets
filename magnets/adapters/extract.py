@@ -11,6 +11,7 @@ from ..core.bbox import (
     bbox_edges,
     bbox_face_centers,
     bbox_face_planes,
+    from_blender_bound_box,
 )
 from ..core.features import (
     BBoxFeature,
@@ -26,7 +27,7 @@ from ..core.features import (
 
 
 def _local_corners(obj) -> list[Vector]:
-    return [Vector(corner) for corner in obj.bound_box]
+    return from_blender_bound_box([Vector(corner) for corner in obj.bound_box])
 
 
 def object_feature_pool(

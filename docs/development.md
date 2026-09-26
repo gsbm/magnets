@@ -28,10 +28,23 @@ Unit and integration suites are separated:
    BLENDER_BIN=/path/to/blender .venv/bin/pytest tests/integration -m integration
    ```
 
-The release path of the native-transform overlay (`transform_overlay.py`)
-needs a live event loop, so it cannot run headless. Check it by hand with the
-**Debug Logging** preference on, watching for `commit APPLIED` / `commit skip`
-lines in the system console.
+3. **Live (windowed Blender)**: the release path of the native-transform
+   overlay (`transform_overlay.py`) needs a real event loop. `tests/live`
+   starts a windowed Blender per scenario with `--enable-event-simulate`,
+   drives Blender's own translate/rotate/resize modals with simulated mouse
+   events, and checks the snapped result and the single undo step. Each run
+   uses a throwaway `BLENDER_USER_RESOURCES`, so your Blender config is never
+   touched. It needs a display, so it is opt-in:
+
+   ```bash
+   MAGNETS_LIVE=1 BLENDER_BIN=/path/to/blender .venv/bin/pytest tests/live -m live
+   ```
+
+   Set `MAGNETS_LIVE_DEBUG=1` to turn on Debug Logging in those runs.
+
+When snapping misbehaves in a real session, turn on the **Debug Logging**
+preference and watch for `commit APPLIED` / `commit skip` lines in the system
+console.
 
 ## Lint
 
