@@ -61,7 +61,10 @@ class MAGNETS_OT_rotate(bpy.types.Operator):
         self.start_x = event.mouse_region_x
 
         self._snapshot = InteractionSnapshot.from_context(
-            context, exclude=[self.obj], **extract_options(opts)
+            context,
+            exclude=[self.obj],
+            surfaces=opts.enable_tangency,
+            **extract_options(opts),
         )
 
         draw.enable()

@@ -6,22 +6,21 @@ from mathutils import Vector
 
 from ..core.features import EntityRef, FeaturePool, SurfaceFeature
 
-try:
-    from mathutils.bvhtree import BVHTree
-
-    _HAVE_BVH = True
-except ImportError:  # pragma: no cover
-    _HAVE_BVH = False
-
 
 class SurfaceIndex:
-    """Nearest-on-surface queries against cached mesh BVHs."""
+    """Nearest-on-surface queries against candidate meshes.
 
-    def __init__(self, items: list[tuple[object, object]]):
-        self._entries = items
+    Holds only a world bounding sphere per candidate; each mesh's BVH is built
+    (and cached across drags) the first time a query comes within reach of it,
+    so starting a drag costs no BVH builds at all.
+    """
+
+    def __init__(self, candidates: list[tuple[object, Vector, float]], depsgraph):
+        self._candidates = candidates  # (object, world center, world radius)
+        self._depsgraph = depsgraph
 
     def __len__(self) -> int:
-        return len(self._entries)
+        return len(self._candidates)
 
     def query_nearest(
         self,
@@ -29,64 +28,91 @@ class SurfaceIndex:
         max_dist: float,
         limit: int = 8,
     ) -> list[SurfaceFeature]:
-        """Return nearest surface samples to ``point``.
+        """Return up to ``limit`` nearest surface samples within ``max_dist``.
 
         Args:
-            point: World-space query point.
+            co: World-space query point.
+            max_dist: World-space search radius.
             limit: Maximum samples to return.
 
         Returns:
-            List of SurfaceFeature samples.
+            SurfaceFeature samples, nearest first.
         """
-        out: list[SurfaceFeature] = []
-        for obj, tree in self._entries:
-            if len(out) >= limit:
-                break
-            loc, normal, _index, dist = tree.find_nearest(co, max_dist)
-            if loc is None or dist is None or dist > max_dist:
+        from . import scene_cache
+
+        hits: list[tuple[float, SurfaceFeature]] = []
+        for obj, center, radius in self._candidates:
+            if (co - center).length - radius > max_dist:
                 continue
-            out.append(
-                SurfaceFeature(
-                    point=loc.copy(),
-                    normal=normal.copy(),
-                    entity_ref=EntityRef(name=obj.name),
-                )
-            )
-        return out
+            tree = scene_cache.object_bvh(obj, self._depsgraph)
+            if tree is None:
+                continue
+            sample = _nearest_world(obj, tree, co, max_dist)
+            if sample is not None:
+                hits.append(sample)
+        hits.sort(key=lambda h: h[0])
+        return [feature for _dist, feature in hits[:limit]]
+
+
+def _nearest_world(obj, tree, co: Vector, max_dist: float):
+    """World-space nearest point on ``obj`` via its local-space BVH.
+
+    ``BVHTree.FromObject`` builds in object space, so the query point goes in
+    through the inverse matrix and the hit comes back out through the matrix.
+    """
+    mw = obj.matrix_world
+    try:
+        inv = mw.inverted()
+    except ValueError:  # degenerate (zero) scale
+        return None
+    basis = mw.to_3x3()
+    min_scale = min(basis.col[i].length for i in range(3))
+    if min_scale <= 1e-12:
+        return None
+    # A world radius r covers at most r / min_scale in local units.
+    loc, normal, _index, _dist = tree.find_nearest(inv @ co, max_dist / min_scale)
+    if loc is None:
+        return None
+    point = mw @ loc
+    dist = (point - co).length
+    if dist > max_dist:
+        return None
+    normal_world = (inv.to_3x3().transposed() @ normal).normalized()
+    return dist, SurfaceFeature(
+        point=point,
+        normal=normal_world,
+        entity_ref=EntityRef(name=obj.name),
+    )
 
 
 def build_surface_index(context, exclude) -> SurfaceIndex | None:
-    """Build a SurfaceIndex for candidate meshes.
+    """Collect candidate meshes for surface queries (no BVH is built here).
+
+    Objects in Edit Mode are skipped: their geometry changes every frame of
+    the drag, so a surface index of them would be rebuilt on every tick.
 
     Args:
-        objects: Mesh objects to index.
-        depsgraph: Optional depsgraph for evaluated meshes.
+        context: Blender context.
+        exclude: Objects to skip (the moving selection).
 
     Returns:
-        SurfaceIndex instance.
+        SurfaceIndex, or None when there are no candidate meshes.
     """
-    if not _HAVE_BVH:
-        return None
     exclude_names = {o.name for o in exclude}
-    items: list[tuple[object, object]] = []
-    depsgraph = context.evaluated_depsgraph_get()
+    candidates: list[tuple[object, Vector, float]] = []
     for obj in context.view_layer.objects:
         if obj.name in exclude_names or not obj.visible_get():
             continue
-        if obj.type != "MESH" or obj.data is None:
+        if obj.type != "MESH" or obj.data is None or obj.mode == "EDIT":
             continue
-        eval_obj = obj.evaluated_get(depsgraph)
-        mesh = eval_obj.to_mesh()
-        try:
-            if not mesh.vertices:
-                continue
-            tree = BVHTree.FromObject(eval_obj, depsgraph)
-            items.append((obj, tree))
-        finally:
-            eval_obj.to_mesh_clear()
-    if not items:
+        mw = obj.matrix_world
+        corners = [mw @ Vector(c) for c in obj.bound_box]
+        center = sum(corners, Vector()) / 8.0
+        radius = max((c - center).length for c in corners)
+        candidates.append((obj, center, radius))
+    if not candidates:
         return None
-    return SurfaceIndex(items)
+    return SurfaceIndex(candidates, context.evaluated_depsgraph_get())
 
 
 def surface_features_for_point(

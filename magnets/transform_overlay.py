@@ -15,9 +15,10 @@ import bpy
 from mathutils import Vector
 
 from . import log
+from .adapters import scene_cache
 from .adapters.bmesh_extract import (
+    EditSelection,
     apply_edit_translation,
-    edit_mesh_feature_pool,
 )
 from .adapters.extract import object_feature_pool
 from .adapters.snapshot import InteractionSnapshot
@@ -81,6 +82,9 @@ class _Session:
     # Per-object world matrices at session start (object mode only), used to
     # collapse the native transform + snap into a single undo step.
     start_matrices: dict | None
+    # Edit Mode: the selection captured once at session start, so ticks never
+    # rescan the whole mesh.
+    edit_selection: EditSelection | None = None
     snap: SnapHysteresis = field(default_factory=SnapHysteresis)
     constraint: tuple | None = None
     committed: bool = False
@@ -210,10 +214,13 @@ def _moving_target(context):
     edit_mode = context.mode == "EDIT_MESH" and primary.type == "MESH"
 
     if edit_mode:
-        bm = bmesh.from_edit_mesh(primary.data)
-        pool = edit_mesh_feature_pool(primary, bm)
-        anchor = _selection_centroid(primary, bm)
-        return primary, pool, anchor, True, bm
+        sel = _edit_selection(primary)
+        try:
+            pool, anchor = sel.feature_pool(), sel.centroid_world()
+        except ReferenceError:  # edit mesh rebuilt mid-session: recapture
+            sel = _edit_selection(primary, fresh=True)
+            pool, anchor = sel.feature_pool(), sel.centroid_world()
+        return primary, pool, anchor, True, sel.bm
 
     opts = extract_options(get_options(context))
     pool = FeaturePool()
@@ -225,16 +232,14 @@ def _moving_target(context):
     return primary, pool, anchor, False, None
 
 
-def _selection_centroid(obj, bm):
-    mw = obj.matrix_world
-    sel = [v for v in bm.verts if v.select]
-    if not sel:
-        return mw.translation.copy()
-    center = Vector((0.0, 0.0, 0.0))
-    for v in sel:
-        center += v.co
-    center /= len(sel)
-    return mw @ center
+def _edit_selection(obj, *, fresh: bool = False) -> EditSelection:
+    """The session's captured Edit Mode selection, captured on first use."""
+    sel = _session.edit_selection if _session is not None else None
+    if fresh or sel is None or sel.obj != obj:
+        sel = EditSelection(obj, bmesh.from_edit_mesh(obj.data))
+        if _session is not None:
+            _session.edit_selection = sel
+    return sel
 
 
 def _cheap_anchor(context) -> Vector | None:
@@ -246,8 +251,10 @@ def _cheap_anchor(context) -> Vector | None:
         obj = context.active_object
         if obj is None or obj.type != "MESH":
             return None
-        bm = bmesh.from_edit_mesh(obj.data)
-        return _selection_centroid(obj, bm)
+        try:
+            return _edit_selection(obj).centroid_world()
+        except ReferenceError:
+            return _edit_selection(obj, fresh=True).centroid_world()
     objs = _moving_objects(context)
     if not objs:
         return None
@@ -271,9 +278,14 @@ def _begin_session(context, op_id: str):
     start_matrices = (
         None if edit_mode else {obj.name: obj.matrix_world.copy() for obj in moving}
     )
-    opts = extract_options(get_options(context))
+    options = get_options(context)
     exclude = _objects_to_exclude(context)
-    snapshot = InteractionSnapshot.from_context(context, exclude=exclude, **opts)
+    snapshot = InteractionSnapshot.from_context(
+        context,
+        exclude=exclude,
+        surfaces=options.enable_tangency,
+        **extract_options(options),
+    )
 
     world_tol = None
     _area, region, rv3d = _view3d_context(context)
@@ -282,6 +294,17 @@ def _begin_session(context, op_id: str):
         wpp = world_per_pixel(region, rv3d, obj.matrix_world.translation)
         world_tol = get_options(context).passive_range_px * ui_scale(context) * wpp
 
+    # Edit Mode: capture the selection now (the one full mesh scan per drag).
+    # Always fresh: a previous session's capture may be of another selection.
+    edit_selection = None
+    if edit_mode and obj is not None and obj.type == "MESH":
+        edit_selection = EditSelection(obj, bmesh.from_edit_mesh(obj.data))
+    start_anchor = (
+        edit_selection.centroid_world()
+        if edit_selection is not None
+        else _cheap_anchor(context)
+    )
+
     _session = _Session(
         key=_session_key_for(context, op_id),
         op=op_id,
@@ -289,8 +312,9 @@ def _begin_session(context, op_id: str):
         edit_mode=edit_mode,
         snapshot=snapshot,
         world_tol=world_tol,
-        start_anchor=_cheap_anchor(context),
+        start_anchor=start_anchor,
         start_matrices=start_matrices,
+        edit_selection=edit_selection,
     )
 
     if log.debug_enabled():
@@ -718,7 +742,10 @@ def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm)
         # Edit mode: translate the selected verts and record it. The native
         # edit-mode transform already pushed its own step, so this remains a
         # second undo entry (bmesh state makes an undo-collapse unsafe).
-        apply_edit_translation(obj, bm, correction)
+        sel = _session.edit_selection
+        apply_edit_translation(
+            obj, bm, correction, verts=sel.verts if sel is not None else None
+        )
         bmesh.update_edit_mesh(obj.data)
         try:
             bpy.ops.ed.undo_push(message="Magnets Snap")
@@ -959,6 +986,7 @@ def _timer_callback_inner():
 def register():
     """Register Blender classes / handlers for this module."""
     global _timer
+    scene_cache.register()
     if _timer is not None:
         return
     _timer = bpy.app.timers.register(_timer_callback, persistent=True)
@@ -971,3 +999,4 @@ def unregister():
     if _timer is not None:
         bpy.app.timers.unregister(_timer)
         _timer = None
+    scene_cache.unregister()

@@ -169,14 +169,18 @@ def candidate_feature_pool(context, exclude, **kwargs) -> FeaturePool:
     Returns:
         Combined FeaturePool.
     """
-    from .entities import entity_feature_pool
+    from . import scene_cache
 
     exclude_names = {o.name for o in exclude}
     pool = FeaturePool()
+    alive: set[int] = set()
     for obj in context.view_layer.objects:
+        alive.add(obj.as_pointer())
         if obj.name in exclude_names or not obj.visible_get():
             continue
-        pool.extend(entity_feature_pool(obj, **kwargs))
+        # Cached across drags; only changed objects are re-extracted.
+        pool.extend(scene_cache.object_features(obj, **kwargs))
+    scene_cache.prune(alive)
     return pool
 
 

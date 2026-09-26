@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SCENARIOS = ["translate", "yield", "xlock", "rotate", "scale"]
+SCENARIOS = ["translate", "yield", "xlock", "rotate", "scale", "edit_small", "edit_large"]
 
 pytestmark = pytest.mark.live
 

@@ -15,6 +15,19 @@ Viewport. Inference logic under `core/` has no `bpy` dependency and uses
   to Magnets' modal operators, which own the transform and lock onto guides
   while dragging.
 
+## Caching and Per-Tick Cost
+
+- **Across drags** (`adapters/scene_cache.py`): mesh features are reused
+  while an object's `matrix_world` and `bound_box` are unchanged. Surface
+  BVHs are built lazily, in object-local space, only for meshes a tangency
+  query reaches. A depsgraph handler drops a BVH when its object's geometry
+  changes; undo, redo and file load clear everything.
+- **Within a drag** (`adapters/bmesh_extract.EditSelection`): Edit Mode
+  captures the selection once per drag, so each tick touches only the
+  selected elements. Selections over `DETAIL_LIMIT` (2048) vertices are
+  summarised by their bounding box, with the centroid tracked from a fixed
+  sample.
+
 ## Data Pipeline
 
 Each inference tick (a timer frame or a modal `MOUSEMOVE`) runs:

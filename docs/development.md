@@ -28,6 +28,13 @@ Unit and integration suites are separated:
    BLENDER_BIN=/path/to/blender .venv/bin/pytest tests/integration -m integration
    ```
 
+   `tests/integration/test_perf_headless.py` is the speed suite. It covers
+   drag start on a 400-object scene (scene cache) and Edit Mode ticks on a
+   250k-vertex mesh. Each check pairs a generous time budget with a
+   deterministic work count (cache hits, BVH builds, feature counts), so
+   regressions are caught without flaky timings. Run it with `-s` to see the
+   measured numbers.
+
 3. **Live (windowed Blender)**: the release path of the native-transform
    overlay (`transform_overlay.py`) needs a real event loop. `tests/live`
    starts a windowed Blender per scenario with `--enable-event-simulate`,

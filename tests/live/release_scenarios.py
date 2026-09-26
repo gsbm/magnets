@@ -114,6 +114,20 @@ def _check_scale(_loc):
     return abs(s - 1.5) < 1e-5, f"scale={s:.5f} (want 1.5: Target's size)"
 
 
+def _selection_centroid_y():
+    import bmesh
+
+    bm = bmesh.from_edit_mesh(cube().data)
+    sel = [v.co for v in bm.verts if v.select]
+    return sum(co.y for co in sel) / len(sel)
+
+
+def _check_edit(_loc):
+    # Object sits at the origin with identity transform: local == world.
+    y = _selection_centroid_y()
+    return abs(y - 4.0) < 1e-5, f"selection centroid y={y:.5f} (want 4.0)"
+
+
 SCENARIOS = {
     # Drag toward Target's y: alignment snaps y to exactly 4.
     "translate": {"target": (5, 4, 0), "scale": 1.0, "native": False,
@@ -137,6 +151,20 @@ SCENARIOS = {
         "op": "rotate", "props": {},
         "path": lambda: _arc((0, 0, 0), 3.0, 0.0, 43.0),
         "check": _check_rotate},
+    # Edit Mode, small selection (per-element features): the whole cube's
+    # verts are dragged; their centroid snaps to Target's y.
+    "edit_small": {"target": (5, 4, 0), "scale": 1.0, "native": False,
+        "edit": "cube",
+        "op": "translate", "props": {},
+        "path": lambda: _line((0, 0, 0), (0.4, 3.93, 0)),
+        "check": _check_edit},
+    # Edit Mode, large selection (3721 verts > DETAIL_LIMIT): summarised by
+    # its bounding box, centroid tracked from a sample.
+    "edit_large": {"target": (5, 4, 0), "scale": 1.0, "native": False,
+        "edit": "grid",
+        "op": "translate", "props": {},
+        "path": lambda: _line((0, 0, 0), (0.4, 3.93, 0)),
+        "check": _check_edit},
     # Scale to ~1.45: matches Target's size (scale 1.5).
     "scale": {"target": (8, 0, 0), "scale": 1.5, "native": False,
         "op": "resize", "props": {},
@@ -173,9 +201,22 @@ def setup():
     target = bpy.context.active_object
     target.name = "Target"
     target.scale = (spec["scale"],) * 3
+    if spec.get("edit") == "grid":
+        # Replace the cube with a dense grid of the same size, named "Cube".
+        bpy.data.objects.remove(c)
+        bpy.ops.mesh.primitive_grid_add(
+            x_subdivisions=60, y_subdivisions=60, size=2.0, location=(0, 0, 0)
+        )
+        c = bpy.context.active_object
+        c.name = "Cube"
     bpy.ops.object.select_all(action="DESELECT")
     c.select_set(True)
     bpy.context.view_layer.objects.active = c
+    if spec.get("edit"):
+        win, area, reg, _rv3d = view3d()
+        with bpy.context.temp_override(window=win, area=area, region=reg):
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_all(action="SELECT")
     _win, area, _reg, rv3d = view3d()
     rv3d.view_perspective = "ORTHO"
     rv3d.view_rotation = Quaternion((1, 0, 0, 0))  # top view
@@ -214,7 +255,8 @@ def verify():
     ok, detail = spec["check"](cube().location)
     result(ok, detail)
     # Single undo step: one Ctrl+Z returns the whole move/rotate/scale.
-    if ok and SCENARIO != "yield":
+    # Edit Mode keeps the snap as its own undo step (bmesh; by design).
+    if ok and SCENARIO != "yield" and not spec.get("edit"):
         win, area, reg, _rv3d = view3d()
         with bpy.context.temp_override(window=win, area=area, region=reg):
             bpy.ops.ed.undo()

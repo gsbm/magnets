@@ -7,12 +7,7 @@ import bpy
 from bpy_extras import view3d_utils
 from mathutils import Vector
 
-from ..adapters.bmesh_extract import (
-    apply_edit_translation,
-    edit_mesh_feature_pool,
-    restore_selected_verts,
-    snapshot_selected_verts,
-)
+from ..adapters.bmesh_extract import EditSelection, apply_edit_translation
 from ..adapters.extract import object_feature_pool
 from ..adapters.snapshot import InteractionSnapshot
 from ..core.features import FeaturePool
@@ -68,12 +63,15 @@ class MAGNETS_OT_translate(bpy.types.Operator):
         if self.edit_mode:
             self.objs = [self.obj]
             self.bm = bmesh.from_edit_mesh(self.obj.data)
-            self._vert_snapshot = snapshot_selected_verts(self.bm)
-            self.init_world = self._selection_centroid()
+            # Captured once: per-event work then touches only the selection.
+            self._sel = EditSelection(self.obj, self.bm)
+            self._vert_start = [v.co.copy() for v in self._sel.verts]
+            self.init_world = self._sel.centroid_world()
         else:
             self.objs = list(context.selected_objects) or [self.obj]
             self.bm = None
-            self._vert_snapshot = {}
+            self._sel = None
+            self._vert_start = []
             self._init_locs = {
                 obj: obj.matrix_world.translation.copy() for obj in self.objs
             }
@@ -88,7 +86,10 @@ class MAGNETS_OT_translate(bpy.types.Operator):
 
         exclude = list(self.objs) if not self.edit_mode else []
         self._snapshot = InteractionSnapshot.from_context(
-            context, exclude=exclude, **extract_options(opts)
+            context,
+            exclude=exclude,
+            surfaces=opts.enable_tangency,
+            **extract_options(opts),
         )
 
         draw.enable()
@@ -97,16 +98,9 @@ class MAGNETS_OT_translate(bpy.types.Operator):
         context.area.tag_redraw()
         return {"RUNNING_MODAL"}
 
-    def _selection_centroid(self) -> Vector:
-        mw = self.obj.matrix_world
-        sel = [v for v in self.bm.verts if v.select]
-        if not sel:
-            return mw.translation.copy()
-        center = Vector((0.0, 0.0, 0.0))
-        for v in sel:
-            center += v.co
-        center /= len(sel)
-        return mw @ center
+    def _restore_verts(self):
+        for v, co in zip(self._sel.verts, self._vert_start, strict=True):
+            v.co = co
 
     def modal(self, context, event):
         """Handle a modal event.
@@ -142,7 +136,7 @@ class MAGNETS_OT_translate(bpy.types.Operator):
     def _moving_pool(self, context) -> FeaturePool:
         opts = extract_options(get_options(context))
         if self.edit_mode:
-            return edit_mesh_feature_pool(self.obj, self.bm)
+            return self._sel.feature_pool()
         pool = FeaturePool()
         for obj in self.objs:
             pool.extend(object_feature_pool(obj, **opts))
@@ -150,8 +144,12 @@ class MAGNETS_OT_translate(bpy.types.Operator):
 
     def _apply_free(self, free_delta: Vector):
         if self.edit_mode:
-            restore_selected_verts(self.bm, self._vert_snapshot)
-            apply_edit_translation(self.obj, self.bm, free_delta)
+            # Normals are refreshed once on finish, not on every mouse move.
+            self._restore_verts()
+            apply_edit_translation(
+                self.obj, self.bm, free_delta,
+                verts=self._sel.verts, update_normals=False,
+            )
             bmesh.update_edit_mesh(self.obj.data)
         else:
             for obj in self.objs:
@@ -159,7 +157,7 @@ class MAGNETS_OT_translate(bpy.types.Operator):
 
     def _anchor(self) -> Vector:
         if self.edit_mode:
-            return self._selection_centroid()
+            return self._sel.centroid_world()
         center = Vector((0.0, 0.0, 0.0))
         for obj in self.objs:
             center += obj.matrix_world.translation
@@ -192,7 +190,10 @@ class MAGNETS_OT_translate(bpy.types.Operator):
         if result.snapped:
             correction = self._axis.project(result.translation)
             if self.edit_mode:
-                apply_edit_translation(self.obj, self.bm, correction)
+                apply_edit_translation(
+                    self.obj, self.bm, correction,
+                    verts=self._sel.verts, update_normals=False,
+                )
                 bmesh.update_edit_mesh(self.obj.data)
             else:
                 for obj in self.objs:
@@ -221,6 +222,7 @@ class MAGNETS_OT_translate(bpy.types.Operator):
 
     def _finish(self, context):
         if self.edit_mode and self.bm is not None:
+            self.bm.normal_update()
             bmesh.update_edit_mesh(self.obj.data)
         draw.disable()
         clear_header(context)
@@ -229,7 +231,8 @@ class MAGNETS_OT_translate(bpy.types.Operator):
 
     def _cancel(self, context):
         if self.edit_mode and self.bm is not None:
-            restore_selected_verts(self.bm, self._vert_snapshot)
+            self._restore_verts()
+            self.bm.normal_update()
             bmesh.update_edit_mesh(self.obj.data)
         else:
             for obj in self.objs:

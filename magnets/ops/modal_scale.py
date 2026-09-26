@@ -56,7 +56,10 @@ class MAGNETS_OT_scale(bpy.types.Operator):
         self.start_y = event.mouse_region_y
 
         self._snapshot = InteractionSnapshot.from_context(
-            context, exclude=[self.obj], **extract_options(opts)
+            context,
+            exclude=[self.obj],
+            surfaces=opts.enable_tangency,
+            **extract_options(opts),
         )
 
         draw.enable()
