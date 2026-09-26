@@ -44,6 +44,27 @@ def axis_parallel_segment(
     return (a, b)
 
 
+def endpoint_ticks(
+    point: Vector,
+    direction: Vector,
+    size: float = 0.08,
+) -> tuple[Vector, Vector]:
+    """Return a tick of length ``size`` across ``direction`` at ``point``."""
+    n = _perpendicular_unit(direction)
+    half = size * 0.5
+    return (point - n * half, point + n * half)
+
+
+def guide_ticks(
+    anchor: Vector,
+    extent: Vector,
+    direction: Vector,
+    size: float = 0.08,
+) -> list[tuple[Vector, Vector]]:
+    """Return ticks across ``direction`` at ``anchor`` and ``extent``."""
+    return [endpoint_ticks(anchor, direction, size), endpoint_ticks(extent, direction, size)]
+
+
 def circle_segments(
     center: Vector,
     normal: Vector,

@@ -45,57 +45,6 @@ def extend_segment(a: Vector, b: Vector, margin: float = 0.2):
     return (a - d * margin, b + d * margin)
 
 
-def axis_parallel_segment(
-    anchor: Vector,
-    direction: Vector,
-    extent_point: Vector,
-    margin: float = 0.25,
-):
-    """Return ``(p0, p1)`` along ``direction`` through ``anchor``.
-
-    The segment reaches ``extent_point``, extended by the ``margin`` fraction.
-    """
-    if direction.length_squared == 0.0:
-        return (anchor.copy(), anchor.copy())
-    d = direction.normalized()
-    t = d.dot(extent_point - anchor)
-    dvec = anchor + d * t - anchor
-    a = anchor - dvec * margin
-    b = anchor + d * t + dvec * margin
-    return (a, b)
-
-
-def _perpendicular_unit(direction: Vector) -> Vector:
-    d = direction.normalized()
-    helper = Vector((0.0, 0.0, 1.0))
-    if abs(d.dot(helper)) > 0.95:
-        helper = Vector((0.0, 1.0, 0.0))
-    return d.cross(helper).normalized()
-
-
-def endpoint_ticks(
-    point: Vector,
-    direction: Vector,
-    size: float = 0.08,
-) -> tuple[tuple[Vector, Vector], tuple[Vector, Vector]]:
-    """Return a tick of length ``size`` across ``direction`` at ``point``."""
-    n = _perpendicular_unit(direction)
-    half = size * 0.5
-    a = point - n * half
-    b = point + n * half
-    return (a, b)
-
-
-def guide_ticks(
-    anchor: Vector,
-    extent: Vector,
-    direction: Vector,
-    size: float = 0.08,
-) -> list[tuple[Vector, Vector]]:
-    """Return ticks across ``direction`` at ``anchor`` and ``extent``."""
-    return [endpoint_ticks(anchor, direction, size), endpoint_ticks(extent, direction, size)]
-
-
 # ── Screen-space dot / marker geometry ────────────────────────────────────────
 
 def circle_2d_verts(

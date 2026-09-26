@@ -15,7 +15,7 @@ from ..core import scoring
 from ..core import solvers as _solvers  # noqa: F401 - register solver table
 from ..core.features import Feature, FeaturePool, feature_anchor
 from ..core.graph import build_active_set
-from ..core.guide_draw import guide_to_drawables
+from ..core.guide_draw import guide_ticks, guide_to_drawables
 from ..core.labels import feature_hint
 from ..core.registry import dispatch
 from ..core.relationship import GuideLine, Relationship
@@ -34,7 +34,6 @@ from ..core.transform import TransformMode
 from ..core.transform_snap import rotated_matrix
 from ..core.view_filter import restrict_snap_axes
 from ..draw import handler as draw
-from ..draw.glyphs import guide_ticks
 from ..draw.handler import GuideDrawItem
 from ..preferences import get_prefs
 from ..properties import (

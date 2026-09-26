@@ -3,10 +3,10 @@
 from core.bbox import bbox_centroid, bbox_face_centers
 from core.features import EntityRef, LineFeature, PointFeature, PointKind
 from core.frames import world_axes
+from core.guide_draw import endpoint_ticks, guide_ticks
 from core.labels import alignment_label, feature_hint, point_kind_label
 from core.solvers.alignment import AlignmentSolver, EdgeAlignmentSolver
 from core.solvers.base import SolveContext
-from draw.glyphs import endpoint_ticks, guide_ticks
 from mathutils import Vector
 
 

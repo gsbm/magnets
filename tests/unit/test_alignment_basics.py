@@ -2,13 +2,14 @@
 
 from core.features import PointFeature, PointKind
 from core.frames import WORLD_AXES
+from core.guide_draw import axis_parallel_segment
 from core.relationship import ConstraintDelta, GuideLine, Relationship
 from core.resolver import resolve_translation
 from core.scoring import RankItem, rank, screen_score
 from core.solvers.alignment import AlignmentSolver
 from core.solvers.base import SolveContext
 from core.spatial import PointIndex
-from draw.glyphs import axis_parallel_segment, dash_segments, extend_segment
+from draw.glyphs import dash_segments, extend_segment
 from mathutils import Vector
 
 
