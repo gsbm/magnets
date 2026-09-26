@@ -48,6 +48,23 @@ def test_midpoint_solver_finds_center():
     assert rels[0].residual == 0.0
 
 
+def test_midpoint_solver_pairs_only_same_kind_features():
+    """Origin + face center has no geometric midpoint; corner + corner does."""
+    solver = MidpointSolver()
+    moving = [_pt((1.0, 0.0, 0.0), entity="move")]
+    mixed = [
+        _pt((0.0, 0.0, 0.0), PointKind.ORIGIN, "t"),
+        _pt((2.0, 0.0, 0.0), PointKind.BBOX_FACE_CENTER, "t"),
+    ]
+    assert solver.solve(moving, mixed, _ctx(5.0)) == []
+    corners = [
+        _pt((0.0, 0.0, 0.0), PointKind.BBOX_CORNER, "t"),
+        _pt((2.0, 0.0, 0.0), PointKind.BBOX_CORNER, "t"),
+    ]
+    rels = solver.solve(moving, corners, _ctx(5.0))
+    assert len(rels) == 1 and rels[0].residual == 0.0
+
+
 def test_spacing_solver_detects_equal_gap():
     solver = SpacingSolver()
     moving = [_pt((4.0, 0.0, 0.0), entity="move")]

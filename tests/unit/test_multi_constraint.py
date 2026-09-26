@@ -159,3 +159,62 @@ def test_snap_angle_degrees():
 
     snapped = snap_angle(math.radians(47.0), 15.0)
     assert abs(math.degrees(snapped) - 45.0) < 1e-6
+
+
+# ── Overlapping constraints: one correction per direction ────────────────────
+
+_X, _Y, _Z = Vector((1.0, 0.0, 0.0)), Vector((0.0, 1.0, 0.0)), Vector((0.0, 0.0, 1.0))
+
+
+def _aligned(axis, delta, direction):
+    rel = _rel("alignment", axis, ConstraintDelta.from_vector(Vector(delta)))
+    rel.constraint_dir = direction
+    return rel
+
+
+def test_overlapping_deltas_do_not_stack():
+    """Regression (live ``xlock``): alignment + spacing + midpoint all moving X
+    used to sum to +0.2035 instead of the alignment's +0.068."""
+    align_x = _aligned("X", (0.068, 0.0, 0.0), _X)
+    align_y = _aligned("Y", (0.0, 0.07, 0.0), _Y)
+    align_z = _aligned("Z", (0.0, 0.0, 0.0), _Z)  # already satisfied
+    spacing = _rel("spacing", "gap_T", ConstraintDelta.from_vector(Vector((0.1, 0.0, 0.0))))
+    midpoint = _rel(
+        "midpoint", "mid_T_T", ConstraintDelta.from_vector(Vector((0.035, 0.02, 0.4)))
+    )
+    result = resolve_translation([midpoint, spacing, align_z, align_x, align_y])
+    assert (result - Vector((0.068, 0.07, 0.0))).length < 1e-9
+
+
+def test_alignment_wins_its_axis_regardless_of_input_order():
+    align_x = _aligned("X", (0.1, 0.0, 0.0), _X)
+    spacing = _rel("spacing", "gap_T", ConstraintDelta.from_vector(Vector((0.5, 0.0, 0.0))))
+    assert resolve_translation([spacing, align_x]) == Vector((0.1, 0.0, 0.0))
+    assert resolve_translation([align_x, spacing]) == Vector((0.1, 0.0, 0.0))
+
+
+def test_satisfied_alignment_holds_its_axis():
+    """A zero-residual alignment still claims its axis, so a lower-priority
+    guide cannot pull the selection off it."""
+    align_z = _aligned("Z", (0.0, 0.0, 0.0), _Z)
+    midpoint = _rel(
+        "midpoint", "mid_T_T", ConstraintDelta.from_vector(Vector((0.0, 0.2, 0.5)))
+    )
+    assert resolve_translation([midpoint, align_z]) == Vector((0.0, 0.2, 0.0))
+
+
+def test_lower_priority_keeps_its_orthogonal_part():
+    """Gram-Schmidt: only the claimed component is dropped."""
+    align_x = _aligned("X", (0.1, 0.0, 0.0), _X)
+    midpoint = _rel(
+        "midpoint", "mid_T_T", ConstraintDelta.from_vector(Vector((0.3, 0.2, 0.0)))
+    )
+    assert (resolve_translation([align_x, midpoint]) - Vector((0.1, 0.2, 0.0))).length < 1e-9
+
+
+def test_non_axis_deltas_claim_their_own_direction():
+    """Without constraint_dir, the applied delta's direction is claimed, so two
+    parallel lower-priority corrections still apply once."""
+    a = _rel("spacing", "gap_A", ConstraintDelta.from_vector(Vector((0.2, 0.0, 0.0))))
+    b = _rel("midpoint", "mid_B_B", ConstraintDelta.from_vector(Vector((0.5, 0.0, 0.0))))
+    assert resolve_translation([a, b]) == Vector((0.2, 0.0, 0.0))

@@ -73,6 +73,7 @@ class AlignmentSolver(Solver):
                             residual=residual,
                             delta=ConstraintDelta.from_vector(correction),
                             guide=GuideLine(point=c.co.copy(), direction=guide_dir),
+                            constraint_dir=direction.normalized(),
                         )
                     )
         return out
@@ -135,6 +136,7 @@ class EdgeAlignmentSolver(Solver):
                             residual=residual,
                             delta=ConstraintDelta.from_vector(correction),
                             guide=GuideLine(point=c.point.copy(), direction=guide_dir),
+                            constraint_dir=direction.normalized(),
                         )
                     )
         return out

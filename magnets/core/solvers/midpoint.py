@@ -8,7 +8,13 @@ from .base import SolveContext, Solver
 
 
 class MidpointSolver(Solver):
-    """Midpoint-between-targets solver."""
+    """Midpoint between two features of one target object.
+
+    Only same-kind pairs count (corner-corner gives edge midpoints, vertex-
+    vertex gives edge midpoints in Edit Mode). Mixed pairs such as origin +
+    face center land on points with no geometric meaning. Centering between
+    *two different objects* is the distribution solver's job.
+    """
     family = "midpoint"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
@@ -40,6 +46,8 @@ class MidpointSolver(Solver):
                 for i in range(len(pts)):
                     for j in range(i + 1, len(pts)):
                         a, b = pts[i], pts[j]
+                        if a.kind != b.kind:
+                            continue
                         mid = (a.co + b.co) * 0.5
                         residual = (m.co - mid).length
                         if residual > tol:

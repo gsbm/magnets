@@ -10,12 +10,57 @@ from .frames import Frame
 from .graph import constraints_compatible, snap_axis_slot
 from .relationship import Relationship
 
+# Which relationship wins an axis when several engage at once: alignment is the
+# primary smart-guide snap, plane/line contact next, distribution-style guides
+# last. Families not listed rank after these, in input order.
+FAMILY_PRIORITY: tuple[str, ...] = (
+    "alignment",
+    "coplanar",
+    "collinear",
+    "symmetry",
+    "spacing",
+    "midpoint",
+)
+_FAMILY_RANK = {family: i for i, family in enumerate(FAMILY_PRIORITY)}
+
+# Components below this (world units) count as "nothing left to apply".
+_EPS = 1e-9
+
+
+def _family_rank(rel: Relationship) -> int:
+    return _FAMILY_RANK.get(rel.family, len(FAMILY_PRIORITY))
+
+
+def _project_off(vec: Vector, basis: list[Vector]) -> Vector:
+    """``vec`` minus its components along each (orthonormal) basis vector."""
+    out = vec.copy()
+    for u in basis:
+        out -= u * out.dot(u)
+    return out
+
+
+def _claim(basis: list[Vector], direction: Vector | None) -> None:
+    """Add ``direction``'s part orthogonal to ``basis`` as a new basis vector."""
+    if direction is None:
+        return
+    rest = _project_off(direction, basis)
+    if rest.length > 1e-6:
+        basis.append(rest.normalized())
+
 
 def resolve_translation(
     active: list[Relationship],
     frame: Frame = Frame.WORLD,
 ) -> Vector:
     """Merge active translation constraints into one world-space offset.
+
+    Each direction is corrected once. Relationships are taken in family
+    priority order (``FAMILY_PRIORITY``, then ``base_priority``). Each delta is
+    projected off the directions already claimed (Gram-Schmidt), so orthogonal
+    constraints (X + Y alignment) still add, while overlapping ones (an X
+    alignment and a midpoint that also moves X) no longer stack. A satisfied
+    constraint (zero delta) still claims its ``constraint_dir``, so a
+    lower-priority guide cannot pull the selection off it.
 
     Args:
         active: Ranked relationships currently engaged.
@@ -30,20 +75,28 @@ def resolve_translation(
     if len(active) == 1:
         return active[0].delta.translation.copy()
 
-    ordered = sorted(active, key=lambda r: -r.base_priority)
+    # sorted() is stable: equal keys keep their ranked (input) order.
+    ordered = sorted(active, key=lambda r: (_family_rank(r), -r.base_priority))
     result = Vector((0.0, 0.0, 0.0))
+    claimed: list[Vector] = []  # orthonormal directions already corrected
     accepted: list[Relationship] = []
     used_slots: set[str] = set()
-
     for rel in ordered:
         slot = snap_axis_slot(rel)
         if slot in used_slots:
             continue
         if accepted and not all(constraints_compatible(rel, prev) for prev in accepted):
             continue
-        result += rel.delta.translation
         accepted.append(rel)
         used_slots.add(slot)
+
+        applied = _project_off(rel.delta.translation, claimed)
+        if applied.length > _EPS:
+            result += applied
+        if rel.constraint_dir is not None:
+            _claim(claimed, rel.constraint_dir)
+        elif applied.length > _EPS:
+            _claim(claimed, applied)
     return result
 
 

@@ -126,10 +126,9 @@ SCENARIOS = {
         "path": lambda: _line((0, 0, 0), (0.4, 3.93, 0)),
         "check": _check_native},
     # X lock: the Y alignment with Target (y=0.07) must not leak into the snap.
-    # Midpoint/spacing are off so only the lock is under test: the resolver
-    # currently stacks their X components onto the X alignment (known issue).
+    # All guide families stay on: spacing/midpoint also engage here and must
+    # not stack their X components onto the X alignment.
     "xlock": {"target": (5, 0.07, 0), "scale": 1.0, "native": False,
-        "families_off": ("midpoint", "spacing"),
         "op": "translate", "props": {"constraint_axis": (True, False, False)},
         "path": lambda: _line((0, 0, 0), (4.93, 0.3, 0)),
         "check": _check_xlock},
@@ -163,8 +162,6 @@ def install():
 def setup():
     scene = bpy.context.scene
     scene.tool_settings.use_snap = spec["native"]
-    for fid in spec.get("families_off", ()):
-        setattr(scene.magnets, f"enable_{fid}", False)
     for obj in list(bpy.data.objects):
         if obj.name != "Cube":
             bpy.data.objects.remove(obj)

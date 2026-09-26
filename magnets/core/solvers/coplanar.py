@@ -54,6 +54,7 @@ class CoplanarSolver(Solver):
                         residual=residual,
                         delta=ConstraintDelta.from_vector(desired - m.co),
                         guide=GuidePlane(point=c.point.copy(), normal=c.normal.copy()),
+                        constraint_dir=n.copy(),
                     )
                 )
         return out

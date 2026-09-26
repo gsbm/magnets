@@ -97,6 +97,11 @@ class Relationship:
     delta: ConstraintDelta
     guide: Guide
     base_priority: int = 0
+    # Unit direction this relationship pins (an alignment's axis, a plane's
+    # normal). Lets the resolver keep an already-satisfied constraint (zero
+    # delta) from being pulled off by a lower-priority one. None: use the
+    # delta's own direction.
+    constraint_dir: Vector | None = None
 
     def __post_init__(self):
         if not self.base_priority:
