@@ -9,6 +9,7 @@ from mathutils import Vector
 
 from ..features import FeatureType
 from ..frames import Frame
+from ..labels import LengthFormat, format_length
 from ..relationship import Relationship
 from ..transform import TransformMode
 
@@ -27,6 +28,13 @@ class SolveContext:
     transform_mode: TransformMode = TransformMode.TRANSLATE
     # Distribution gap metric: "center", "edge", or "both".
     spacing_metric: str = "both"
+    # Scene-aware length formatter for labels (e.g. "12.3 cm"); None falls back
+    # to a plain number scaled by ``unit_scale``.
+    length_format: LengthFormat | None = None
+
+    def format_length(self, value: float) -> str:
+        """Format a world-space length for a guide label."""
+        return format_length(value, self.unit_scale, self.length_format)
 
 
 class Solver(ABC):

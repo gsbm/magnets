@@ -10,6 +10,7 @@ from bpy_extras import view3d_utils
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
+from ..adapters.view import pixel_size, ui_scale
 from .glyphs import (
     circle_2d_line_pairs,
     dash_segments,
@@ -83,7 +84,7 @@ def _get_shader_3d():
             _shader = gpu.shader.from_builtin(name)
             _shader_uses_polyline = polyline
             return _shader
-        except Exception:
+        except (ValueError, TypeError):  # shader not available on this build
             continue
     raise RuntimeError("No compatible 3D GPU line shader found")
 
@@ -225,8 +226,10 @@ def _draw_view():
             boosted.append(GuideDrawItem(it.a, it.b, (r, g, b, min(1.0, a + pulse_extra))))
         items = boosted
 
+    import bpy
+
     shader = _get_shader_3d()
-    line_width = s.line_width
+    line_width = s.line_width * pixel_size(bpy.context)
 
     gpu.state.blend_set("ALPHA")
     shader.bind()
@@ -258,12 +261,14 @@ def _draw_px():
     rv3d = bpy.context.region_data
     if region is None or rv3d is None:
         return
+    # Screen sizes are authored at 1x; follow Blender's UI scale (HiDPI).
+    scale = ui_scale(bpy.context)
 
     # ── Snap anchor dots ──────────────────────────────────────────────────────
     if s.show_snap_dot and s.snap_dots:
         r2d = view3d_utils.location_3d_to_region_2d
         dot_color = s.active_color
-        dot_r = float(s.snap_dot_radius_px)
+        dot_r = float(s.snap_dot_radius_px) * scale
 
         circle_coords = []
         for world_pos in s.snap_dots:
@@ -293,7 +298,7 @@ def _draw_px():
     # A hollow ring showing where the selection anchor lands if released now.
     if s.ghost_points:
         r2d = view3d_utils.location_3d_to_region_2d
-        ring_r = float(s.snap_dot_radius_px) * 1.8
+        ring_r = float(s.snap_dot_radius_px) * 1.8 * scale
         gr, gg, gb, ga = s.active_color
         ring_color = (gr, gg, gb, ga * 0.85)
 
@@ -319,7 +324,7 @@ def _draw_px():
     if s.show_intersection_dot and s.intersection_dots:
         r2d = view3d_utils.location_3d_to_region_2d
         sq_color = s.active_color
-        sq_half = float(s.snap_dot_radius_px) * 0.55
+        sq_half = float(s.snap_dot_radius_px) * 0.55 * scale
 
         sq_coords = []
         for world_pos in s.intersection_dots:
@@ -343,25 +348,40 @@ def _draw_px():
     if not s.labels:
         return
 
+    _draw_labels(region, rv3d, scale)
+
+
+def _draw_labels(region, rv3d, scale: float):
+    """Draw guide labels with a drop shadow so they read over any geometry."""
+    s = _state
     r2d = view3d_utils.location_3d_to_region_2d
     font_id = 0
-    blf.size(font_id, 11)
+    main_size = 11.0 * scale
+    hint_size = 9.0 * scale
+    dx = 7.0 * scale
     pr, pg, pb, pa = s.active_color if s.active else s.passive_color
-    blf.color(font_id, pr, pg, pb, min(pa + 0.1, 1.0))
+    main_rgba = (pr, pg, pb, min(pa + 0.1, 1.0))
+    hint_rgba = (pr, pg, pb, max(pa - 0.05, 0.0))
 
-    for world_pos, primary, hint in s.labels:
-        co = r2d(region, rv3d, world_pos)
-        if co is None:
-            continue
-        blf.position(font_id, co.x + 7, co.y + 5, 0.0)
-        blf.draw(font_id, primary)
-        if hint:
-            blf.size(font_id, 9)
-            blf.color(font_id, pr, pg, pb, min(pa - 0.05, 1.0))
-            blf.position(font_id, co.x + 7, co.y - 9, 0.0)
-            blf.draw(font_id, hint)
-            blf.size(font_id, 11)
-            blf.color(font_id, pr, pg, pb, min(pa + 0.1, 1.0))
+    blf.enable(font_id, blf.SHADOW)
+    blf.shadow(font_id, 3, 0.0, 0.0, 0.0, 0.85)
+    blf.shadow_offset(font_id, 1, -1)
+    try:
+        for world_pos, primary, hint in s.labels:
+            co = r2d(region, rv3d, world_pos)
+            if co is None:
+                continue
+            blf.size(font_id, main_size)
+            blf.color(font_id, *main_rgba)
+            blf.position(font_id, co.x + dx, co.y + 5.0 * scale, 0.0)
+            blf.draw(font_id, primary)
+            if hint:
+                blf.size(font_id, hint_size)
+                blf.color(font_id, *hint_rgba)
+                blf.position(font_id, co.x + dx, co.y - 9.0 * scale, 0.0)
+                blf.draw(font_id, hint)
+    finally:
+        blf.disable(font_id, blf.SHADOW)
 
 
 # Draw-handler wrappers restore GPU blend state on exception and log at most
@@ -374,7 +394,7 @@ def _reset_gpu_state():
     try:
         gpu.state.blend_set("NONE")
         gpu.state.line_width_set(1.0)
-    except Exception:  # pragma: no cover - GPU module state, no headless path
+    except Exception:  # noqa: BLE001, S110 - GPU state, no headless path
         pass
 
 
@@ -390,7 +410,7 @@ def _log_draw_error(where: str):
 def _safe_draw_view():
     try:
         _draw_view()
-    except Exception:
+    except Exception:  # noqa: BLE001 - a draw error must not escape
         _log_draw_error("POST_VIEW")
     finally:
         _reset_gpu_state()
@@ -399,7 +419,7 @@ def _safe_draw_view():
 def _safe_draw_px():
     try:
         _draw_px()
-    except Exception:
+    except Exception:  # noqa: BLE001 - a draw error must not escape
         _log_draw_error("POST_PIXEL")
     finally:
         _reset_gpu_state()

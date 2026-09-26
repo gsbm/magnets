@@ -1,6 +1,6 @@
 """Selection guards for transform overlay sessions."""
 
-from core.session import selection_matches_session
+from core.session import native_snap_in_effect, selection_matches_session
 
 
 def test_selection_matches_object_mode_while_moving_still_selected():
@@ -85,3 +85,19 @@ def test_selection_edit_mode_requires_same_active_mesh():
         selected_names=frozenset({"Cube"}),
         active_name="Cube",
     )
+
+
+def test_native_snap_yields_when_scene_snapping_on():
+    assert native_snap_in_effect(True, None)
+    # Scene toggle on wins even if the finished op reports it off (Ctrl held):
+    # guides were hidden during the drag, so no surprise snap on release.
+    assert native_snap_in_effect(True, False)
+
+
+def test_native_snap_yields_when_ctrl_enabled_it_for_this_move():
+    assert native_snap_in_effect(False, True)
+
+
+def test_native_snap_absent_lets_magnets_snap():
+    assert not native_snap_in_effect(False, None)
+    assert not native_snap_in_effect(False, False)

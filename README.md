@@ -6,7 +6,7 @@ Blender add-on for geometric relationship snapping during viewport transforms (t
 
 - [Architecture](docs/architecture.md): package layout, data pipeline, solvers
 - [Development](docs/development.md): setup, tests, extending extractors and solvers
-- [Usage](docs/usage.md): operators, N-panel options, preferences
+- [Usage](docs/usage.md): how snapping works, sidebar options, preferences
 
 ## Layout
 
@@ -20,18 +20,25 @@ docs/       Technical documentation.
 ## Setup
 
 ```bash
-pip install -r requirements-dev.txt
-pytest                      # bpy-free unit tests
-ruff check .                # lint
-python build/build_zip.py   # write dist/magnets-<version>.zip
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+.venv/bin/ruff check .                # lint
+python3 build/build_zip.py            # write dist/magnets-<version>.zip
 ```
 
-### Integration tests
+### Tests
 
-Requires Blender 4.2+.
+The unit suite imports `mathutils`, which has no reliable pip wheel, so it
+runs inside Blender's bundled Python:
 
 ```bash
-BLENDER_BIN=/path/to/blender pytest tests/integration -m integration
+blender --background --factory-startup --python tests/run_unit_in_blender.py
+```
+
+Integration tests drive a headless Blender (4.2+) from pytest:
+
+```bash
+BLENDER_BIN=/path/to/blender .venv/bin/pytest tests/integration -m integration
 ```
 
 ### Install in Blender

@@ -18,7 +18,7 @@ def view_normal_world(rv3d) -> Vector | None:
         return None
     try:
         inv = rv3d.view_matrix.inverted()
-    except Exception:
+    except ValueError:  # singular view matrix
         return None
     forward = (-inv.col[2].to_3d())
     if forward.length_squared < 1e-12:
@@ -37,3 +37,24 @@ def filter_for_view(rels: list[Relationship], rv3d) -> list[Relationship]:
         Filtered relationship list.
     """
     return filter_relationships_for_view(rels, view_normal_world(rv3d))
+
+
+def ui_scale(context) -> float:
+    """Blender's UI scale factor (display scale x OS DPI) for custom drawing.
+
+    Screen-space sizes (tolerances, fonts, dot radii) are authored at 1x and
+    multiplied by this so they match the rest of the UI on HiDPI screens.
+    Headless Blender reports 0, so fall back to 1.
+    """
+    try:
+        return float(context.preferences.system.ui_scale) or 1.0
+    except AttributeError:
+        return 1.0
+
+
+def pixel_size(context) -> float:
+    """Suggested line thickness multiplier for custom drawing."""
+    try:
+        return float(context.preferences.system.pixel_size) or 1.0
+    except AttributeError:
+        return 1.0

@@ -5,6 +5,11 @@ from __future__ import annotations
 from .relationship import Relationship
 from .scoring import RankItem
 
+# Orthogonal translation families that generally compose with each other.
+_TRANSLATION_FAMILIES = frozenset(
+    {"alignment", "midpoint", "spacing", "symmetry", "collinear", "coplanar"}
+)
+
 
 def snap_axis_slot(rel: Relationship) -> str:
     """Return the exclusivity slot for ``rel`` (one engaged guide per slot).
@@ -33,10 +38,8 @@ def constraints_compatible(a: Relationship, b: Relationship) -> bool:
         return a.axis != b.axis
     if a.family == b.family and a.axis == b.axis:
         return False
-    # Orthogonal translation families generally compose.
-    if a.family in {"alignment", "midpoint", "spacing", "symmetry", "collinear", "coplanar"}:
-        if b.family in {"alignment", "midpoint", "spacing", "symmetry", "collinear", "coplanar"}:
-            return True
+    if a.family in _TRANSLATION_FAMILIES and b.family in _TRANSLATION_FAMILIES:
+        return True
     return a.family == b.family
 
 

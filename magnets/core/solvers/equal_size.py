@@ -54,7 +54,7 @@ class EqualSizeSolver(Solver):
                         Relationship(
                             family=self.family,
                             axis=f"size_{axis}",
-                            label=f"▭ {axis} · {cv * ctx.unit_scale:.3f}",
+                            label=f"▭ {axis} · {ctx.format_length(cv)}",
                             moving=m,
                             targets=(c,),
                             residual=residual,

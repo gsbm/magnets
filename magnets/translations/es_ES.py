@@ -243,6 +243,22 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Brief brightness flash at the moment a guide engages"): (
         "Breve destello de brillo en el momento en que una guía se activa"
     ),
+    # ── Snapping hand-off, mode hints, custom frame ─────────────────────────────
+    ("*", "Yield to Blender Snapping"): (
+        "Ceder al ajuste de Blender"
+    ),
+    ("*", "Skip the Magnets snap whenever Blender's own snapping is active for the transform, so the two never fight"): (
+        "Omitir el ajuste de Imanes cuando el ajuste propio de Blender está activo en la transformación, para que ambos nunca entren en conflicto"
+    ),
+    ("*", "Object whose axes define the alignment frame"): (
+        "Objeto cuyos ejes definen el sistema de alineación"
+    ),
+    ("*", "Guides only, no snapping"): "Solo guías, sin ajuste",
+    ("*", "Locks onto guides while dragging"): "Se fija a las guías al arrastrar",
+    ("*", "Snaps when you release G/R/S"): "Ajusta al soltar G/R/S",
+    ("*", "Blender snapping takes over"): "Prevalece el ajuste de Blender",
+    ("*", "Blender Snap"): "Ajuste de Blender",
+    ("*", "Yield"): "Ceder",
     # ── Preset enum ────────────────────────────────────────────────────────────
     ("*", "Preset"): "Preajuste",
     ("*", "Precise"): "Preciso",

@@ -1,7 +1,6 @@
-# Dev/test deps for the bpy-free unit suite.
-# mathutils and numpy mirror what Blender bundles, so core code runs identically
-# in and out of Blender.
+# Dev tooling. The unit suite imports mathutils, which has no reliable pip
+# wheel, so it runs inside Blender's bundled Python instead:
+#   blender --background --factory-startup --python tests/run_unit_in_blender.py
 pytest>=8
-numpy>=1.26
-mathutils>=3.3.0
-ruff>=0.6
+# Pinned: newer ruff releases widen the default rule set.
+ruff==0.16.9

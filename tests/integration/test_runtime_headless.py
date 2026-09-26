@@ -159,6 +159,131 @@ dims = ov._nearby_dimensions(bpy.context, Vector((0.0, 0.0, 0.0)), frozenset({{c
 check(len(dims) >= 1, "nearby-size gather finds the neighbour")
 check(any(abs(d - 6.0) < 1e-3 for d in dims), "neighbour size (3x 2m cube = 6m) is gathered")
 
+# ── Native operator property reads (C ops expose them on .properties) ─────────
+class _Props:
+    snap = True
+    constraint_axis = (True, False, False)
+    orient_type = "GLOBAL"
+
+
+class _COp:
+    bl_idname = "TRANSFORM_OT_translate"
+    properties = _Props()
+
+
+class _PyOp:
+    bl_idname = "TRANSFORM_OT_translate"
+    snap = False
+
+
+check(ov._op_prop(_COp(), "snap") is True, "C-op props are read from .properties")
+check(ov._op_prop(_PyOp(), "snap") is False, "Python-op props are read directly")
+check(ov._op_prop(_PyOp(), "missing") is None, "unknown props read as None")
+
+
+# ── Yield to Blender snapping ─────────────────────────────────────────────────
+from magnets.properties import get_options
+
+opts = get_options(bpy.context)
+ts = bpy.context.scene.tool_settings
+ts.use_snap = True
+check(ov._yield_to_native_snap(bpy.context, opts, finished=False), "yields when snapping on")
+opts.defer_to_native_snap = False
+check(not ov._yield_to_native_snap(bpy.context, opts, finished=False), "opt-out respected")
+opts.defer_to_native_snap = True
+ts.use_snap = False
+check(not ov._yield_to_native_snap(bpy.context, opts, finished=True), "no yield when off")
+
+
+# ── Presets: Balanced is the defaults, and the active one is detected ────────
+from magnets.ops.presets import matching_preset
+
+bpy.ops.magnets.options_reset()
+check(matching_preset(opts) == "BALANCED", "defaults must equal the Balanced preset")
+bpy.ops.magnets.options_preset(preset="LOOSE")
+check(matching_preset(opts) == "LOOSE", "applied preset is detected as active")
+opts.snap_tolerance_px = 17
+check(matching_preset(opts) is None, "customised values match no preset")
+bpy.ops.magnets.options_reset()
+
+
+# ── Custom alignment frame is an object pointer ──────────────────────────────
+from magnets.properties import custom_frame_object
+
+check(custom_frame_object(bpy.context, opts) is None, "no custom frame by default")
+opts.custom_frame_object = neighbour
+check(custom_frame_object(bpy.context, opts) == neighbour, "custom frame resolves")
+opts.custom_frame_object = None
+
+
+# ── Labels use scene units; UI scale falls back to 1 headless ────────────────
+from magnets.adapters.units import length_formatter
+from magnets.adapters.view import pixel_size, ui_scale
+
+units = bpy.context.scene.unit_settings
+units.system = "METRIC"
+units.scale_length = 1.0
+fmt = length_formatter(bpy.context)
+check(fmt(0.123) == "12.3 cm", f"metric label, got {{fmt(0.123)!r}}")
+units.system = "NONE"
+check(length_formatter(bpy.context)(0.5) == "0.5", "unitless label is a plain number")
+units.system = "METRIC"
+check(ui_scale(bpy.context) > 0 and pixel_size(bpy.context) > 0, "positive UI scale")
+
+# ── Panels draw without error (recording layout; no UI headless) ─────────────
+from magnets.ui import panel as ui_panel
+
+_icons = set(bpy.types.UILayout.bl_rna.functions["label"].parameters["icon"].enum_items.keys())
+_drawn = []
+
+
+class _Layout:
+    use_property_split = False
+    use_property_decorate = False
+    active = True
+
+    def _child(self, *args, **kwargs):
+        return _Layout()
+
+    row = column = grid_flow = _child
+
+    def prop(self, data, name, **kwargs):
+        check(hasattr(data, name), f"panel draws unknown property {{name!r}}")
+        _drawn.append(name)
+
+    def label(self, text="", icon="NONE", **kwargs):
+        check(icon in _icons, f"unknown icon {{icon!r}}")
+        _drawn.append(text)
+
+    def operator(self, idname, text="", icon="NONE", **kwargs):
+        check(icon in _icons, f"unknown icon {{icon!r}}")
+        return type("OpProps", (), {{}})()
+
+    def separator(self, **kwargs):
+        pass
+
+
+class _Self:
+    layout = _Layout()
+
+
+# Registered as a plain module here (not an enabled add-on), so there are no
+# AddonPreferences; stand in the fields the panels read.
+import types
+
+ui_panel.get_prefs = lambda _ctx: types.SimpleNamespace(
+    precision_mode=False, guide_fade_passive=True
+)
+ts.use_snap = True
+for cls in ui_panel._CLASSES:
+    cls.draw(_Self(), bpy.context)
+ts.use_snap = False
+check("defer_to_native_snap" in _drawn, "snapping panel offers the yield toggle")
+check(
+    "Blender snapping takes over" in _drawn,
+    "panel explains when Blender snapping takes over",
+)
+
 magnets.unregister()
 print("MAGNETS_RUNTIME_OK")
 """
@@ -181,6 +306,7 @@ def test_runtime_headless(tmp_path):
         [blender, "--background", "--factory-startup", "--python", str(script)],
         capture_output=True,
         text=True,
+        check=False,
         timeout=300,
     )
     sys.stdout.write(proc.stdout)

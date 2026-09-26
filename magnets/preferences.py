@@ -168,7 +168,7 @@ def register():
 
     try:
         log.set_debug(bool(get_prefs(bpy.context).debug))
-    except Exception:  # pragma: no cover - prefs not ready during some reloads
+    except (KeyError, AttributeError):  # pragma: no cover - prefs not ready
         pass
 
 

@@ -64,6 +64,7 @@ def test_register_invoke_unregister(tmp_path):
         [blender, "--background", "--factory-startup", "--python", str(script)],
         capture_output=True,
         text=True,
+        check=False,
         timeout=300,
     )
     sys.stdout.write(proc.stdout)

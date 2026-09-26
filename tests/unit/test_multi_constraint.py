@@ -139,7 +139,7 @@ def test_build_active_set_composes_compatible():
 
 def test_constraint_delta_rotation_and_scale():
     rot = ConstraintDelta.from_rotation(Vector((0.0, 0.0, 1.0)), 0.5)
-    axis, angle = resolve_rotation([_rel("parallel", "p", rot)])
+    _axis, angle = resolve_rotation([_rel("parallel", "p", rot)])
     assert angle == 0.5
 
     scale = ConstraintDelta.from_scale(2.0)

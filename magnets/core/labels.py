@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from .features import (
     BBoxFeature,
     CircleFeature,
@@ -31,7 +33,39 @@ def point_kind_label(kind: PointKind) -> str:
     }.get(kind, kind.value)
 
 
-def alignment_label(axis: str, target_kind, residual: float, unit_scale: float) -> str:
+LengthFormat = Callable[[float], str]
+
+
+def format_length(
+    value: float, unit_scale: float = 1.0, fmt: LengthFormat | None = None
+) -> str:
+    """Format a world-space length for a guide label.
+
+    Args:
+        value: World-space length (Blender units).
+        unit_scale: Scene unit scale, used by the plain-number fallback.
+        fmt: Scene-aware formatter (e.g. ``12.3 cm``); takes the world value.
+
+    Returns:
+        Display string.
+    """
+    if fmt is not None:
+        return fmt(value)
+    distance = value * unit_scale
+    if abs(distance) >= 100.0:
+        return f"{distance:.1f}"
+    if abs(distance) >= 10.0:
+        return f"{distance:.2f}"
+    return f"{distance:.3f}"
+
+
+def alignment_label(
+    axis: str,
+    target_kind,
+    residual: float,
+    unit_scale: float,
+    fmt: LengthFormat | None = None,
+) -> str:
     """Format an alignment guide label with optional distance.
 
     Args:
@@ -39,19 +73,14 @@ def alignment_label(axis: str, target_kind, residual: float, unit_scale: float) 
         target_kind: Target PointKind (unused in text; reserved).
         residual: World-space residual.
         unit_scale: Scene unit scale for display.
+        fmt: Optional scene-aware length formatter.
 
     Returns:
         Label string.
     """
-    base = axis
     if residual <= 1e-6:
-        return base
-    distance = residual * unit_scale
-    if distance >= 100.0:
-        return f"{base} · {distance:.1f}"
-    if distance >= 10.0:
-        return f"{base} · {distance:.2f}"
-    return f"{base} · {distance:.3f}"
+        return axis
+    return f"{axis} · {format_length(residual, unit_scale, fmt)}"
 
 
 def feature_hint(feature: Feature) -> str:

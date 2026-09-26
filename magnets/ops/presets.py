@@ -7,6 +7,7 @@ import bpy
 from ..properties import get_options
 
 # Screen-space tolerance profiles (pixels). Keys map to MagnetsOptions fields.
+# BALANCED must equal the property defaults (checked by the integration suite).
 _PRESETS = {
     "PRECISE": {
         "snap_tolerance_px": 8,
@@ -22,7 +23,7 @@ _PRESETS = {
         "snap_reengage_margin_px": 12,
         "passive_range_px": 72,
         "nms_distance_px": 24,
-        "max_guides": 3,
+        "max_guides": 5,
     },
     "LOOSE": {
         "snap_tolerance_px": 24,
@@ -33,6 +34,14 @@ _PRESETS = {
         "max_guides": 2,
     },
 }
+
+
+def matching_preset(options) -> str | None:
+    """Name of the preset the current options equal, or None if customised."""
+    for name, values in _PRESETS.items():
+        if all(getattr(options, key) == value for key, value in values.items()):
+            return name
+    return None
 
 
 class MAGNETS_OT_options_preset(bpy.types.Operator):

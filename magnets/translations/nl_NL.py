@@ -243,6 +243,22 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Brief brightness flash at the moment a guide engages"): (
         "Korte helderheidsflits op het moment dat een hulplijn activeert"
     ),
+    # ── Snapping hand-off, mode hints, custom frame ─────────────────────────────
+    ("*", "Yield to Blender Snapping"): (
+        "Voorrang aan Blender-vastklikken"
+    ),
+    ("*", "Skip the Magnets snap whenever Blender's own snapping is active for the transform, so the two never fight"): (
+        "Het vastklikken van Magneten overslaan wanneer Blenders eigen vastklikken actief is voor de transformatie, zodat de twee elkaar nooit tegenwerken"
+    ),
+    ("*", "Object whose axes define the alignment frame"): (
+        "Object waarvan de assen de uitlijnreferentie bepalen"
+    ),
+    ("*", "Guides only, no snapping"): "Alleen hulplijnen, geen vastklikken",
+    ("*", "Locks onto guides while dragging"): "Klikt vast tijdens het slepen",
+    ("*", "Snaps when you release G/R/S"): "Klikt vast bij loslaten G/R/S",
+    ("*", "Blender snapping takes over"): "Blender-vastklikken gaat voor",
+    ("*", "Blender Snap"): "Blender-vastklikken",
+    ("*", "Yield"): "Voorrang geven",
     # ── Preset enum ────────────────────────────────────────────────────────────
     ("*", "Preset"): "Voorinstelling",
     ("*", "Precise"): "Precies",

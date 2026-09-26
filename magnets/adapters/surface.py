@@ -10,7 +10,7 @@ try:
     from mathutils.bvhtree import BVHTree
 
     _HAVE_BVH = True
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     _HAVE_BVH = False
 
 

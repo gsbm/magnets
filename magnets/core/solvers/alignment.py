@@ -65,7 +65,9 @@ class AlignmentSolver(Solver):
                         Relationship(
                             family=self.family,
                             axis=axis_name,
-                            label=alignment_label(axis_name, c.kind, residual, ctx.unit_scale),
+                            label=alignment_label(
+                                axis_name, c.kind, residual, ctx.unit_scale, ctx.length_format
+                            ),
                             moving=m,
                             targets=(c,),
                             residual=residual,
@@ -125,7 +127,9 @@ class EdgeAlignmentSolver(Solver):
                         Relationship(
                             family=self.family,
                             axis=axis_name,
-                            label=alignment_label(axis_name, c.kind, residual, ctx.unit_scale),
+                            label=alignment_label(
+                                axis_name, c.kind, residual, ctx.unit_scale, ctx.length_format
+                            ),
                             moving=m,
                             targets=(c,),
                             residual=residual,

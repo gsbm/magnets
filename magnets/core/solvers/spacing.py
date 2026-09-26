@@ -58,7 +58,7 @@ class SpacingSolver(Solver):
                                 Relationship(
                                     family=self.family,
                                     axis=f"gap_{target.entity}",
-                                    label=f"= · {ab * ctx.unit_scale:.3f}",
+                                    label=f"= · {ctx.format_length(ab)}",
                                     moving=m,
                                     targets=(a, b),
                                     residual=residual,

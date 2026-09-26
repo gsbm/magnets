@@ -4,9 +4,20 @@ Magnets is a Blender add-on for geometric relationship snapping in the 3D
 Viewport. Inference logic under `core/` has no `bpy` dependency and uses
 `mathutils` and `numpy` only.
 
+## Transform Paths
+
+- **Default, snap on release** (`transform_overlay.py`): a `bpy.app.timers`
+  loop watches Blender's native `TRANSFORM_OT_*` operators. During the drag it
+  only draws guides and a landing ring. When the transform is released it
+  re-runs inference once, applies the snap, and folds it into the transform's
+  undo step. It stands aside when Blender's own snapping is active.
+- **Precision Mode** (`ops/modal_*.py`): opt-in keymap items bind `G`/`R`/`S`
+  to Magnets' modal operators, which own the transform and lock onto guides
+  while dragging.
+
 ## Data Pipeline
 
-Each modal `MOUSEMOVE` runs:
+Each inference tick (a timer frame or a modal `MOUSEMOVE`) runs:
 
 1. **Extraction**: Scene elements (`Entity`) become geometric primitives (`Feature`).
 2. **Dispatch**: Feature pairs go to solvers by type.

@@ -9,7 +9,6 @@ from bpy.props import (
     FloatProperty,
     IntProperty,
     PointerProperty,
-    StringProperty,
 )
 
 from .core.families import FAMILIES
@@ -48,6 +47,12 @@ class MagnetsOptions(bpy.types.PropertyGroup):
         name="Snap to Guides",
         description="Snap to the engaged guide when the transform is released. "
         "In Precision Mode, lock onto it while dragging",
+        default=True,
+    )
+    defer_to_native_snap: BoolProperty(
+        name="Yield to Blender Snapping",
+        description="Skip the Magnets snap whenever Blender's own snapping is "
+        "active for the transform, so the two never fight",
         default=True,
     )
     spacing_metric: EnumProperty(
@@ -151,19 +156,15 @@ class MagnetsOptions(bpy.types.PropertyGroup):
         description="Stretch guide lines across the 3D viewport",
         default=True,
     )
-    guide_fade_passive: BoolProperty(
-        name="Proximity Fade",
-        description="Fade guide opacity in as the cursor approaches the snap zone",
-        default=True,
-    )
     alignment_frame: EnumProperty(
         name="Alignment Frame",
         items=_FRAME_ITEMS,
         default=Frame.WORLD.value,
     )
-    custom_frame_object_name: StringProperty(
+    custom_frame_object: PointerProperty(
         name="Custom Frame Object",
-        default="",
+        description="Object whose axes define the alignment frame",
+        type=bpy.types.Object,
     )
     align_use_origin: BoolProperty(name="Origin", default=True)
     align_use_pivot: BoolProperty(name="Pivot", default=True)
@@ -229,10 +230,10 @@ def custom_frame_object(context, options):
     Returns:
         Blender object or None.
     """
-    name = options.custom_frame_object_name.strip()
-    if not name:
+    obj = options.custom_frame_object
+    if obj is None or context.view_layer.objects.get(obj.name) is None:
         return None
-    return context.view_layer.objects.get(name)
+    return obj
 
 
 classes = (MagnetsOptions,)

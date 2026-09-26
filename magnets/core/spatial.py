@@ -15,7 +15,7 @@ try:  # pragma: no cover - exercised by whichever backend is present
     from mathutils.kdtree import KDTree
 
     _HAVE_KDTREE = True
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     _HAVE_KDTREE = False
 
 

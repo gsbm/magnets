@@ -18,3 +18,10 @@ target-version = "py311"
 
 [tool.ruff.lint]
 extend-select = ["I"]  # import sorting
+# Blender classes declare `bl_options = {...}` as class attributes by design.
+ignore = ["RUF012"]
+
+[tool.ruff.lint.per-file-ignores]
+# Locale modules are named after Blender language codes (fr_FR); msgid keys are
+# long English strings split across lines inside the (context, msgid) tuple.
+"magnets/translations/*" = ["N999", "ISC004"]

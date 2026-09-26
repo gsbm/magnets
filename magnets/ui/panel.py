@@ -4,7 +4,24 @@ import bpy
 
 from ..core.families import FAMILIES
 from ..core.frames import Frame
+from ..ops.presets import matching_preset
+from ..preferences import get_prefs
 from ..properties import get_options
+
+_PRESET_BUTTONS = (
+    ("PRECISE", "Precise"),
+    ("BALANCED", "Balanced"),
+    ("LOOSE", "Loose"),
+)
+
+
+def _mode_hint(opts, precision_mode: bool) -> str:
+    """One-line summary of what G / R / S will do with the current settings."""
+    if not opts.soft_snap:
+        return "Guides only, no snapping"
+    if precision_mode:
+        return "Locks onto guides while dragging"
+    return "Snaps when you release G/R/S"
 
 
 class MAGNETS_PT_panel(bpy.types.Panel):
@@ -26,13 +43,21 @@ class MAGNETS_PT_panel(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
         layout.active = opts.enabled
-        layout.prop(opts, "soft_snap")
+        prefs = get_prefs(context)
 
+        col = layout.column()
+        col.prop(opts, "soft_snap")
+        col.prop(prefs, "precision_mode")
+        col.label(text=_mode_hint(opts, prefs.precision_mode), icon="INFO")
+
+        current = matching_preset(opts)
         row = layout.row(align=True)
-        row.label(text="Presets")
-        row.operator("magnets.options_preset", text="Precise").preset = "PRECISE"
-        row.operator("magnets.options_preset", text="Balanced").preset = "BALANCED"
-        row.operator("magnets.options_preset", text="Loose").preset = "LOOSE"
+        row.label(text="", icon="PRESET")
+        for preset, text in _PRESET_BUTTONS:
+            op = row.operator(
+                "magnets.options_preset", text=text, depress=current == preset
+            )
+            op.preset = preset
         row.separator()
         row.operator("magnets.options_reset", text="", icon="LOOP_BACK")
 
@@ -60,6 +85,11 @@ class MAGNETS_PT_snapping(bpy.types.Panel):
         col.prop(opts, "snap_reengage_margin_px")
         layout.prop(opts, "angle_snap_increment")
         layout.prop(opts, "spacing_metric")
+
+        col = layout.column(heading="Blender Snap")
+        col.prop(opts, "defer_to_native_snap", text="Yield")
+        if opts.defer_to_native_snap and context.scene.tool_settings.use_snap:
+            layout.label(text="Blender snapping takes over", icon="SNAP_ON")
 
 
 class MAGNETS_PT_guides(bpy.types.Panel):
@@ -90,7 +120,8 @@ class MAGNETS_PT_guides(bpy.types.Panel):
         col.prop(opts, "show_feature_hints", text="Feature Hints")
 
         col = layout.column()
-        col.prop(opts, "guide_fade_passive")
+        # Proximity fade is a per-user display setting, stored in preferences.
+        col.prop(get_prefs(context), "guide_fade_passive")
         col.prop(opts, "extend_guides_to_viewport")
 
 
@@ -114,7 +145,7 @@ class MAGNETS_PT_alignment(bpy.types.Panel):
 
         layout.prop(opts, "alignment_frame", text="Frame")
         if opts.alignment_frame == Frame.CUSTOM.value:
-            layout.prop(opts, "custom_frame_object_name", text="Object")
+            layout.prop(opts, "custom_frame_object", text="Object")
 
         row = layout.row(heading="Axes")
         row.prop(opts, "snap_axis_x", text="X", toggle=True)

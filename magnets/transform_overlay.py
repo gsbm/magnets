@@ -21,8 +21,9 @@ from .adapters.bmesh_extract import (
 )
 from .adapters.extract import object_feature_pool
 from .adapters.snapshot import InteractionSnapshot
+from .adapters.view import ui_scale
 from .core.features import FeaturePool
-from .core.session import selection_matches_session
+from .core.session import native_snap_in_effect, selection_matches_session
 from .core.snap_apply import masked_translation, project_out_direction
 from .core.tolerance import SnapHysteresis
 from .core.transform import TransformMode
@@ -93,7 +94,7 @@ _session: _Session | None = None
 def _options(context):
     try:
         return get_options(context)
-    except Exception:  # pragma: no cover - scene not ready
+    except Exception:  # noqa: BLE001 - scene not ready
         return None
 
 
@@ -268,7 +269,7 @@ def _begin_session(context, op_id: str):
     obj = context.active_object
     if region is not None and rv3d is not None and obj is not None:
         wpp = world_per_pixel(region, rv3d, obj.matrix_world.translation)
-        world_tol = get_options(context).passive_range_px * wpp
+        world_tol = get_options(context).passive_range_px * ui_scale(context) * wpp
 
     _session = _Session(
         key=_session_key_for(context, op_id),
@@ -322,6 +323,50 @@ def _active_transform_id(context) -> str | None:
     return bl_idname if bl_idname in _TRANSFORM_OPS else None
 
 
+def _op_prop(op, name: str):
+    """Read a property of a (C-defined) operator instance, or None.
+
+    Native operators expose their settings on ``op.properties``; direct
+    attribute access only works for Python-defined operators.
+    """
+    props = getattr(op, "properties", None)
+    for source in (props, op):
+        if source is None:
+            continue
+        try:
+            return getattr(source, name)
+        except AttributeError:
+            continue
+    return None
+
+
+def _finished_transform(context):
+    """The just-finished native transform operator, or None."""
+    op = getattr(context, "active_operator", None)
+    if op is None or getattr(op, "bl_idname", None) not in _TRANSFORM_OPS:
+        return None
+    return op
+
+
+def _yield_to_native_snap(context, options, *, finished: bool) -> bool:
+    """True when Magnets should stand aside for Blender's own snapping.
+
+    Mid-drag only the scene toggle is visible (a timer cannot see the held
+    Ctrl key). At release the finished operator's saved ``snap`` flag also
+    records a Ctrl toggle, so native-snapped moves are left untouched.
+    """
+    if not getattr(options, "defer_to_native_snap", True):
+        return False
+    tool_settings = getattr(context.scene, "tool_settings", None)
+    tool_use_snap = bool(getattr(tool_settings, "use_snap", False))
+    op_snap = None
+    if finished:
+        op = _finished_transform(context)
+        if op is not None:
+            op_snap = _op_prop(op, "snap")
+    return native_snap_in_effect(tool_use_snap, op_snap)
+
+
 def _read_native_constraint(context) -> tuple | None:
     """Global-axis mask of the running transform's lock, or None if free.
 
@@ -329,13 +374,14 @@ def _read_native_constraint(context) -> tuple | None:
     lock, else None (free drag, or a non-global orientation we do not restrict).
     Best effort: the native transform's constraint is read from the operator.
     """
-    op = getattr(context, "active_operator", None)
-    if op is None or getattr(op, "bl_idname", None) not in _TRANSFORM_OPS:
+    op = _finished_transform(context)
+    if op is None:
         return None
+    caxis = _op_prop(op, "constraint_axis")
+    orient = _op_prop(op, "orient_type")
     try:
-        caxis = tuple(bool(v) for v in op.constraint_axis)
-        orient = op.orient_type
-    except (AttributeError, TypeError):
+        caxis = tuple(bool(v) for v in caxis)
+    except TypeError:
         return None
     if not any(caxis) or orient not in ("GLOBAL", ""):
         return None
@@ -372,7 +418,14 @@ def _tick(context):
         _redraw(context)
         return
 
-    area, region, rv3d = _view3d_context(context)
+    if _yield_to_native_snap(context, options, finished=False):
+        # Blender's snapping owns this drag: show nothing we will not apply.
+        draw.clear_state()
+        _session.last_anchor = None
+        _redraw(context)
+        return
+
+    _area, region, rv3d = _view3d_context(context)
     if region is None or rv3d is None:
         return
 
@@ -391,7 +444,7 @@ def _tick(context):
         ):
             return
 
-    obj, moving, anchor, edit_mode, bm = _moving_target(context)
+    obj, moving, anchor, _edit_mode, _bm = _moving_target(context)
     if obj is None:
         _end_session()
         _redraw(context)
@@ -461,6 +514,9 @@ def _commit_release(context):
     options = _options(context)
     if options is None or not options.enabled or not options.soft_snap:
         log.debug("commit skip: disabled or soft_snap off")
+        return
+    if _yield_to_native_snap(context, options, finished=True):
+        log.debug("commit skip: Blender snapping is active")
         return
     if not _selection_valid_for_session(context):
         log.debug("commit skip: selection changed")
@@ -752,7 +808,7 @@ def _timer_callback():
         interval = _timer_callback_inner()
         _consec_failures = 0
         return interval
-    except Exception:
+    except Exception:  # noqa: BLE001 - a raising timer is unregistered
         _consec_failures += 1
         if _errors_logged < _MAX_ERRORS_LOGGED:
             _errors_logged += 1
@@ -760,7 +816,7 @@ def _timer_callback():
         # Reset session state so the next tick starts clean; hide any stale draw.
         try:
             _end_session()
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - best-effort teardown
             pass
         if _consec_failures == _MAX_CONSEC_FAILURES:
             log.warning(

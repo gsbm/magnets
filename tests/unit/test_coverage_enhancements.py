@@ -226,7 +226,6 @@ from core.solvers.spacing import SpacingSolver
 def test_spacing_coverage():
     m = PointFeature.from_name(Vector((2,0,0)), PointKind.ORIGIN, "m")
     c1 = PointFeature.from_name(Vector((0,0,0)), PointKind.ORIGIN, "c")
-    c2 = PointFeature.from_name(Vector((1,0,0)), PointKind.ORIGIN, "c")
     
     solver = SpacingSolver()
     # length < 2

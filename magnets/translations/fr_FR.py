@@ -243,6 +243,22 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Brief brightness flash at the moment a guide engages"): (
         "Bref flash de luminosité au moment où un guide s’engage"
     ),
+    # ── Snapping hand-off, mode hints, custom frame ─────────────────────────────
+    ("*", "Yield to Blender Snapping"): (
+        "Céder à l’accrochage de Blender"
+    ),
+    ("*", "Skip the Magnets snap whenever Blender's own snapping is active for the transform, so the two never fight"): (
+        "Ignorer l’accrochage Aimants lorsque l’accrochage natif de Blender est actif pour la transformation, afin que les deux ne se contredisent jamais"
+    ),
+    ("*", "Object whose axes define the alignment frame"): (
+        "Objet dont les axes définissent le repère d’alignement"
+    ),
+    ("*", "Guides only, no snapping"): "Guides seuls, sans accrochage",
+    ("*", "Locks onto guides while dragging"): "Se fige sur les guides en glissant",
+    ("*", "Snaps when you release G/R/S"): "Accroche au relâchement de G/R/S",
+    ("*", "Blender snapping takes over"): "L’accrochage Blender prime",
+    ("*", "Blender Snap"): "Accrochage Blender",
+    ("*", "Yield"): "Céder",
     # ── Preset enum ────────────────────────────────────────────────────────────
     ("*", "Preset"): "Préréglage",
     ("*", "Precise"): "Précis",

@@ -9,8 +9,8 @@ from mathutils import Vector
 
 from ..adapters.frames import frame_axes
 from ..adapters.surface import append_surfaces, surface_features_for_point
-from ..adapters.units import scene_unit_info
-from ..adapters.view import filter_for_view
+from ..adapters.units import length_formatter, scene_unit_info
+from ..adapters.view import filter_for_view, ui_scale
 from ..core import scoring
 from ..core import solvers as _solvers  # noqa: F401 - register solver table
 from ..core.features import Feature, FeaturePool, feature_anchor
@@ -162,11 +162,17 @@ def run_inference(
             scale=Vector((1.0, 1.0, 1.0)),
         )
 
+    # Pixel options are authored at 1x UI scale; match Blender's own HiDPI
+    # scaling so tolerances feel the same on every display.
+    px = ui_scale(context)
+    passive_px = options.passive_range_px * px
+    snap_px = options.snap_tolerance_px * px
+    hysteresis_px = options.snap_release_hysteresis_px * px
+    reengage_px = options.snap_reengage_margin_px * px
+
     wpp = world_per_pixel(region, rv3d, anchor_world)
     passive_world = (
-        frozen_world_tol
-        if frozen_world_tol is not None
-        else options.passive_range_px * wpp
+        frozen_world_tol if frozen_world_tol is not None else passive_px * wpp
     )
     frame = active_frame(options)
     unit_scale, _suffix = scene_unit_info(context)
@@ -193,12 +199,13 @@ def run_inference(
         axes=axes,
         world_tol=passive_world,
         frame=frame,
-        passive_px=options.passive_range_px,
-        snap_px=options.snap_tolerance_px,
+        passive_px=passive_px,
+        snap_px=snap_px,
         unit_scale=unit_scale,
         surface_query_limit=8,
         transform_mode=transform_mode,
         spacing_metric=options.spacing_metric,
+        length_format=length_formatter(context),
     )
     rels = dispatch(moving, candidate_pool, ctx, enabled_families(options))
     rels = filter_for_view(rels, rv3d)
@@ -212,9 +219,7 @@ def run_inference(
         items.append(
             scoring.RankItem(
                 key=rank_key(rel),
-                score=scoring.relationship_score(
-                    rel, sd, options.passive_range_px, passive_world
-                ),
+                score=scoring.relationship_score(rel, sd, passive_px, passive_world),
                 screen_dist=sd,
                 payload=rel,
                 screen_anchor=anchor,
@@ -222,19 +227,17 @@ def run_inference(
         )
     ranked, visible = scoring.rank(
         items,
-        options.passive_range_px,
+        passive_px,
         top_k=options.max_guides,
-        nms_px=options.nms_distance_px,
+        nms_px=options.nms_distance_px * px,
     )
 
-    snap_px = options.snap_tolerance_px
-    release_px = snap_px + options.snap_release_hysteresis_px
-    reengage_px = getattr(options, "snap_reengage_margin_px", 12)
+    release_px = snap_px + hysteresis_px
 
     active_item, snapped = snap.pick_active(
         ranked,
         snap_px,
-        options.snap_release_hysteresis_px,
+        hysteresis_px,
         visible=visible,
         reengage_margin_px=reengage_px,
     )
@@ -376,16 +379,17 @@ def push_guides(
     active_keys = {rank_key(r) for r in result.active_set} if snapped else set()
     active_color = tuple(prefs.guide_color_active)
     passive_color = tuple(prefs.guide_color_passive)
-    passive_px = options.passive_range_px
+    px = ui_scale(context)
+    passive_px = options.passive_range_px * px
     extend_vp = getattr(options, "extend_guides_to_viewport", True)
-    fade_enabled = getattr(options, "guide_fade_passive", True) and prefs.guide_fade_passive
+    fade_enabled = prefs.guide_fade_passive
 
     guide_items: list[GuideDrawItem] = []
     tick_items: list[GuideDrawItem] = []
     snap_dots: list[Vector] = []
     intersection_dots: list[Vector] = []
     labels = []
-    tick_size = world_per_pixel(region, rv3d, depth_co) * 8.0
+    tick_size = world_per_pixel(region, rv3d, depth_co) * 8.0 * px
 
     # Collect guide segments keyed for intersection detection
     active_segments: list[tuple[Vector, Vector]] = []
@@ -425,9 +429,12 @@ def push_guides(
             anchor_co = feature_anchor(rel.target)
             snap_dots.append(anchor_co)
 
-        hint = feature_hint(rel.target) if options.show_feature_hints else ""
-        anchor_co = feature_anchor(rel.target)
-        labels.append(((anchor_co + moving_co) * 0.5, rel.label, hint))
+        # Label only engaged guides: approaching guides stay quiet so the
+        # viewport is not buried in text while dragging.
+        if is_active:
+            hint = feature_hint(rel.target) if options.show_feature_hints else ""
+            anchor_co = feature_anchor(rel.target)
+            labels.append(((anchor_co + moving_co) * 0.5, rel.label, hint))
 
     # Intersection dots between all pairs of active segments
     if prefs.show_intersection_dot and len(active_segments) >= 2:
