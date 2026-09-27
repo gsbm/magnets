@@ -7,6 +7,7 @@ from mathutils import Vector
 from ..features import FeatureType, LineFeature
 from ..geometry import lines_perpendicular, normalize
 from ..relationship import ConstraintDelta, GuideLine, Relationship
+from ..transform import TransformMode
 from .base import SolveContext, Solver
 
 
@@ -19,8 +20,16 @@ class PerpendicularSolver(Solver):
         return (FeatureType.LINE, FeatureType.LINE)
 
     def solve(self, moving: list[LineFeature], candidates: list[LineFeature], ctx: SolveContext):
-        """Return relationships between ``moving`` and ``candidates`` features."""
+        """Return relationships between ``moving`` and ``candidates`` features.
+
+        Rotate only: a move or resize cannot change an edge's direction. Box
+        edges are nearly always perpendicular to a neighbour's, so during a
+        move this would engage at 0 px, hold the snap latch for the whole drag
+        and block the alignments that can actually be applied.
+        """
         out: list[Relationship] = []
+        if ctx.transform_mode != TransformMode.ROTATE:
+            return out
         tol = ctx.world_tol
         for m in moving:
             for c in candidates:

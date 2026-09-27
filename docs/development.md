@@ -44,6 +44,16 @@ Unit and integration suites are separated:
    collapse. Each simulated native transform pushes its own undo step, as
    Blender does, so `ed.undo` works in `--background`.
 
+   `tests/integration/test_guide_noise_headless.py` is the display budget. It
+   drags a cube through a grid scene and a mixed scene in top, front, right
+   and perspective views and checks what the overlay draws on every frame:
+   at most `max_guides` guides, one per slot; nothing that points into the
+   screen in orthographic views; no equal-size or perpendicular markers
+   during a move; labels only on engaged guides; intersection dots only
+   between engaged lines; no duplicate strokes; enough frames engaged that
+   filtering never starves snapping; and an empty overlay from the release
+   frame on. Both scripts share the synthetic views in `fake_view.py`.
+
 3. **Live (windowed Blender)**: real native modals, keymaps and drawing need
    a real event loop. `tests/live`
    starts a windowed Blender per scenario with `--enable-event-simulate`,

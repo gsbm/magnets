@@ -201,3 +201,21 @@ def test_scene_unit_info_per_system():
 
 def test_scene_unit_info_zero_scale_falls_back_to_one():
     assert scene_unit_info(_unit_ctx("METRIC", 0.0)) == (1.0, "m")
+
+
+def test_hysteresis_band_hold_yields_to_guide_in_zone():
+    """A guide held only by the hysteresis band loses to one inside the zone."""
+    snap = SnapHysteresis()
+    _pick(snap, [_item(A, 6.0)])
+    active, snapped = _pick(snap, [_item(A, 14.0), _item(B, 3.5)])
+    assert snapped and active.key == B, "the in-zone guide takes over"
+    # Inside the snap zone the latch keeps its guide (no flicker between two).
+    snap = SnapHysteresis()
+    _pick(snap, [_item(A, 6.0)])
+    active, _ = _pick(snap, [_item(A, 10.0), _item(B, 3.5)])
+    assert active.key == A
+    # No rival: the band keeps holding.
+    snap = SnapHysteresis()
+    _pick(snap, [_item(A, 6.0)])
+    active, snapped = _pick(snap, [_item(A, 15.0), _item(B, 20.0)])
+    assert snapped and active.key == A

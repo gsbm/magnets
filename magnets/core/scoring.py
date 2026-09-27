@@ -113,3 +113,30 @@ def rank(
         if len(kept) >= top_k:
             break
     return kept, visible
+
+
+def with_engaged(
+    ranked: list[RankItem],
+    pool: list[RankItem],
+    engaged_keys: set[tuple],
+    top_k: int,
+) -> list[RankItem]:
+    """Return the guides to draw: every engaged item first, then ``ranked``.
+
+    An engaged guide can hold its latch from outside the decluttered top-K
+    (it is then only in ``pool``); it must still be drawn, or a snap applies
+    with no visible guide. Ranked items sharing a slot with an engaged one are
+    dropped, and the list is capped at ``top_k`` unless the engaged guides
+    alone exceed it.
+    """
+    engaged: list[RankItem] = []
+    seen: set[tuple] = set()
+    for it in pool:
+        if it.key in engaged_keys and it.key not in seen:
+            seen.add(it.key)
+            engaged.append(it)
+    slots = {_nms_slot(it.key) for it in engaged}
+    rest = [
+        it for it in ranked if it.key not in seen and _nms_slot(it.key) not in slots
+    ]
+    return engaged + rest[: max(0, top_k - len(engaged))]

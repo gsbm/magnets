@@ -115,13 +115,14 @@ def test_guide_direction_visible():
     assert relationship_visible_in_view(rel, Vector((1, 0, 0))) is False
 
     rel.guide = GuideCircle(center=Vector((0, 0, 0)), normal=Vector((1, 0, 0)), radius=1.0)
-    assert relationship_visible_in_view(rel, Vector((0, 0, 1))) is True
-    assert relationship_visible_in_view(rel, Vector((1, 0, 0))) is False
-
-    rel.guide = GuidePlane(point=Vector((0, 0, 0)), normal=Vector((1, 0, 0)))
-    # A plane is edge-on when its normal lies in the view plane.
+    # A circle is hidden edge-on (reads as a line) and shown facing the viewer.
     assert relationship_visible_in_view(rel, Vector((0, 0, 1))) is False
     assert relationship_visible_in_view(rel, Vector((1, 0, 0))) is True
+
+    rel.guide = GuidePlane(point=Vector((0, 0, 0)), normal=Vector((1, 0, 0)))
+    # A plane reads as a line edge-on; facing the viewer it fills the view.
+    assert relationship_visible_in_view(rel, Vector((0, 0, 1))) is True
+    assert relationship_visible_in_view(rel, Vector((1, 0, 0))) is False
 
     rel.guide = object()
     assert relationship_visible_in_view(rel, Vector((1, 0, 0))) is True
@@ -203,7 +204,9 @@ def test_equal_size_coverage():
     m = BBoxFeature(Vector(), Vector((0, 0, 0)), EntityRef("m"))  # zero size
     c = BBoxFeature(Vector(), Vector((1, 1, 1)), EntityRef("c"))
     solver = EqualSizeSolver()
-    assert len(solver.solve([m], [c], _ctx())) == 0
+    zero_ctx = _ctx()
+    zero_ctx.transform_mode = TransformMode.SCALE
+    assert len(solver.solve([m], [c], zero_ctx)) == 0
 
     m2 = BBoxFeature(Vector(), Vector((1, 1, 1)), EntityRef("m"))
     c2 = BBoxFeature(Vector(), Vector((1.5, 1.5, 1.5)), EntityRef("c"))

@@ -118,6 +118,24 @@ class SnapHysteresis:
                 return None, False
             self._miss_frames = 0
             self._latched = current
+            if snap_px < current.screen_dist <= release_px:
+                # Held only by the hysteresis band: a different guide inside
+                # the snap zone is what the selection is actually on, so it
+                # takes over rather than losing to a far, sticky one.
+                blocked = self._broken_key if self.broken else None
+                rival = next(
+                    (
+                        it
+                        for it in ranked
+                        if it.screen_dist <= snap_px
+                        and it.key not in (self.active_key, blocked)
+                    ),
+                    None,
+                )
+                if rival is not None:
+                    self.active_key = rival.key
+                    self._latched = rival
+                    return rival, True
             if current.screen_dist <= release_px:
                 return current, True
             self._break()

@@ -3,7 +3,12 @@
 import core.solvers  # noqa: F401 - register solver table
 from core.features import PointFeature, PointKind
 from core.frames import world_axes
-from core.guide_draw import equal_span_marks, guide_to_drawables
+from core.guide_draw import (
+    dedupe_segments,
+    equal_span_marks,
+    guide_to_drawables,
+    segment_key,
+)
 from core.relationship import GuideSpans
 from core.solvers.base import SolveContext
 from core.solvers.distribution import DistributionSolver
@@ -116,9 +121,22 @@ def test_equal_span_marks_render_bar_caps_and_badge():
     # caps/badges are perpendicular to the axis (no X component along the stroke)
     for a, b in segs[1:]:
         assert abs((b - a).x) < 1e-9
-    # a GuideSpans with N gaps expands to 5*N drawable segments
+    # a GuideSpans with N gaps expands to 5*N segments, minus the end caps that
+    # adjacent equal gaps share (drawn once)
     spans = GuideSpans(
         gaps=((Vector((0, 0, 0)), Vector((2, 0, 0))), (Vector((2, 0, 0)), Vector((4, 0, 0)))),
         axis=Vector((1, 0, 0)),
     )
-    assert len(guide_to_drawables(spans, Vector((0, 0, 0)))) == 10
+    assert len(guide_to_drawables(spans, Vector((0, 0, 0)))) == 9
+
+
+def test_dedupe_segments_drops_identical_strokes_either_way():
+    a, b, c = Vector((0, 0, 0)), Vector((1, 0, 0)), Vector((0, 1, 0))
+    assert segment_key(a, b) == segment_key(b, a)
+    assert segment_key(a, b) != segment_key(a, c)
+    segs = [(a, b), (b, a), (a, c), (a + Vector((1e-9, 0, 0)), b)]
+    assert dedupe_segments(segs) == [(a, b), (a, c)]
+    # A coarser tolerance merges near-identical strokes too.
+    near = [(a, b), (a, b + Vector((0.004, 0, 0)))]
+    assert len(dedupe_segments(near, eps=0.01)) == 1
+    assert len(dedupe_segments(near)) == 2

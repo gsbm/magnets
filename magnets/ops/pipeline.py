@@ -15,10 +15,10 @@ from ..core import scoring
 from ..core import solvers as _solvers  # noqa: F401 - register solver table
 from ..core.features import Feature, FeaturePool, feature_anchor
 from ..core.graph import build_active_set
-from ..core.guide_draw import guide_ticks, guide_to_drawables
+from ..core.guide_draw import guide_ticks, guide_to_drawables, segment_key
 from ..core.labels import feature_hint
 from ..core.registry import dispatch
-from ..core.relationship import GuideLine, Relationship
+from ..core.relationship import GuideLine, GuideSegment, Relationship
 from ..core.resolver import resolve_rotation, resolve_scale, resolve_translation
 from ..core.snap_apply import (
     BREAK,
@@ -239,6 +239,13 @@ def run_inference(
             max_dist = 0.0
             apply_mode = HOLD
 
+    if snapped and active_keys:
+        # Engaged guides are always drawn, even when latched from outside the
+        # decluttered top-K.
+        ranked = scoring.with_engaged(
+            ranked, ranked + visible + [active_item], active_keys, options.max_guides
+        )
+
     rot_axis, rot_angle = resolve_rotation(
         active_set, angle_snap_deg=options.angle_snap_increment
     )
@@ -353,14 +360,14 @@ def push_guides(
     ghost_edges = ghost_edges or []
     preview_labels = preview_labels or []
 
-    show_guides = bool(ranked) and (snapped or options.show_passive_guides)
-    if not show_guides and not ghost_edges and not preview_labels:
+    active_keys = {rank_key(r) for r in result.active_set} if snapped else set()
+    if not options.show_passive_guides:
+        # "Show guides before they engage" off: draw engaged guides only.
+        ranked = [it for it in ranked if it.key in active_keys]
+    if not ranked and not ghost_edges and not preview_labels:
         draw.clear_state()
         return
-    if not show_guides:
-        ranked = []
 
-    active_keys = {rank_key(r) for r in result.active_set} if snapped else set()
     active_color = tuple(prefs.guide_color_active)
     passive_color = tuple(prefs.guide_color_passive)
     use_axis_colors = getattr(prefs, "guide_color_mode", "AXIS") == "AXIS"
@@ -381,7 +388,13 @@ def push_guides(
     labels = []
     tick_size = wpp * 8.0 * px
 
+    # Engaged guide *lines* only: span bars, caps and circles are glyphs, and
+    # crossing them would scatter meaningless intersection dots.
     active_segments: list[tuple[Vector, Vector]] = []
+    # Segment identity -> index in guide_items, so a segment two guides share
+    # is drawn once (translucent overdraw reads brighter), engaged copy kept.
+    drawn: dict[tuple, int] = {}
+    dedupe_eps = max(wpp * 0.25, 1e-9)
 
     for item in ranked:
         rel = item.payload
@@ -407,11 +420,17 @@ def push_guides(
         else:
             segs = guide_to_drawables(rel.guide, moving_co)
 
+        is_line = isinstance(rel.guide, (GuideLine, GuideSegment))
         for seg in segs:
-            guide_items.append(
-                GuideDrawItem(a=seg[0], b=seg[1], color=color, active=is_active)
-            )
-            if is_active:
+            draw_item = GuideDrawItem(a=seg[0], b=seg[1], color=color, active=is_active)
+            key = segment_key(seg[0], seg[1], dedupe_eps)
+            index = drawn.get(key)
+            if index is None:
+                drawn[key] = len(guide_items)
+                guide_items.append(draw_item)
+            elif is_active and not guide_items[index].active:
+                guide_items[index] = draw_item
+            if is_active and is_line:
                 active_segments.append(seg)
 
         # Ticks mark the two reference points, not the spanning line's ends.

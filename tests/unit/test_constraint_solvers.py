@@ -28,6 +28,7 @@ from core.solvers.perpendicular import PerpendicularSolver
 from core.solvers.spacing import SpacingSolver
 from core.solvers.symmetry import SymmetrySolver
 from core.solvers.tangency import TangencySolver
+from core.transform import TransformMode
 from mathutils import Vector
 
 
@@ -78,8 +79,22 @@ def test_equal_size_solver_matches_bbox_width():
     ref = EntityRef(name="a")
     moving = [BBoxFeature(Vector((0, 0, 0)), Vector((2.0, 1.0, 1.0)), ref)]
     target = [BBoxFeature(Vector((5, 0, 0)), Vector((2.0, 3.0, 1.0)), EntityRef(name="b"))]
-    rels = solver.solve(moving, target, _ctx(2.0))
+    ctx = _ctx(2.0)
+    ctx.transform_mode = TransformMode.SCALE
+    rels = solver.solve(moving, target, ctx)
     assert any(r.axis.startswith("size_") for r in rels)
+
+
+def test_equal_size_solver_is_scale_only():
+    """A move/rotate cannot change size; a same-size neighbour must not engage
+    (it would claim the X/Y/Z snap slot at 0 px and block real alignments)."""
+    solver = EqualSizeSolver()
+    moving = [BBoxFeature(Vector((0, 0, 0)), Vector((2.0, 2.0, 2.0)), EntityRef(name="a"))]
+    target = [BBoxFeature(Vector((5, 0, 0)), Vector((2.0, 2.0, 2.0)), EntityRef(name="b"))]
+    for mode in (TransformMode.TRANSLATE, TransformMode.ROTATE):
+        ctx = _ctx(2.0)
+        ctx.transform_mode = mode
+        assert solver.solve(moving, target, ctx) == []
 
 
 def test_collinear_point_to_line():
@@ -112,8 +127,22 @@ def test_perpendicular_lines():
     solver = PerpendicularSolver()
     a = LineFeature(Vector((0, 0, 0)), Vector((1, 0, 0)), "a", EntityRef("a"))
     b = LineFeature(Vector((0, 0, 0)), Vector((0, 1, 0)), "b", EntityRef("b"))
-    rels = solver.solve([a], [b], _ctx(2.0))
-    assert rels
+    ctx = _ctx(2.0)
+    ctx.transform_mode = TransformMode.ROTATE
+    assert solver.solve([a], [b], ctx)
+
+
+def test_perpendicular_is_rotate_only():
+    """A move cannot change edge directions; box edges are nearly always
+    perpendicular to a neighbour's, so it would latch at 0 px and block the
+    alignments that can be applied."""
+    solver = PerpendicularSolver()
+    a = LineFeature(Vector((0, 0, 0)), Vector((1, 0, 0)), "a", EntityRef("a"))
+    b = LineFeature(Vector((0, 0, 0)), Vector((0, 1, 0)), "b", EntityRef("b"))
+    for mode in (TransformMode.TRANSLATE, TransformMode.SCALE):
+        ctx = _ctx(2.0)
+        ctx.transform_mode = mode
+        assert solver.solve([a], [b], ctx) == []
 
 
 def test_concentric_circles():

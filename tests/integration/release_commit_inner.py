@@ -10,17 +10,20 @@ Usage: blender --background --factory-startup --python <this> -- <repo root>
 
 import math
 import sys
-from types import SimpleNamespace
+from pathlib import Path
 
 REPO_ROOT = sys.argv[sys.argv.index("--") + 1]
 sys.path.insert(0, REPO_ROOT)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import addon_utils
 import bmesh
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Vector
 
 addon_utils.enable("magnets", default_set=True)
+
+from fake_view import FRONT, PERSP, TOP
 
 from magnets import transform_overlay as ov
 from magnets.draw import handler as draw
@@ -37,41 +40,6 @@ def check(cond, msg):
 
 def close(a, b, eps=1e-4):
     return (Vector(a) - Vector(b)).length < eps
-
-
-# ── Synthetic viewports ──────────────────────────────────────────────────────
-REGION = SimpleNamespace(width=1000, height=1000)
-_ORTHO_HALF = 10.0  # the view spans 20 world units over 1000 px
-
-
-def _rv3d(cam_rot: Matrix, cam_pos, perspective: bool):
-    cam = Matrix.Translation(cam_pos) @ cam_rot.to_4x4()
-    view = cam.inverted()
-    if perspective:
-        f = 1.0 / math.tan(math.radians(50.0) / 2.0)
-        near, far = 0.1, 1000.0
-        win = Matrix((
-            (f, 0.0, 0.0, 0.0),
-            (0.0, f, 0.0, 0.0),
-            (0.0, 0.0, (far + near) / (near - far), 2.0 * far * near / (near - far)),
-            (0.0, 0.0, -1.0, 0.0),
-        ))
-    else:
-        win = Matrix.Diagonal((1.0 / _ORTHO_HALF, 1.0 / _ORTHO_HALF, -0.01, 1.0))
-    return SimpleNamespace(
-        is_perspective=perspective,
-        view_perspective="PERSP" if perspective else "ORTHO",
-        view_matrix=view,
-        window_matrix=win,
-        perspective_matrix=win @ view,
-        view_rotation=cam_rot.to_quaternion(),
-    )
-
-
-TOP = (REGION, _rv3d(Matrix.Identity(3), (0.0, 0.0, 50.0), perspective=False))
-# Looking along +Y: world Y is the depth axis.
-FRONT = (REGION, _rv3d(Matrix.Rotation(math.pi / 2, 3, "X"), (0.0, -50.0, 0.0), False))
-PERSP = (REGION, _rv3d(Matrix.Identity(3), (0.0, 0.0, 50.0), perspective=True))
 
 
 # ── Scene ────────────────────────────────────────────────────────────────────
@@ -196,6 +164,26 @@ move(ob("Mover"), by=(-1.0, 1.5, 0.0))
 release()
 check(close(loc(ob("Mover")), (3.0, 1.5, 0.0)), "no guide in range, no change")
 check(not ov._session.committed, "unsnapped release does not commit")
+
+# Approach with drag ticks, as a real drag does (mirrors the live "translate"
+# scenario): relationships a move cannot change (edges perpendicular to
+# Target's) must not latch at 0 px on the first tick and block the Y alignment.
+# The start and end are clear of every on-screen alignment, so nothing but
+# those relationships sits at 0 px on the first tick.
+reset()
+start, end = Vector((2.5, -1.5, 0.0)), Vector((2.4, 4.93, 0.0))
+ob("Mover").location = start
+bpy.context.view_layer.update()
+push("start")
+begin()
+for k in range(1, 11):
+    ob("Mover").location = start.lerp(end, k / 10)
+    bpy.context.view_layer.update()
+    ov._tick(bpy.context, view=TOP)
+push("native move")
+release()
+check(close(loc(ob("Mover")), (2.4, 5.0, 0.0)),
+      f"approach then release snaps Y onto Target: {tuple(loc(ob('Mover')))}")
 
 # ── Translate: which axes may snap ───────────────────────────────────────────
 # Native Y lock (G Y): the X correction is masked away.

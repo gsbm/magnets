@@ -124,6 +124,32 @@ def equal_span_marks(
     ]
 
 
+def segment_key(a: Vector, b: Vector, eps: float = 1e-6) -> tuple:
+    """Orientation-free identity of segment ``a``-``b``, quantised to ``eps``."""
+    qa = tuple(round(v / eps) for v in a)
+    qb = tuple(round(v / eps) for v in b)
+    return (qa, qb) if qa <= qb else (qb, qa)
+
+
+def dedupe_segments(
+    segments: list[tuple[Vector, Vector]],
+    eps: float = 1e-6,
+) -> list[tuple[Vector, Vector]]:
+    """Drop segments identical to an earlier one (either direction).
+
+    Overdrawn duplicates render brighter where guides are translucent.
+    """
+    seen: set[tuple] = set()
+    out: list[tuple[Vector, Vector]] = []
+    for a, b in segments:
+        key = segment_key(a, b, eps)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((a, b))
+    return out
+
+
 def guide_to_drawables(
     guide: Guide,
     moving_co: Vector,
@@ -141,5 +167,6 @@ def guide_to_drawables(
         out: list[tuple[Vector, Vector]] = []
         for a, b in guide.gaps:
             out.extend(equal_span_marks(a, b, guide.axis))
-        return out
+        # Adjacent equal gaps share an end cap.
+        return dedupe_segments(out)
     return []

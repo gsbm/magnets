@@ -7,7 +7,7 @@ release-tolerance) gating for newly engaged secondaries.
 from core.features import PointFeature, PointKind
 from core.graph import build_active_set
 from core.relationship import ConstraintDelta, GuideSegment, Relationship
-from core.scoring import RankItem, rank, relationship_score
+from core.scoring import RankItem, rank, relationship_score, with_engaged
 from mathutils import Vector
 
 
@@ -76,3 +76,21 @@ def test_sticky_secondary_is_held_within_release():
         sticky_keys={sticky.key},
     )
     assert {r.axis for r in active} == {"X", "Y"}
+
+
+def test_with_engaged_draws_latched_guide_outside_top_k():
+    def item(key, dist):
+        return RankItem(key=key, score=1.0, screen_dist=dist, payload=key)
+
+    ranked = [item(("alignment", "X", "B", "o", "o"), 2.0),
+              item(("spacing", "X", "C", "o", "o"), 5.0),
+              item(("midpoint", "m", "D", "o", "o"), 6.0)]
+    latched = item(("alignment", "X", "A", "o", "o"), 9.0)  # only in `visible`
+    out = with_engaged(ranked, ranked + [latched], {latched.key}, top_k=2)
+    assert out[0] is latched, "the engaged guide is drawn first"
+    assert all(it.key[:2] != ("alignment", "X") for it in out[1:]), "one per slot"
+    assert [it.key[0] for it in out] == ["alignment", "spacing"], "capped at top_k"
+
+    many = [item(("alignment", ax, "A", "o", "o"), 1.0) for ax in "XYZ"]
+    keys = {it.key for it in many}
+    assert len(with_engaged([], many, keys, top_k=2)) == 3, "engaged guides are never cut"

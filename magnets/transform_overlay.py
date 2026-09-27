@@ -976,6 +976,13 @@ def _timer_callback_inner():
             if _session.idle_frames == 1:
                 # First confirmed frame after the transform ended: commit snap.
                 _commit_release(context)
+                # The drag is over: drop its guides and landing preview now.
+                # Kept through the grace frames they would show the pre-commit
+                # state over the snapped result.
+                if _session is not None:
+                    _session.last_anchor = None
+                draw.clear_state()
+                _redraw(context)
             if _session is not None and _session.idle_frames >= _IDLE_GRACE_FRAMES:
                 _end_session()
                 _redraw(context)

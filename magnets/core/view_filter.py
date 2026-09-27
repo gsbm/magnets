@@ -37,9 +37,20 @@ def relationship_visible_in_view(
     *,
     parallel_threshold: float = 0.15,
 ) -> bool:
-    """Return False if ``rel`` should be hidden and non-magnetic in this view."""
+    """Return False if ``rel`` should be hidden and non-magnetic in this view.
+
+    A relationship is hidden when its snap axis points into the screen (it can
+    be neither seen nor applied: the release commit drops the depth axis), or
+    when its guide would be seen end-on.
+    """
     if view_normal is None:
         return True
+
+    constraint_dir = getattr(rel, "constraint_dir", None)
+    if constraint_dir is not None and not guide_direction_visible(
+        constraint_dir, view_normal, parallel_threshold=parallel_threshold
+    ):
+        return False
 
     guide = rel.guide
     if isinstance(guide, GuideLine):
@@ -57,15 +68,22 @@ def relationship_visible_in_view(
             guide.axis, view_normal, parallel_threshold=parallel_threshold
         )
     if isinstance(guide, GuideCircle):
+        # Hidden edge-on (normal in the view plane), where it reads as a line.
+        # Facing the viewer it is fully visible and snaps within the view.
+        return not _edge_on(guide.normal, view_normal, parallel_threshold)
+    if isinstance(guide, GuidePlane):
+        # Seen edge-on a plane reads as a line and snaps within the view;
+        # facing the viewer it fills the view and snaps along the depth axis.
         return guide_direction_visible(
             guide.normal, view_normal, parallel_threshold=parallel_threshold
         )
-    if isinstance(guide, GuidePlane):
-        n = guide.normal.normalized()
-        vn = view_normal.normalized()
-        # Plane shown edge-on when its normal lies in the view plane.
-        return abs(n.dot(vn)) > (1.0 - parallel_threshold)
     return True
+
+
+def _edge_on(normal: Vector, view_normal: Vector, threshold: float) -> bool:
+    if normal.length_squared < 1e-12 or view_normal.length_squared < 1e-12:
+        return False
+    return abs(normal.normalized().dot(view_normal.normalized())) < threshold
 
 
 def filter_relationships_for_view(

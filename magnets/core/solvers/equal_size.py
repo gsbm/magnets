@@ -17,8 +17,15 @@ class EqualSizeSolver(Solver):
         return (FeatureType.BBOX, FeatureType.BBOX)
 
     def solve(self, moving: list[BBoxFeature], candidates: list[BBoxFeature], ctx: SolveContext):
-        """Return relationships between ``moving`` and ``candidates`` features."""
+        """Return relationships between ``moving`` and ``candidates`` features.
+
+        Scale only: a move or rotate cannot change size, and a same-size
+        neighbour would otherwise engage at 0 px and hold the X/Y/Z snap slot
+        for the whole drag, blocking real alignments.
+        """
         out: list[Relationship] = []
+        if ctx.transform_mode != TransformMode.SCALE:
+            return out
         tol = ctx.world_tol
         axis_names = ("X", "Y", "Z")
         for m in moving:
@@ -33,13 +40,7 @@ class EqualSizeSolver(Solver):
                     residual = abs(mv - cv)
                     if residual > tol:
                         continue
-                    if ctx.transform_mode == TransformMode.SCALE and mv > 1e-9:
-                        factor = cv / mv
-                        delta = ConstraintDelta.from_scale(factor)
-                    else:
-                        direction = ctx.axes[axis]
-                        shift = direction * ((cv - mv) * 0.5)
-                        delta = ConstraintDelta.from_vector(shift)
+                    delta = ConstraintDelta.from_scale(cv / mv)
                     direction = ctx.axes[axis]
                     out.append(
                         Relationship(
