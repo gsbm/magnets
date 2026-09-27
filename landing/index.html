@@ -28,7 +28,12 @@
 
   <header class="nav" data-nav>
     <div class="nav__inner">
-      <nav class="nav__links" aria-label="On this page">
+      <button class="nav__toc" type="button" aria-expanded="false" aria-controls="toc" data-toc>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M3 8h10M3 11.5h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="nav__toc-label" data-toc-label>Contents</span>
+        <svg class="nav__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 10 3.5-3.5 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <nav class="nav__links" id="toc" aria-label="On this page">
         <span class="nav__pill" aria-hidden="true"></span>
         <a href="#how">How it works</a>
         <a href="#guides">Guide types</a>

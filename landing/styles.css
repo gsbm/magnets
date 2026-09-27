@@ -111,13 +111,51 @@ kbd {
   transition: clip-path .25s var(--ease-out), opacity .15s ease;
 }
 .nav__cta { flex: none; }
-@media (max-width: 900px) {
-  .nav { width: calc(100% - 24px); }
-  .nav__inner { gap: 6px; height: 46px; }
-  .nav__links { flex: 1; mask-image: linear-gradient(90deg, #000 85%, transparent); }
-  .nav__links a { padding: 6px 11px; font-size: 13.5px; }
+.nav__toc { display: none; }
+
+/* Small screens: a compact bar (current section + Download); the contents open as a floating sheet above it */
+@media (max-width: 680px) {
+  .nav { width: min(360px, calc(100% - 24px)); }
+  .nav__inner { justify-content: space-between; gap: 6px; height: 48px; }
+  .nav__toc {
+    display: inline-flex; align-items: center; gap: 8px; min-width: 0; height: 36px; padding: 0 12px;
+    border: 0; border-radius: 999px; background: transparent; color: var(--fg);
+    font: 500 14px var(--sans); cursor: pointer;
+    transition: background-color .2s ease, transform .16s var(--ease-out);
+  }
+  .nav__toc:active { transform: scale(.97); }
+  .nav__toc svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+  .nav__toc-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav__chev { transition: transform .2s var(--ease-out); }
+  .nav.is-open .nav__toc { background: var(--surface-2); }
+  .nav.is-open .nav__chev { transform: rotate(180deg); }
+
+  .nav__pill { display: none; }
+  .nav__links {
+    position: absolute; left: 0; right: 0; bottom: calc(100% + 8px);
+    flex-direction: column; gap: 2px; padding: 6px; overflow: visible;
+    border-radius: 20px; background: rgb(28 28 28 / .96);
+    backdrop-filter: saturate(1.2) blur(16px); -webkit-backdrop-filter: saturate(1.2) blur(16px);
+    box-shadow: 0 10px 24px -10px rgb(0 0 0 / .7);
+    transform-origin: bottom center;
+    opacity: 0; transform: translateY(6px) scale(.97); visibility: hidden; pointer-events: none;
+    transition: opacity .15s ease, transform .15s var(--ease-out), visibility 0s linear .15s;
+  }
+  .nav.is-open .nav__links {
+    opacity: 1; transform: none; visibility: visible; pointer-events: auto;
+    transition: opacity .2s var(--ease-out), transform .2s var(--ease-out), visibility 0s;
+  }
+  .nav__links a { padding: 12px 14px; border-radius: 14px; font-size: 15px; color: var(--fg-2); }
+  .nav__links a[aria-current="true"] { background: var(--surface-2); color: var(--fg); }
 }
 @media print { .nav { display: none; } }
+
+/* SVG text is sized in drawing units; bump it where the drawings are scaled down on phones */
+@media (max-width: 680px) {
+  .scene .cube__name { font-size: 18px; }
+  .demo .name { font-size: 15px; }
+  .demo .tag text { font-size: 15px; }
+}
 
 /* Layout */
 .section, .hero { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
@@ -181,6 +219,7 @@ kbd {
 .demo__dots button[aria-current="true"] .pip { clip-path: inset(0 0 0 0 round 999px); background: rgb(237 237 237 / .28); }
 
 @media (max-width: 900px) {
+  .demo { width: 100%; max-width: 560px; }
   .hero { grid-template-columns: 1fr; min-height: 0; padding-top: 40px; }
 }
 

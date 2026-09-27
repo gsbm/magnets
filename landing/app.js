@@ -26,13 +26,31 @@
 
   /* ---------------- Nav: scrollspy pill ---------------- */
   (function nav() {
+    const bar = $("[data-nav]");
     const wrap = $(".nav__links");
     const links = $$("a", wrap);
     const pill = $(".nav__pill");
+    const sheet = matchMedia("(max-width: 680px)");
+    const toc = $("[data-toc]"), tocLabel = $("[data-toc-label]");
+
+    // Small screens: the contents open as a floating sheet above the bar.
+    const setOpen = (open) => {
+      bar.classList.toggle("is-open", open);
+      toc.setAttribute("aria-expanded", String(open));
+    };
+    toc.addEventListener("click", () => setOpen(!bar.classList.contains("is-open")));
+    links.forEach((a) => a.addEventListener("click", () => setOpen(false)));
+    document.addEventListener("pointerdown", (e) => { if (!bar.contains(e.target)) setOpen(false); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && bar.classList.contains("is-open")) { setOpen(false); toc.focus(); }
+    });
+    sheet.addEventListener("change", () => { setOpen(false); move(current); });
 
     const sections = links.map((a) => $(a.getAttribute("href")));
     let current = null;
     const move = (a) => {
+      tocLabel.textContent = a ? a.textContent : "Contents";
+      if (sheet.matches) return;
       if (!a) { pill.style.opacity = 0; return; }
       pill.style.opacity = 1;
       clipTo(pill, wrap, a);
@@ -363,6 +381,11 @@
       label("snap").style.transform = `translateY(${h.snap + 16}px)`;
       $("[data-tol-meta]", root).textContent = `Re-engage Gap ${p.reengage} px · Maximum Guides ${p.max} · Spacing ${p.spacing} px`;
     }
+    // narrower drawing area on phones so the labels keep a readable size
+    const svg = $(".tol__viz svg", root), narrow = matchMedia("(max-width: 680px)");
+    const fit = () => svg.setAttribute("viewBox", narrow.matches ? "0 0 380 320" : "0 0 720 320");
+    narrow.addEventListener("change", fit);
+    fit();
     segmented($(".seg", root), (b) => apply(b.dataset.preset));
     apply("balanced");
   })();
