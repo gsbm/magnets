@@ -253,12 +253,14 @@
 
           <div class="modes__body" id="modes-panel" role="tabpanel">
             <div class="track-wrap">
-              <svg class="track" viewBox="0 0 640 170" aria-hidden="true">
-                <line class="track__guide" x1="0" y1="90" x2="640" y2="90"/>
-                <path class="track__cursor-path" d="M40 140 C 180 130, 250 104, 330 98 S 470 92, 560 100"/>
-                <g class="track__block"><rect x="-22" y="-22" width="44" height="44"/></g>
-                <g class="track__cursor"><use href="#cur" x="-8" y="-5" width="28" height="28"/></g>
-              </svg>
+              <div class="track__stage">
+                <svg class="track" viewBox="0 38 640 160" aria-hidden="true">
+                  <line class="track__guide" x1="0" y1="90" x2="640" y2="90"/>
+                  <path class="track__cursor-path" d="M40 140 C 180 130, 250 104, 330 98 S 470 92, 560 100"/>
+                  <g class="track__block"><rect x="-22" y="-22" width="44" height="44"/></g>
+                  <g class="track__cursor"><use href="#cur" x="-8" y="-5" width="28" height="28"/></g>
+                </svg>
+              </div>
               <p class="track__caption" aria-live="polite" data-track-caption>Selection follows the pointer</p>
             </div>
 
