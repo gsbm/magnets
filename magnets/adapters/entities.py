@@ -32,15 +32,14 @@ def armature_feature_pool(obj) -> FeaturePool:
     ref = EntityRef(name=obj.name)
     mw = obj.matrix_world
     for bone in obj.data.bones:
-        if bone.use_inherit_scale:
-            head = mw @ bone.head_local
-            tail = mw @ bone.tail_local
-            pool.points.append(PointFeature(head, PointKind.BONE, ref))
-            direction = tail - head
-            if direction.length_squared > 0.0:
-                pool.lines.append(
-                    LineFeature(head.copy(), direction.normalized(), "bone", ref)
-                )
+        head = mw @ bone.head_local
+        tail = mw @ bone.tail_local
+        pool.points.append(PointFeature(head, PointKind.BONE, ref))
+        direction = tail - head
+        if direction.length_squared > 0.0:
+            pool.lines.append(
+                LineFeature(head.copy(), direction.normalized(), "bone", ref)
+            )
     if not pool.points:
         pool.extend(_origin_pool(obj))
     return pool
@@ -57,8 +56,9 @@ def curve_feature_pool(obj) -> FeaturePool:
     for spline in data.splines:
         points = spline.bezier_points if spline.type == "BEZIER" else spline.points
         for pt in points:
-            co = pt.co if hasattr(pt, "co") else pt.co.xyz
-            pool.points.append(PointFeature(mw @ Vector(co), PointKind.CURVE, ref))
+            # Poly/NURBS points are 4D (x, y, z, weight); bezier points are 3D.
+            co = Vector(pt.co[:3])
+            pool.points.append(PointFeature(mw @ co, PointKind.CURVE, ref))
     if not pool.points:
         pool.extend(_origin_pool(obj))
     return pool
