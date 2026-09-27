@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Magnets · Relationship snapping for Blender</title>
+  <meta name="description" content="Magnets is a free, open-source Blender add-on. While you move, rotate or scale, it draws guides for nearby relationships and snaps to them on release. Documentation and settings reference.">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fragment+Mono&family=Host+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <!-- Shared cursor glyph (cursor.in) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="cur" viewBox="0 0 28 28">
+      <polygon fill="#fff" points="8.2,20.9 8.2,4.9 19.8,16.5 13,16.5 12.6,16.6"/>
+      <polygon fill="#fff" points="17.3,21.6 13.7,23.1 9,12 12.7,10.5"/>
+      <rect x="12.5" y="13.6" transform="matrix(0.9221 -0.3871 0.3871 0.9221 -5.7605 6.5909)" width="2" height="8"/>
+      <polygon points="9.2,7.3 9.2,18.5 12.2,15.6 12.6,15.5 17.4,15.5"/>
+    </symbol>
+  </svg>
+
+  <header class="nav" data-nav>
+    <div class="nav__inner">
+      <nav class="nav__links" aria-label="On this page">
+        <span class="nav__pill" aria-hidden="true"></span>
+        <a href="#how">How it works</a>
+        <a href="#guides">Guide types</a>
+        <a href="#modes">Modes</a>
+        <a href="#reference">Reference</a>
+        <a href="#install">Install</a>
+      </nav>
+      <a class="btn btn--primary btn--sm nav__cta" href="https://github.com/gsbm/magnets/releases" target="_blank">Download</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <div class="hero__copy">
+        <h1>Relationship snapping for Blender transforms</h1>
+        <p class="lede">Magnets is a free, open-source add-on. While you move, rotate or scale with <span class="nowrap"><kbd>G</kbd> <kbd>R</kbd> <kbd>S</kbd></span>, it draws guides for nearby alignments, gaps, midpoints and other relationships, then applies the snap when you release.</p>
+        <div class="actions">
+          <a class="btn btn--primary" href="https://github.com/gsbm/magnets/releases" target="_blank">
+            Download
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v9m0 0L4.5 7.5M8 11l3.5-3.5M3 14h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="https://github.com/gsbm/magnets" target="_blank">Source on GitHub</a>
+        </div>
+        <dl class="meta">
+          <div><dt>Version</dt><dd>0.0.1</dd></div>
+          <div><dt>Requires</dt><dd>Blender 4.2 LTS+</dd></div>
+          <div><dt>License</dt><dd>GPL-3.0-or-later</dd></div>
+        </dl>
+      </div>
+
+      <figure class="demo" data-demo>
+        <svg class="demo__svg" viewBox="0 0 480 360" aria-hidden="true">
+          <g class="demo__scene"></g>
+        </svg>
+        <figcaption class="demo__cap">
+          <p aria-live="polite"><b data-demo-title>Alignment</b> <span data-demo-text>The selection lands on the same Y coordinate as Cube.</span></p>
+          <div class="demo__dots" role="group" aria-label="Examples"></div>
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- How it works -->
+    <section class="section" id="how" aria-labelledby="how-title">
+      <div class="section__head">
+        <h2 id="how-title">How a snap happens</h2>
+        <p>Magnets does not replace Blender's transform. It reads the transform in progress, draws the relationships it finds, and applies one snap on release.</p>
+      </div>
+
+      <div class="how" data-how>
+        <div class="steps" role="tablist" aria-label="Stages of a drag">
+          <button role="tab" id="step-0" aria-controls="how-stage" aria-selected="true" data-step="0"><span class="steps__n">Approach</span><span class="steps__d">A faint guide fades in as the selection nears a relationship.</span></button>
+          <button role="tab" id="step-1" aria-controls="how-stage" aria-selected="false" data-step="1"><span class="steps__n">Engage</span><span class="steps__d">Within Snap Tolerance the guide turns solid, flashes once and shows its label.</span></button>
+          <button role="tab" id="step-2" aria-controls="how-stage" aria-selected="false" data-step="2"><span class="steps__n">Preview</span><span class="steps__d">A dashed outline shows where the selection will land.</span></button>
+          <button role="tab" id="step-3" aria-controls="how-stage" aria-selected="false" data-step="3"><span class="steps__n">Release</span><span class="steps__d">The selection snaps. In Object Mode, move and snap are one undo step; in Edit Mode, the snap is a second step.</span></button>
+        </div>
+
+        <div class="how__panel" role="tabpanel" id="how-stage" aria-labelledby="step-0">
+          <div class="how__stage" data-stage="0">
+            <svg class="scene" viewBox="0 0 560 340" aria-hidden="true">
+              <g class="scene__grid"><line x1="0" y1="170" x2="560" y2="170"/><line x1="280" y1="0" x2="280" y2="340"/></g>
+              <g data-part="passive"><line class="g-passive" x1="0" y1="140" x2="560" y2="140"/></g>
+              <g data-part="engaged"><line class="g-engaged g-y" x1="0" y1="140" x2="560" y2="140"/></g>
+              <g data-part="label"><rect class="g-tag" x="440" y="127" width="30" height="24" rx="12"/><text class="g-tagtext" x="455" y="143.5">Y</text></g>
+              <g data-part="ref"><rect class="cube" x="90" y="100" width="80" height="80"/><text class="cube__name" x="90" y="202">Cube</text></g>
+              <g data-part="landing"><rect class="landing" x="350" y="100" width="80" height="80"/></g>
+              <g data-part="dot"><circle class="g-dot" cx="170" cy="140" r="4.5"/><circle class="g-dot" cx="350" cy="140" r="4.5"/></g>
+              <g data-part="sel" class="sel"><rect class="cube cube--sel" x="350" y="100" width="80" height="80"/><text class="cube__name" x="350" y="202">Cube.002</text></g>
+              <g class="cursor"><use href="#cur" x="-8" y="-5" width="28" height="28"/></g>
+            </svg>
+          </div>
+          <p class="how__caption" aria-live="polite" data-how-caption>A faint guide fades in as the selection nears a relationship.</p>
+        </div>
+
+        <ul class="legend" aria-label="What each mark means">
+          <li data-legend="passive"><span class="sw sw--passive"></span><b>Passive guide</b><span>A nearby relationship. Neutral color, fades with distance.</span></li>
+          <li data-legend="engaged"><span class="sw sw--engaged"></span><b>Engaged guide</b><span>Will snap. Alignment uses the axis color (X red, Y green, Z blue); other types use the Active Color, magenta by default.</span></li>
+          <li data-legend="label"><span class="sw sw--label">Y</span><b>Label</b><span>Names the relationship: an axis, a symbol such as <code>∥</code> or <code>◇</code>, or a length. Search any symbol in the <a href="#reference">Reference</a>.</span></li>
+          <li data-legend="dot"><span class="sw sw--dot"></span><b>Snap anchor dot</b><span>The two points being matched.</span></li>
+          <li data-legend="landing"><span class="sw sw--landing"></span><b>Landing outline</b><span>Where the selection goes on release.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Guide types -->
+    <section class="section" id="guides" aria-labelledby="guides-title">
+      <div class="section__head">
+        <h2 id="guides-title">Guide types</h2>
+        <p>Magnets detects eleven kinds of relationships. Each can be turned on or off in <span class="path">Sidebar ▸ Magnets ▸ Guide Types</span>. The label is the text shown next to the guide in the viewport.</p>
+      </div>
+
+      <div class="specimens">
+        <article class="spec" tabindex="0" id="type-alignment">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <line class="g-engaged g-y spec__guide" x1="10" y1="75" x2="230" y2="75"/>
+            <rect class="cube" x="30" y="50" width="50" height="50"/>
+            <g class="spec__mover" style="--dy:-30px"><rect class="cube cube--sel" x="150" y="50" width="50" height="50"/></g>
+          </svg>
+          <div class="spec__head"><h3>Alignment</h3><span class="lbl lbl--axis">X Y Z</span></div>
+          <p>Matches one coordinate: origin, pivot, center, face center or bounding-box corner. The label is the axis, plus the remaining distance when it is not zero.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-spacing">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <rect class="cube" x="20" y="55" width="40" height="40"/>
+            <rect class="cube" x="95" y="55" width="40" height="40"/>
+            <g class="spec__guide"><path class="g-engaged g-a" d="M60 115h35M135 115h35M60 110v10M95 110v10M135 110v10M170 110v10"/></g>
+            <g class="spec__mover" style="--dx:32px"><rect class="cube cube--sel" x="170" y="55" width="40" height="40"/></g>
+          </svg>
+          <div class="spec__head"><h3>Equal Spacing</h3><span class="lbl">⇔ 2 m</span></div>
+          <p>Repeats a gap to extend an even row, or centers an object between two neighbors. Measures centers, edges or both (Even Spacing setting).</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-equal-size">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <rect class="cube" x="30" y="45" width="70" height="60"/>
+            <g class="spec__mover" style="--s:.62"><rect class="cube cube--sel" x="140" y="45" width="70" height="60"/></g>
+            <g class="spec__guide"><path class="g-engaged g-a" d="M30 122h70M140 122h70M30 117v10M100 117v10M140 117v10M210 117v10"/></g>
+          </svg>
+          <div class="spec__head"><h3>Equal Size</h3><span class="lbl">▭ X · 2 m</span></div>
+          <p>While scaling, matches the size of a nearby object along one axis.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-midpoint">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <rect class="cube" x="20" y="55" width="40" height="40"/>
+            <rect class="cube" x="180" y="55" width="40" height="40"/>
+            <line class="g-passive" x1="60" y1="75" x2="180" y2="75"/>
+            <g class="spec__guide"><path class="g-engaged g-a" d="M120 61l14 14-14 14-14-14z"/></g>
+            <g class="spec__mover" style="--dy:38px;--dx:-24px"><circle class="cube cube--sel" cx="120" cy="75" r="7"/></g>
+          </svg>
+          <div class="spec__head"><h3>Midpoint</h3><span class="lbl">◇</span></div>
+          <p>Places a point halfway between two others.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-tangency">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <circle class="cube" cx="85" cy="75" r="40"/>
+            <g class="spec__guide"><line class="g-engaged g-a" x1="125" y1="35" x2="125" y2="115"/><circle class="g-dot" cx="125" cy="75" r="3.5"/></g>
+            <g class="spec__mover" style="--dx:30px"><circle class="cube cube--sel" cx="152" cy="75" r="27"/></g>
+          </svg>
+          <div class="spec__head"><h3>Tangency</h3><span class="lbl">◎ · ↔ surf</span></div>
+          <p>Brings a surface into contact with another, or to a set offset from it: <code>◎</code> for curved contact, <code>↔ surf</code> for a surface offset.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-parallel">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <line class="cube-line" x1="30" y1="120" x2="100" y2="30"/>
+            <g class="spec__mover" style="--rot:-28deg"><line class="cube-line cube-line--sel" x1="130" y1="120" x2="200" y2="30"/></g>
+            <g class="spec__guide"><path class="g-engaged g-a" d="M104 84l12-16M112 88l12-16"/></g>
+          </svg>
+          <div class="spec__head"><h3>Parallel</h3><span class="lbl">∥</span></div>
+          <p>Rotates an edge or direction to run alongside another.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-perpendicular">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <line class="cube-line" x1="30" y1="110" x2="210" y2="110"/>
+            <g class="spec__mover" style="--rot:32deg"><line class="cube-line cube-line--sel" x1="120" y1="110" x2="120" y2="25"/></g>
+            <g class="spec__guide"><path class="g-engaged g-a" d="M120 96h14v14"/></g>
+          </svg>
+          <div class="spec__head"><h3>Perpendicular</h3><span class="lbl">⊥</span></div>
+          <p>Rotates an edge or direction to meet another at a right angle.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-collinear">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <line class="cube-line" x1="30" y1="115" x2="110" y2="65"/>
+            <g class="spec__guide"><line class="g-engaged g-a" x1="110" y1="65" x2="222" y2="-5"/></g>
+            <g class="spec__mover" style="--dy:34px;--dx:10px"><circle class="cube cube--sel" cx="174" cy="25" r="7"/></g>
+          </svg>
+          <div class="spec__head"><h3>Collinear</h3><span class="lbl">-</span></div>
+          <p>Places a point on the line that continues an edge.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-coplanar">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <path class="cube plane" d="M20 100l80-40h120l-80 40z"/>
+            <g class="spec__guide"><path class="g-engaged g-a" d="M20 100l80-40h120l-80 40z"/></g>
+            <g class="spec__mover" style="--dy:-44px"><circle class="cube cube--sel" cx="120" cy="80" r="7"/></g>
+          </svg>
+          <div class="spec__head"><h3>Coplanar</h3><span class="lbl">▭</span></div>
+          <p>Places a point on the plane of a face.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-concentric">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <circle class="cube" cx="120" cy="75" r="50"/>
+            <g class="spec__guide"><path class="g-engaged g-a" d="M108 75h24M120 63v24"/></g>
+            <g class="spec__mover" style="--dx:36px;--dy:-18px"><circle class="cube cube--sel" cx="120" cy="75" r="24"/></g>
+          </svg>
+          <div class="spec__head"><h3>Concentric</h3><span class="lbl">◎</span></div>
+          <p>Gives a circle or ring the same center as another.</p>
+        </article>
+        <article class="spec" tabindex="0" id="type-symmetry">
+          <svg viewBox="0 0 240 150" aria-hidden="true">
+            <line class="g-passive" x1="120" y1="10" x2="120" y2="140"/>
+            <rect class="cube" x="40" y="50" width="44" height="44"/>
+            <g class="spec__guide"><line class="g-engaged g-a" x1="120" y1="10" x2="120" y2="140"/></g>
+            <g class="spec__mover" style="--dx:28px;--dy:16px"><rect class="cube cube--sel" x="156" y="50" width="44" height="44"/></g>
+          </svg>
+          <div class="spec__head"><h3>Symmetry</h3><span class="lbl">⇔ YZ</span></div>
+          <p>Mirrors a point across a world plane (XY, XZ or YZ) through its midpoint with another point.</p>
+        </article>
+        <aside class="spec spec--note" aria-labelledby="rot-title">
+          <h3 id="rot-title">Rotation and scale</h3>
+          <p>Rotation snaps to the nearest <b>Angle Snap</b> increment (15° by default) when you release close to one. Scale matches a nearby object's size. Both preview the result and print a note at the pivot, for example <code>→ 45°</code> or <code>= Cube.002 · 2 m</code>. No note means no snap.</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Modes -->
+    <section class="band" id="modes" aria-labelledby="modes-title">
+      <div class="band__inner">
+        <div class="section__head">
+          <h2 id="modes-title">Snapping modes</h2>
+          <p>By default Blender's own <kbd>G</kbd> <kbd>R</kbd> <kbd>S</kbd> stay in charge and Magnets snaps once on release. Precision Mode replaces them with Magnets' operators, which hold the snap while you drag.</p>
+        </div>
+
+        <div class="modes" data-modes>
+          <div class="seg" role="tablist" aria-label="Snapping mode">
+            <span class="seg__thumb" aria-hidden="true"></span>
+            <button role="tab" aria-selected="true" aria-controls="modes-panel" data-mode="release">Snap on release</button>
+            <button role="tab" aria-selected="false" aria-controls="modes-panel" data-mode="precision">Precision Mode</button>
+          </div>
+
+          <div class="modes__body" id="modes-panel" role="tabpanel">
+            <div class="track-wrap">
+              <svg class="track" viewBox="0 0 640 170" aria-hidden="true">
+                <line class="track__guide" x1="0" y1="90" x2="640" y2="90"/>
+                <path class="track__cursor-path" d="M40 140 C 180 130, 250 104, 330 98 S 470 92, 560 100"/>
+                <g class="track__block"><rect x="-22" y="-22" width="44" height="44"/></g>
+                <g class="track__cursor"><use href="#cur" x="-8" y="-5" width="28" height="28"/></g>
+              </svg>
+              <p class="track__caption" aria-live="polite" data-track-caption>Selection follows the pointer</p>
+            </div>
+
+            <div class="modes__panels">
+              <dl class="facts" data-panel="release">
+                <div><dt>While dragging</dt><dd>Guides only. The selection follows the pointer.</dd></div>
+                <div><dt>On release</dt><dd>One snap to the engaged guides.</dd></div>
+                <div><dt>Undo</dt><dd>One step in Object Mode, two in Edit Mode.</dd></div>
+                <div><dt>Blender features</dt><dd>All available: numeric input, orbiting, proportional editing.</dd></div>
+              </dl>
+              <dl class="facts" data-panel="precision" hidden>
+                <div><dt>While dragging</dt><dd>Locks onto a guide and holds it until the pointer passes Break Distance.</dd></div>
+                <div><dt>Supported</dt><dd><kbd>X</kbd> <kbd>Y</kbd> <kbd>Z</kbd> axis locks and mouse-wheel zoom.</dd></div>
+                <div><dt>Not supported</dt><dd>Numeric input, orbiting mid-drag, proportional editing.</dd></div>
+                <div><dt>Edit Mode</dt><dd>Rotate and scale fall back to Blender's transform.</dd></div>
+              </dl>
+              <p class="modes__where">Enable in <span class="path">Sidebar ▸ Magnets ▸ Precision Mode</span> or in the add-on preferences.</p>
+            </div>
+          </div>
+
+          <div class="yield">
+            <div class="yield__switch">
+              <button class="toggle" type="button" role="switch" aria-checked="false" aria-labelledby="yield-label" data-yield>
+                <span class="toggle__knob"></span>
+              </button>
+              <span id="yield-label">Blender's Snap toggle (magnet icon)</span>
+            </div>
+            <p data-yield-text>Off: Magnets snaps as described above.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reference -->
+    <section class="section" id="reference" aria-labelledby="ref-title">
+      <div class="section__head">
+        <h2 id="ref-title">Reference</h2>
+        <p>Scene options are in <span class="path">3D Viewport ▸ Sidebar (<kbd>N</kbd>) ▸ Magnets</span>. Colors, indicators and the shortcut are in <span class="path">Edit ▸ Preferences ▸ Add-ons ▸ Magnets</span>. The filter also covers viewport labels, so you can search for a symbol such as <code>◎</code>.</p>
+      </div>
+
+      <div class="tol" id="tolerance" data-tol>
+        <div class="tol__side">
+          <h3>Tolerances</h3>
+          <p class="tol__text">Distances are measured on screen, between the pointer and a guide, in pixels that follow Blender's Resolution Scale. Presets set them together.</p>
+          <div class="seg" role="radiogroup" aria-label="Tolerance preset">
+            <span class="seg__thumb" aria-hidden="true"></span>
+            <button role="radio" aria-checked="false" data-preset="precise">Precise</button>
+            <button role="radio" aria-checked="true" data-preset="balanced">Balanced</button>
+            <button role="radio" aria-checked="false" data-preset="loose">Loose</button>
+          </div>
+          <p class="tol__meta" data-tol-meta></p>
+        </div>
+        <div class="tol__viz">
+          <svg viewBox="0 0 720 320" aria-hidden="true">
+            <rect class="tband band-range" x="0" y="10" width="720" height="300"/>
+            <rect class="tband band-break" x="0" y="10" width="720" height="300"/>
+            <rect class="tband band-snap" x="0" y="10" width="720" height="300"/>
+            <line class="g-engaged g-y" x1="0" y1="160" x2="720" y2="160"/>
+            <text class="band__label" data-band="range" x="16" y="160"></text>
+            <text class="band__label" data-band="break" x="16" y="160"></text>
+            <text class="band__label" data-band="snap" x="16" y="160"></text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ref">
+        <aside class="keys" aria-labelledby="keys-title">
+          <h3 id="keys-title">Keys</h3>
+          <dl>
+            <div><dt><kbd>G</kbd> <kbd>R</kbd> <kbd>S</kbd></dt><dd>Move, rotate, scale with guides</dd></div>
+            <div><dt><kbd>G</kbd> <kbd>X</kbd></dt><dd>Lock to an axis; the snap respects it</dd></div>
+            <div><dt><kbd>G</kbd> <kbd>Shift</kbd> <kbd>Z</kbd></dt><dd>Exclude an axis</dd></div>
+            <div><dt><kbd>Ctrl</kbd> held</dt><dd>Use Blender snapping for this move; Magnets does not snap on release</dd></div>
+            <div><dt><kbd>Esc</kbd> or right-click</dt><dd>Cancel; never snaps</dd></div>
+            <div><dt><kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>M</kbd></dt><dd>Turn Magnets on or off</dd></div>
+            <div><dt><kbd>N</kbd></dt><dd>Open the sidebar</dd></div>
+          </dl>
+          <p class="keys__note">The magnet button at the right of the viewport header also turns Magnets on or off; its arrow opens a settings popover. In an orthographic view the snap never changes depth.</p>
+        </aside>
+
+        <div class="settings" data-settings>
+          <div class="search">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <label class="sr" for="q">Filter settings and labels</label>
+            <input id="q" type="search" placeholder="Filter: tolerance, color, ◎, axis…" autocomplete="off" spellcheck="false" data-q>
+            <kbd class="search__key" aria-hidden="true">/</kbd>
+          </div>
+          <p class="settings__count" aria-live="polite" data-count></p>
+          <div class="settings__list" data-list></div>
+          <p class="settings__empty" data-empty hidden>Nothing matches “<span data-empty-q></span>”. Try <button type="button" data-try="snap">snap</button> or <button type="button" data-try="color">color</button>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section class="section section--install" id="install" aria-labelledby="install-title">
+      <div class="section__head">
+        <h2 id="install-title">Installation</h2>
+        <p>No additional dependencies.</p>
+      </div>
+
+      <ol class="install">
+        <li><span class="install__n" aria-hidden="true"></span><div><h3>Download the zip</h3><p>Get <code>magnets-&lt;version&gt;.zip</code> from the <a href="https://github.com/gsbm/magnets/releases" target="_blank">releases page</a>. Keep it zipped.</p></div></li>
+        <li><span class="install__n" aria-hidden="true"></span><div><h3>Install from disk</h3><p>Open <span class="path">Edit ▸ Preferences ▸ Get Extensions</span>, use the menu at the top right, choose <b>Install from Disk</b> and select the zip.</p></div></li>
+        <li><span class="install__n" aria-hidden="true"></span><div><h3>Try it</h3><p>Press <kbd>G</kbd> and move an object toward another one. Guides appear as you approach. Release to snap.</p></div></li>
+      </ol>
+
+      <div class="trouble">
+        <h3>Troubleshooting</h3>
+        <ul>
+          <li><b>No guides at all.</b> Magnets may be off: check the header button or press <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>M</kbd>. Also check that <b>Passive Guides</b> is on.</li>
+          <li><b>Guides show but nothing snaps.</b> <b>Snap to Guides</b> is off. It is the first option in the panel.</li>
+          <li><b>Blender's magnet icon is on.</b> Magnets stands aside while Blender snapping is active. Turn it off, or turn off <b>Yield to Blender Snapping</b>.</li>
+          <li><b>You pressed <kbd>Esc</kbd> or held <kbd>Ctrl</kbd>.</b> Both skip the snap on release, by design.</li>
+          <li><b>Something else.</b> Turn on <b>Debug Logging</b> in the preferences, then <a href="https://github.com/gsbm/magnets/issues" target="_blank">open an issue</a> with the console output.</li>
+        </ul>
+      </div>
+
+      <div class="close">
+        <p class="close__line">Magnets is developed in the open. Bug reports, translations and pull requests are welcome.</p>
+        <div class="actions">
+          <a class="btn btn--primary" href="https://github.com/gsbm/magnets/releases" target="_blank">Download
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v9m0 0L4.5 7.5M8 11l3.5-3.5M3 14h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="https://github.com/gsbm/magnets" target="_blank">Source on GitHub</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>Magnets 0.0.1 · GPL-3.0-or-later · © 2026 gsbm</span>
+    <span>Add-on interface available in English, Deutsch, Español, Français, Italiano and Nederlands</span>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
