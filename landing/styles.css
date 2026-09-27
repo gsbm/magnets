@@ -521,7 +521,14 @@ kbd {
 .log__list > li { display: grid; grid-template-columns: 6em 1fr; gap: 4px 16px; padding: 10px 0; border-top: 1px solid var(--line); }
 .log__ver { font: 400 var(--fs-mono) var(--mono); color: var(--fg); }
 .log__ver time { display: block; color: var(--muted); font-size: var(--fs-micro); }
-.log__notes { margin: 0; padding: 0; list-style: none; color: var(--fg-2); }
+.log__ver a { text-decoration: none; }
+.log__notes { min-width: 0; color: var(--fg-2); font-size: var(--fs-ui); }
+/* Release notes arrive as GitHub-rendered HTML: flatten its headings and spacing to the drawer's scale */
+.log__notes > * { margin: 0 0 6px; }
+.log__notes > :last-child { margin-bottom: 0; }
+.log__notes :is(h1, h2, h3, h4) { font-size: var(--fs-ui); font-weight: 500; color: var(--fg); }
+.log__notes :is(ul, ol) { padding-left: 1.2em; }
+.log__notes img { max-width: 100%; height: auto; }
 .log[open] .log__list { animation: log-in .2s var(--ease-out); }
 @keyframes log-in { from { opacity: 0; transform: translateY(-4px); } }
 @media (max-width: 1200px) { .foot { margin-inline: var(--gutter); } }

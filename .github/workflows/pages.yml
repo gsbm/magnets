@@ -2,6 +2,7 @@ name: Pages
 
 # Publishes the static landing page in landing/ to GitHub Pages.
 # Requires Settings > Pages > Build and deployment > Source: "GitHub Actions".
+# The changelog is generated from GitHub release notes, so releases also redeploy the page.
 
 on:
   push:
@@ -9,6 +10,8 @@ on:
     paths:
       - "landing/**"
       - ".github/workflows/pages.yml"
+  release:
+    types: [published, edited, deleted]
   workflow_dispatch:
 
 permissions:
@@ -30,6 +33,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Write releases.json from release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/releases" --paginate \
+            -H "Accept: application/vnd.github.html+json" \
+            --jq '.[] | select(.draft | not) | {tag: .tag_name, name: .name, date: .published_at, url: .html_url, notes: .body_html}' \
+            | jq -s 'sort_by(.date) | reverse' > landing/releases.json
+          echo "$(jq length landing/releases.json) release(s)"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: landing

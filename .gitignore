@@ -9,3 +9,4 @@ venv/
 .coverage
 .claude/
 .impeccable/
+landing/releases.json

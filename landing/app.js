@@ -413,11 +413,54 @@
 
   /* ---------------- Changelog: open it when linked to ---------------- */
   (function changelog() {
-    const log = $("#changelog");
-    const open = () => { if (location.hash === "#changelog") log.open = true; };
-    $$("[data-open-log]").forEach((a) => a.addEventListener("click", () => { log.open = true; }));
+    // releases.json is generated from GitHub releases at deploy time; without it (or with no release) the drawer stays hidden.
+    const log = $("#changelog"), list = $("[data-log-list]", log);
+    const open = () => { if (location.hash === "#changelog" && !log.hidden) log.open = true; };
+    const version = (tag) => tag.replace(/^v(?=\d)/, "");
+
+    fetch("releases.json", { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : []))
+      .catch(() => [])
+      .then((releases) => {
+        if (!Array.isArray(releases) || !releases.length) return;
+        for (const rel of releases) {
+          const li = document.createElement("li");
+          const ver = document.createElement("span");
+          ver.className = "log__ver";
+          const a = document.createElement("a");
+          a.href = rel.url;
+          a.target = "_blank";
+          a.textContent = version(rel.tag);
+          ver.append(a);
+          if (rel.date) {
+            const time = document.createElement("time");
+            time.dateTime = time.textContent = rel.date.slice(0, 10);
+            ver.append(time);
+          }
+          const notes = document.createElement("div");
+          notes.className = "log__notes";
+          // body_html is rendered and sanitized by GitHub
+          if (rel.notes) notes.innerHTML = rel.notes;
+          else notes.textContent = rel.name && rel.name !== rel.tag ? rel.name : "No notes.";
+          li.append(ver, notes);
+          list.append(li);
+        }
+        log.hidden = false;
+
+        // The latest release sets the version shown on the page and links it to the changelog
+        const latest = version(releases[0].tag);
+        $$("[data-version]").forEach((el) => { el.textContent = latest; });
+        const dd = $(".meta [data-version]");
+        if (dd) {
+          const link = document.createElement("a");
+          link.href = "#changelog";
+          link.textContent = latest;
+          link.addEventListener("click", () => { log.open = true; });
+          dd.replaceChildren(link);
+        }
+        open();
+      });
     addEventListener("hashchange", open);
-    open();
   })();
 
   /* ---------------- Reference: settings + viewport labels, with filter ---------------- */
