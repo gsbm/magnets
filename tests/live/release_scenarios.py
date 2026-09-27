@@ -11,9 +11,13 @@ Usage (see ``test_release_live.py``, which sets this up)::
         --python tests/live/release_scenarios.py -- <magnets-zip> <scenario>
 
 Prints ``LIVE_RESULT <scenario> PASS|FAIL <detail>`` and quits.
+
+``MAGNETS_LIVE_TIME_SCALE`` (default 1) stretches every step's timing, for
+slow machines such as CI runners with software OpenGL.
 """
 
 import math
+import os
 import sys
 
 import bpy
@@ -21,13 +25,14 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d
 from mathutils import Quaternion, Vector
 
 ZIP, SCENARIO = sys.argv[-2], sys.argv[-1]
+TIME_SCALE = float(os.environ.get("MAGNETS_LIVE_TIME_SCALE", "1"))
 
 _steps = []
 
 
 def at(t):
     def deco(fn):
-        _steps.append((t, fn))
+        _steps.append((t * TIME_SCALE, fn))
         return fn
 
     return deco
@@ -180,8 +185,6 @@ def install():
     bpy.ops.extensions.package_install_files(
         filepath=ZIP, repo="user_default", enable_on_install=True
     )
-    import os
-
     if os.environ.get("MAGNETS_LIVE_DEBUG") == "1":
         bpy.context.preferences.addons["bl_ext.user_default.magnets"].preferences.debug = True
 

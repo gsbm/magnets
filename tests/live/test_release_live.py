@@ -58,7 +58,8 @@ def test_release_scenario(scenario, built_zip, tmp_path):
         [blender, "--factory-startup", "--enable-event-simulate", str(scene),
          "--python", str(REPO_ROOT / "tests" / "live" / "release_scenarios.py"),
          "--", str(built_zip), scenario],
-        capture_output=True, text=True, check=False, timeout=120, env=env,
+        capture_output=True, text=True, check=False, env=env,
+        timeout=120 * float(os.environ.get("MAGNETS_LIVE_TIME_SCALE", "1")),
     )
     lines = [ln for ln in proc.stdout.splitlines() if ln.startswith("LIVE_RESULT")]
     sys.stdout.write("\n".join(lines) + "\n")

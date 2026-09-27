@@ -172,6 +172,18 @@ def _view3d_context(context):
     return best
 
 
+def _resolve_view(context, view):
+    """Return ``(region, rv3d)``: ``view`` when given, else the largest viewport.
+
+    Passing ``view`` lets a caller without a window (headless tests) drive the
+    session, tick and commit with its own region and view.
+    """
+    if view is not None:
+        return view
+    _area, region, rv3d = _view3d_context(context)
+    return region, rv3d
+
+
 def _redraw(context):
     for area, _, _ in _iter_view3d(context):
         area.tag_redraw()
@@ -263,7 +275,7 @@ def _cheap_anchor(context) -> Vector | None:
     return anchor
 
 
-def _begin_session(context, op_id: str):
+def _begin_session(context, op_id: str, view=None):
     global _session
 
     moving = _moving_objects(context)
@@ -286,7 +298,7 @@ def _begin_session(context, op_id: str):
     )
 
     world_tol = None
-    _area, region, rv3d = _view3d_context(context)
+    region, rv3d = _resolve_view(context, view)
     obj = context.active_object
     if region is not None and rv3d is not None and obj is not None:
         wpp = world_per_pixel(region, rv3d, obj.matrix_world.translation)
@@ -433,7 +445,7 @@ def _snap_correction(translation: Vector, rv3d, native_mask: tuple | None) -> Ve
     return Vector(project_out_direction(translation, view_normal))
 
 
-def _tick(context):
+def _tick(context, view=None):
     if _session is None:
         return
     options = get_options(context)
@@ -452,7 +464,7 @@ def _tick(context):
         _redraw(context)
         return
 
-    _area, region, rv3d = _view3d_context(context)
+    region, rv3d = _resolve_view(context, view)
     if region is None or rv3d is None:
         return
 
@@ -651,7 +663,7 @@ def _pose_edges(poses: dict) -> list:
     return edges
 
 
-def _commit_release(context):
+def _commit_release(context, view=None):
     """Apply the engaged snap once, after the native transform is released.
 
     Dispatches on the transform mode: translate snaps to guides (inference),
@@ -671,7 +683,7 @@ def _commit_release(context):
         log.debug("commit skip: selection changed")
         return
 
-    _area, region, rv3d = _view3d_context(context)
+    region, rv3d = _resolve_view(context, view)
     if region is None or rv3d is None:
         return
 

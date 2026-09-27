@@ -57,6 +57,20 @@ def test_hysteresis_grace_counter_resets_when_guide_returns():
         assert _pick(snap, others)[1], "miss counter restarted"
 
 
+def test_hysteresis_vanished_latch_yields_to_guide_in_zone():
+    """After a jump, a new in-zone guide takes over instead of the grace hold."""
+    snap = SnapHysteresis()
+    _pick(snap, [_item(A, 0.0)])
+    active, snapped = _pick(snap, [_item(B, 7.5)])
+    assert snapped and active.key == B
+    assert snap.active_key == B and snap._miss_frames == 0
+    # Out of the zone, a new guide does not steal the grace hold.
+    snap = SnapHysteresis()
+    _pick(snap, [_item(A, 0.0)])
+    active, snapped = _pick(snap, [_item(B, 14.0)])
+    assert snapped and active.key == A
+
+
 def test_hysteresis_visible_list_holds_latch_outside_top_k():
     """Falling out of the decluttered top-K alone must not drop the latch."""
     snap = SnapHysteresis()

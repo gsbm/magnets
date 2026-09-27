@@ -94,6 +94,23 @@ class SnapHysteresis:
         if self.active_key is not None:
             current = next((it for it in lookup if it.key == self.active_key), None)
             if current is None:
+                # The latched guide vanished. A different guide already in the
+                # snap zone takes over (the selection jumped: typed input or a
+                # fast flick); holding the stale latch would block it.
+                blocked = self._broken_key if self.broken else None
+                fresh = next(
+                    (
+                        it
+                        for it in ranked
+                        if it.screen_dist <= snap_px and it.key != blocked
+                    ),
+                    None,
+                )
+                if fresh is not None:
+                    self.active_key = fresh.key
+                    self._latched = fresh
+                    self._miss_frames = 0
+                    return fresh, True
                 self._miss_frames += 1
                 if self._miss_frames < 4 and self._latched is not None:
                     return self._latched, True

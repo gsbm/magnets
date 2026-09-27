@@ -35,8 +35,17 @@ Unit and integration suites are separated:
    regressions are caught without flaky timings. Run it with `-s` to see the
    measured numbers.
 
-3. **Live (windowed Blender)**: the release path of the native-transform
-   overlay (`transform_overlay.py`) needs a real event loop. `tests/live`
+   `tests/integration/test_release_commit_headless.py` covers the
+   snap-on-release path without a window: `_begin_session`, `_tick` and
+   `_commit_release` take an optional `view=(region, rv3d)`, and the test
+   passes synthetic top, front and perspective views. It checks the
+   translate/rotate/scale commits and their guards, multi-object and Edit Mode
+   moves, the landing preview, the timer state machine, and the one-step undo
+   collapse. Each simulated native transform pushes its own undo step, as
+   Blender does, so `ed.undo` works in `--background`.
+
+3. **Live (windowed Blender)**: real native modals, keymaps and drawing need
+   a real event loop. `tests/live`
    starts a windowed Blender per scenario with `--enable-event-simulate`,
    drives Blender's own translate/rotate/resize modals with simulated mouse
    events, and checks the snapped result and the single undo step. Each run
@@ -47,7 +56,10 @@ Unit and integration suites are separated:
    MAGNETS_LIVE=1 BLENDER_BIN=/path/to/blender .venv/bin/pytest tests/live -m live
    ```
 
-   Set `MAGNETS_LIVE_DEBUG=1` to turn on Debug Logging in those runs.
+   Set `MAGNETS_LIVE_DEBUG=1` to turn on Debug Logging in those runs, and
+   `MAGNETS_LIVE_TIME_SCALE=3` to stretch the scripted timings on a slow
+   machine. CI runs this suite nightly and on manual dispatch (the `live` job,
+   Xvfb with software OpenGL); a failure there does not fail the workflow.
 
 When snapping misbehaves in a real session, turn on the **Debug Logging**
 preference and watch for `commit APPLIED` / `commit skip` lines in the system
