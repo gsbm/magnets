@@ -21,7 +21,7 @@ def _mode_hint(opts, precision_mode: bool) -> str:
         return "Guides only, no snapping"
     if precision_mode:
         return "Locks onto guides while dragging"
-    return "Snaps when you release G/R/S"
+    return "Snaps when G/R/S is released"
 
 
 def _draw_essentials(layout, context, opts):

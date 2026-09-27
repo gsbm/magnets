@@ -30,9 +30,8 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
     precision_mode: BoolProperty(
         name="Precision Mode",
         description=(
-            "Bind G / R / S to the Magnets modal operators, which lock onto a "
-            "guide while dragging. Leave off to use Blender's native transform, "
-            "which snaps to the engaged guide when released"
+            "Replace G / R / S with the Magnets transform, which locks onto a guide while "
+            "dragging. When off, Blender's own transform is used and the snap is applied on release"
         ),
         default=False,
         update=_update_precision_mode,

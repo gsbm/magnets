@@ -14,7 +14,13 @@ from ..core.tolerance import SnapHysteresis
 from ..core.transform import TransformMode
 from ..draw import handler as draw
 from ..properties import extract_options, get_options
-from .modal_common import AxisConstraint, clear_header, is_nav_event, set_header
+from .modal_common import (
+    AxisConstraint,
+    clear_header,
+    header_text,
+    is_nav_event,
+    set_header,
+)
 from .pipeline import apply_object_rotation, push_guides, run_inference
 
 
@@ -135,13 +141,8 @@ class MAGNETS_OT_rotate(bpy.types.Operator):
         self._set_header(context, angle, result)
 
     def _set_header(self, context, angle, result):
-        which = f" [{self._axis.name}]" if self._axis.active else " [view]"
-        snap = "  ·  snapped" if result.snapped else ""
-        set_header(
-            context,
-            f"Magnets Rotate{which}: {math.degrees(angle):.1f}deg"
-            f"   (X/Y/Z lock axis){snap}",
-        )
+        axis = self._axis.name if self._axis.active else "View"
+        set_header(context, header_text(self.bl_label, axis, f"{math.degrees(angle):.1f}°", result.snapped))
 
     def _finish(self, context):
         draw.disable()

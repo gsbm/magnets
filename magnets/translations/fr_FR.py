@@ -1,29 +1,29 @@
 """French (fr_FR) UI translations for Magnets.
 
 Keys are ``(context, msgid)`` where msgid is the exact English source string.
-Contexts: ``*`` for panels/properties/layout; ``Operator`` for operator labels.
+Contexts: ``*`` for panels/properties/layout; ``Operator`` for operator labels
+and operator buttons; ``Magnets`` for the frame, spacing and preset options, whose short
+names collide with unrelated entries in Blender's own catalogue.
 """
 
 TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Panels / category ──────────────────────────────────────────────────────
-    ("*", "Magnets"): "Aimants",
-    ("*", "Snapping"): "Accrochage",
+    ("*", "Magnets"): "Magnets",
+    ("*", "Snapping"): "Aimantation",
     ("*", "Guides"): "Guides",
     ("*", "Alignment"): "Alignement",
     ("*", "Guide Types"): "Types de guides",
-    ("*", "Presets"): "Préréglages",
     ("*", "Show"): "Afficher",
     ("*", "Axes"): "Axes",
     ("*", "Reference Points"): "Points de référence",
-    ("*", "Frame"): "Repère",
+    ("Magnets", "Frame"): "Repère",
     ("*", "Object"): "Objet",
     ("*", "Indicators"): "Indicateurs",
     # ── Scene options (names) ──────────────────────────────────────────────────
-    ("*", "Enable Guides"): "Activer les guides",
-    ("*", "Snap to Guides"): "Accrocher aux guides",
-    ("*", "Even Spacing"): "Espacement régulier",
-    ("*", "Angle Snap"): "Accrochage d’angle",
-    ("*", "Snap Tolerance"): "Tolérance d’accrochage",
+    ("*", "Snap to Guides"): "Aimanter aux guides",
+    ("Magnets", "Even Spacing"): "Espacement régulier",
+    ("*", "Angle Snap"): "Aimantation d’angle",
+    ("*", "Snap Tolerance"): "Tolérance d’aimantation",
     ("*", "Break Distance"): "Distance de rupture",
     ("*", "Re-engage Gap"): "Écart de réengagement",
     ("*", "Range"): "Portée",
@@ -37,7 +37,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Ticks"): "Graduations",
     ("*", "Extend to Viewport"): "Étendre à la vue",
     ("*", "Proximity Fade"): "Fondu de proximité",
-    ("*", "Alignment Frame"): "Repère d’alignement",
+    ("Magnets", "Alignment Frame"): "Repère d’alignement",
     ("*", "Custom Frame Object"): "Objet de repère personnalisé",
     ("*", "Origin"): "Origine",
     ("*", "Pivot"): "Pivot",
@@ -46,21 +46,21 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Bounding Box Corners"): "Coins de la boîte englobante",
     # ── Scene options (descriptions) ───────────────────────────────────────────
     ("*", "Show geometric guides and snapping during transforms"): (
-        "Afficher les guides géométriques et l’accrochage pendant les transformations"
+        "Afficher les guides géométriques et l’aimantation pendant les transformations"
     ),
     (
         "*",
         "Snap to the engaged guide when the transform is released. "
         "In Precision Mode, lock onto it while dragging",
     ): (
-        "S’accrocher au guide engagé à la fin de la transformation. "
+        "S’aimanter au guide engagé à la fin de la transformation. "
         "En mode précision, s’y verrouiller pendant le glissement"
     ),
-    ("*", "Which gap the equal-spacing guides equalise between objects"): (
+    ("Magnets", "Which gaps the Equal Spacing guides compare between objects"): (
         "Quel écart les guides d’espacement égal égalisent entre les objets"
     ),
     ("*", "Snap rotation to this increment in degrees. 0 disables"): (
-        "Accrocher la rotation à cet incrément en degrés. 0 pour désactiver"
+        "Aimanter la rotation à cet incrément en degrés. 0 pour désactiver"
     ),
     ("*", "Screen distance at which a guide engages"): (
         "Distance à l’écran à laquelle un guide s’engage"
@@ -70,7 +70,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Extra distance beyond the snap tolerance before an "
         "engaged guide releases",
     ): (
-        "Distance supplémentaire au-delà de la tolérance d’accrochage "
+        "Distance supplémentaire au-delà de la tolérance d’aimantation "
         "avant qu’un guide engagé se libère"
     ),
     (
@@ -78,7 +78,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Distance the cursor must leave the snap zone before a "
         "guide can engage again",
     ): (
-        "Distance dont le curseur doit s’éloigner de la zone d’accrochage "
+        "Distance dont le curseur doit s’éloigner de la zone d’aimantation "
         "avant qu’un guide puisse se réengager"
     ),
     ("*", "Screen distance within which guides appear"): (
@@ -91,13 +91,13 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Distance minimale à l’écran entre les guides affichés"
     ),
     ("*", "Allow snapping to align on the X axis"): (
-        "Autoriser l’accrochage d’alignement sur l’axe X"
+        "Autoriser l’aimantation d’alignement sur l’axe X"
     ),
     ("*", "Allow snapping to align on the Y axis"): (
-        "Autoriser l’accrochage d’alignement sur l’axe Y"
+        "Autoriser l’aimantation d’alignement sur l’axe Y"
     ),
     ("*", "Allow snapping to align on the Z axis"): (
-        "Autoriser l’accrochage d’alignement sur l’axe Z"
+        "Autoriser l’aimantation d’alignement sur l’axe Z"
     ),
     ("*", "Show guides before they engage"): (
         "Afficher les guides avant qu’ils ne s’engagent"
@@ -108,45 +108,45 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Show tick marks at guide reference points"): (
         "Afficher des graduations aux points de référence des guides"
     ),
-    ("*", "Stretch guide lines across the 3D viewport"): (
+    ("*", "Stretch guide lines across the 3D Viewport"): (
         "Étirer les lignes de guide à travers la vue 3D"
     ),
     ("*", "Fade guide opacity in as the cursor approaches the snap zone"): (
         "Faire apparaître progressivement l’opacité des guides "
-        "quand le curseur approche la zone d’accrochage"
+        "quand le curseur approche la zone d’aimantation"
     ),
     # ── Spacing metric enum ────────────────────────────────────────────────────
-    ("*", "Centers"): "Centres",
-    ("*", "Edges"): "Bords",
-    ("*", "Both"): "Les deux",
-    ("*", "Distribute object centers evenly"): (
+    ("Magnets", "Centers"): "Centres",
+    ("Magnets", "Edges"): "Bords",
+    ("Magnets", "Both"): "Les deux",
+    ("Magnets", "Distribute object centers evenly"): (
         "Répartir régulièrement les centres des objets"
     ),
-    ("*", "Distribute the visible gaps between bounding boxes"): (
+    ("Magnets", "Distribute the visible gaps between bounding boxes"): (
         "Répartir les écarts visibles entre les boîtes englobantes"
     ),
-    ("*", "Detect even spacing of centers and of edges"): (
+    ("Magnets", "Detect even spacing of centers and of edges"): (
         "Détecter un espacement régulier des centres et des bords"
     ),
     # ── Alignment frame enum ───────────────────────────────────────────────────
-    ("*", "World"): "Monde",
-    ("*", "Local"): "Local",
-    ("*", "View"): "Vue",
-    ("*", "Parent"): "Parent",
-    ("*", "Collection"): "Collection",
-    ("*", "Custom"): "Personnalisé",
-    ("*", "Align to world X/Y/Z axes"): "Aligner sur les axes X/Y/Z du monde",
-    ("*", "Align to the moving object's local axes"): (
+    ("Magnets", "World"): "Monde",
+    ("Magnets", "Local"): "Local",
+    ("Magnets", "View"): "Vue",
+    ("Magnets", "Parent"): "Parent",
+    ("Magnets", "Collection"): "Collection",
+    ("Magnets", "Custom"): "Personnalisé",
+    ("Magnets", "Align to world X/Y/Z axes"): "Aligner sur les axes X/Y/Z du monde",
+    ("Magnets", "Align to the moving object's local axes"): (
         "Aligner sur les axes locaux de l’objet en mouvement"
     ),
-    ("*", "Align to the 3D View axes"): "Aligner sur les axes de la vue 3D",
-    ("*", "Align to the parent object's local axes"): (
+    ("Magnets", "Align to the 3D Viewport axes"): "Aligner sur les axes de la vue 3D",
+    ("Magnets", "Align to the parent object's local axes"): (
         "Aligner sur les axes locaux de l’objet parent"
     ),
-    ("*", "Align to a collection instance empty"): (
+    ("Magnets", "Align to a collection instance empty"): (
         "Aligner sur l’empty d’une instance de collection"
     ),
-    ("*", "Align to a custom reference object"): (
+    ("Magnets", "Align to a custom reference object"): (
         "Aligner sur un objet de référence personnalisé"
     ),
     # ── Constraint families ────────────────────────────────────────────────────
@@ -200,31 +200,27 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Active Color"): "Couleur active",
     ("*", "Line Width"): "Épaisseur de ligne",
     ("*", "Solid Lines"): "Lignes continues",
-    ("*", "Snap Anchor Dot"): "Point d’ancrage d’accrochage",
+    ("*", "Snap Anchor Dot"): "Point d’ancrage d’aimantation",
     ("*", "Dot Radius"): "Rayon du point",
     ("*", "Intersection Dot"): "Point d’intersection",
-    ("*", "Snap Pulse"): "Impulsion d’accrochage",
+    ("*", "Snap Pulse"): "Impulsion d’aimantation",
     (
         "*",
-        "Bind G / R / S to the Magnets modal operators, which lock onto a "
-        "guide while dragging. Leave off to use Blender's native transform, "
-        "which snaps to the engaged guide when released",
+        "Replace G / R / S with the Magnets transform, which locks onto a guide while "
+        "dragging. When off, Blender's own transform is used and the snap is applied on release",
     ): (
-        "Lier G / R / S aux opérateurs modaux Aimants, qui se verrouillent "
-        "sur un guide pendant le glissement. Désactiver pour utiliser "
-        "la transformation native de Blender, qui s’accroche au guide "
-        "engagé à la fin du mouvement"
+        "Remplacer G / R / S par la transformation Magnets, qui se verrouille sur un guide pendant le glissement. Désactivé, la transformation de Blender est utilisée et l’aimantation est appliquée au relâchement"
     ),
     (
         "*",
         "Log Magnets diagnostics to the system console "
         "(Window ▸ Toggle System Console)",
     ): (
-        "Journaliser les diagnostics Aimants dans la console système "
+        "Journaliser les diagnostics Magnets dans la console système "
         "(Fenêtre ▸ Afficher la console système)"
     ),
     ("*", "Guide color while approaching the snap zone"): (
-        "Couleur du guide à l’approche de la zone d’accrochage"
+        "Couleur du guide à l’approche de la zone d’aimantation"
     ),
     ("*", "Guide color while engaged"): "Couleur du guide une fois engagé",
     ("*", "Guide line width in pixels"): "Épaisseur de ligne des guides en pixels",
@@ -235,7 +231,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Dessiner un point au point de coïncidence quand un guide est engagé"
     ),
     ("*", "Radius of the snap anchor dot in pixels"): (
-        "Rayon du point d’ancrage d’accrochage en pixels"
+        "Rayon du point d’ancrage d’aimantation en pixels"
     ),
     ("*", "Draw a marker where two engaged guides cross"): (
         "Dessiner un marqueur à l’intersection de deux guides engagés"
@@ -245,26 +241,26 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ),
     # ── Snapping hand-off, mode hints, custom frame ─────────────────────────────
     ("*", "Yield to Blender Snapping"): (
-        "Céder à l’accrochage de Blender"
+        "Céder à l’aimantation de Blender"
     ),
     ("*", "Skip the Magnets snap whenever Blender's own snapping is active for the transform, so the two never fight"): (
-        "Ignorer l’accrochage Aimants lorsque l’accrochage natif de Blender est actif pour la transformation, afin que les deux ne se contredisent jamais"
+        "Ignorer l’aimantation Magnets lorsque l’aimantation natif de Blender est actif pour la transformation, afin que les deux ne se contredisent jamais"
     ),
     ("*", "Object whose axes define the alignment frame"): (
         "Objet dont les axes définissent le repère d’alignement"
     ),
-    ("*", "Guides only, no snapping"): "Guides seuls, sans accrochage",
+    ("*", "Guides only, no snapping"): "Guides seuls, sans aimantation",
     ("*", "Locks onto guides while dragging"): "Se fige sur les guides en glissant",
-    ("*", "Snaps when you release G/R/S"): "Accroche au relâchement de G/R/S",
-    ("*", "Blender snapping takes over"): "L’accrochage Blender prime",
-    ("*", "Blender Snap"): "Accrochage Blender",
+    ("*", "Snaps when G/R/S is released"): "S’aimante au relâchement de G/R/S",
+    ("*", "Blender snapping takes over"): "L’aimantation Blender prime",
+    ("*", "Blender Snap"): "Aimantation Blender",
     ("*", "Yield"): "Céder",
     # ── Header toggle, engaged colours, shortcut ──────────────────────────────
     ("*", "Header Toggle"): (
         "Bouton dans l’en-tête"
     ),
     ("*", "Show the Magnets on/off button and settings popover in the 3D Viewport header"): (
-        "Afficher le bouton marche/arrêt Aimants et le menu des réglages dans l’en-tête de la vue 3D"
+        "Afficher le bouton marche/arrêt Magnets et le menu des réglages dans l’en-tête de la vue 3D"
     ),
     ("*", "Engaged Colors"): (
         "Couleurs engagées"
@@ -285,64 +281,72 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Raccourci"
     ),
     ("Operator", "Toggle Magnets"): (
-        "Activer/désactiver Aimants"
+        "Activer/désactiver Magnets"
     ),
     ("*", "Turn Magnets guides and snapping on or off"): (
-        "Activer ou désactiver les guides et l’accrochage Aimants"
+        "Activer ou désactiver les guides et l’aimantation Magnets"
     ),
     ("*", "More options in the sidebar (N)"): "Plus d’options dans la barre latérale (N)",
     # ── Preset enum ────────────────────────────────────────────────────────────
-    ("*", "Preset"): "Préréglage",
-    ("*", "Precise"): "Précis",
-    ("*", "Balanced"): "Équilibré",
-    ("*", "Loose"): "Large",
-    ("*", "Tight tolerances for close work"): (
+    ("Magnets", "Preset"): "Préréglage",
+    ("Magnets", "Precise"): "Précis",
+    ("Magnets", "Balanced"): "Équilibré",
+    ("Magnets", "Loose"): "Large",
+    ("Magnets", "Tight tolerances for close work"): (
         "Tolérances serrées pour le travail de précision"
     ),
-    ("*", "Default tolerances"): "Tolérances par défaut",
-    ("*", "Wide tolerances for blocking out"): (
+    ("Magnets", "Default tolerances"): "Tolérances par défaut",
+    ("Magnets", "Wide tolerances for blocking out"): (
         "Tolérances larges pour l’ébauche / le blocage des formes"
     ),
+    # ── Preset buttons (drawn as operator buttons) and reports ─────────────────
+    ("Operator", "Precise"): "Précis",
+    ("Operator", "Balanced"): "Équilibré",
+    ("Operator", "Loose"): "Large",
+    ("*", "Magnets on"): "Magnets activé",
+    ("*", "Magnets off"): "Magnets désactivé",
+    ("*", "Snapped"): "Aimanté",
+    ("*", "X/Y/Z: lock axis"): "X/Y/Z : verrouiller l’axe",
     # ── Operators (labels use Operator context) ────────────────────────────────
-    ("Operator", "Magnets Grab"): "Aimants : Déplacer",
-    ("Operator", "Magnets Rotate"): "Aimants : Tourner",
-    ("Operator", "Magnets Scale"): "Aimants : Redimensionner",
-    ("Operator", "Magnets Extrude"): "Aimants : Extruder",
-    ("Operator", "Magnets Bevel"): "Aimants : Biseauter",
-    ("Operator", "Magnets Inset"): "Aimants : Insérer",
-    ("Operator", "Magnets Knife"): "Aimants : Couteau",
-    ("Operator", "Magnets Preset"): "Aimants : Préréglage",
-    ("Operator", "Reset Magnets Options"): "Réinitialiser les options Aimants",
-    ("Operator", "Magnets: No-op"): "Aimants : No-op",
+    ("Operator", "Magnets Move"): "Magnets : Déplacer",
+    ("Operator", "Magnets Rotate"): "Magnets : Tourner",
+    ("Operator", "Magnets Scale"): "Magnets : Redimensionner",
+    ("Operator", "Magnets Extrude"): "Magnets : Extruder",
+    ("Operator", "Magnets Bevel"): "Magnets : Biseauter",
+    ("Operator", "Magnets Inset"): "Magnets : Insérer",
+    ("Operator", "Magnets Knife"): "Magnets : Couteau",
+    ("Operator", "Magnets Preset"): "Magnets : Préréglage",
+    ("Operator", "Reset Magnets Options"): "Réinitialiser les options Magnets",
+    ("Operator", "Magnets: No-op"): "Magnets : No-op",
     # ── Operator descriptions ──────────────────────────────────────────────────
     ("*", "Move with Magnets geometric guides"): (
-        "Déplacer avec les guides géométriques Aimants"
+        "Déplacer avec les guides géométriques Magnets"
     ),
     ("*", "Rotate with Magnets geometric guides"): (
-        "Tourner avec les guides géométriques Aimants"
+        "Tourner avec les guides géométriques Magnets"
     ),
     ("*", "Scale with Magnets geometric guides"): (
-        "Redimensionner avec les guides géométriques Aimants"
+        "Redimensionner avec les guides géométriques Magnets"
     ),
     ("*", "Extrude region then move with Magnets guides"): (
-        "Extruder la région puis déplacer avec les guides Aimants"
+        "Extruder la région puis déplacer avec les guides Magnets"
     ),
     ("*", "Bevel then adjust with Magnets guides"): (
-        "Biseauter puis ajuster avec les guides Aimants"
+        "Biseauter puis ajuster avec les guides Magnets"
     ),
     ("*", "Inset faces then move with Magnets guides"): (
-        "Insérer les faces puis déplacer avec les guides Aimants"
+        "Insérer les faces puis déplacer avec les guides Magnets"
     ),
     ("*", "Knife project cut then move with Magnets guides"): (
-        "Couper au couteau puis déplacer avec les guides Aimants"
+        "Couper au couteau puis déplacer avec les guides Magnets"
     ),
     ("*", "Set snap tolerances to a preset profile"): (
-        "Appliquer un profil de tolérances d’accrochage"
+        "Appliquer un profil de tolérances d’aimantation"
     ),
     ("*", "Reset all Magnets scene options to their defaults"): (
-        "Réinitialiser toutes les options Aimants de la scène à leurs valeurs par défaut"
+        "Réinitialiser toutes les options Magnets de la scène à leurs valeurs par défaut"
     ),
     ("*", "Internal Magnets registration smoke-test operator"): (
-        "Opérateur interne Aimants pour le test d’enregistrement"
+        "Opérateur interne Magnets pour le test d’enregistrement"
     ),
 }

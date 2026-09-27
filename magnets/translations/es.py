@@ -1,29 +1,29 @@
-"""Spanish (es / es_ES) UI translations for Magnets.
+"""Spanish (es) UI translations for Magnets.
 
 Keys are ``(context, msgid)`` where msgid is the exact English source string.
-Contexts: ``*`` for panels/properties/layout; ``Operator`` for operator labels.
+Contexts: ``*`` for panels/properties/layout; ``Operator`` for operator labels
+and operator buttons; ``Magnets`` for the frame, spacing and preset options, whose short
+names collide with unrelated entries in Blender's own catalogue.
 """
 
 TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Panels / category ──────────────────────────────────────────────────────
-    ("*", "Magnets"): "Imanes",
-    ("*", "Snapping"): "Ajuste",
+    ("*", "Magnets"): "Magnets",
+    ("*", "Snapping"): "Adherencia",
     ("*", "Guides"): "Guías",
     ("*", "Alignment"): "Alineación",
     ("*", "Guide Types"): "Tipos de guía",
-    ("*", "Presets"): "Preajustes",
     ("*", "Show"): "Mostrar",
     ("*", "Axes"): "Ejes",
     ("*", "Reference Points"): "Puntos de referencia",
-    ("*", "Frame"): "Sistema de referencia",
+    ("Magnets", "Frame"): "Sistema de referencia",
     ("*", "Object"): "Objeto",
     ("*", "Indicators"): "Indicadores",
     # ── Scene options (names) ──────────────────────────────────────────────────
-    ("*", "Enable Guides"): "Activar guías",
-    ("*", "Snap to Guides"): "Ajustar a las guías",
-    ("*", "Even Spacing"): "Espaciado uniforme",
-    ("*", "Angle Snap"): "Ajuste angular",
-    ("*", "Snap Tolerance"): "Tolerancia de ajuste",
+    ("*", "Snap to Guides"): "Adherir a las guías",
+    ("Magnets", "Even Spacing"): "Espaciado uniforme",
+    ("*", "Angle Snap"): "Adherir a ángulos",
+    ("*", "Snap Tolerance"): "Tolerancia de adherencia",
     ("*", "Break Distance"): "Distancia de liberación",
     ("*", "Re-engage Gap"): "Margen de reenganche",
     ("*", "Range"): "Alcance",
@@ -37,7 +37,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Ticks"): "Marcas",
     ("*", "Extend to Viewport"): "Extender a la vista",
     ("*", "Proximity Fade"): "Atenuar por proximidad",
-    ("*", "Alignment Frame"): "Sistema de alineación",
+    ("Magnets", "Alignment Frame"): "Sistema de alineación",
     ("*", "Custom Frame Object"): "Objeto de referencia personalizado",
     ("*", "Origin"): "Origen",
     ("*", "Pivot"): "Pivote",
@@ -46,21 +46,21 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Bounding Box Corners"): "Esquinas de la caja delimitadora",
     # ── Scene options (descriptions) ───────────────────────────────────────────
     ("*", "Show geometric guides and snapping during transforms"): (
-        "Mostrar guías geométricas y ajuste durante las transformaciones"
+        "Mostrar guías geométricas y adherencia durante las transformaciones"
     ),
     (
         "*",
         "Snap to the engaged guide when the transform is released. "
         "In Precision Mode, lock onto it while dragging",
     ): (
-        "Ajustar a la guía activa al soltar la transformación. "
+        "Adherir a la guía activa al soltar la transformación. "
         "En modo precisión, bloquearse a ella mientras se arrastra"
     ),
-    ("*", "Which gap the equal-spacing guides equalise between objects"): (
+    ("Magnets", "Which gaps the Equal Spacing guides compare between objects"): (
         "Qué separación igualan las guías de espaciado uniforme entre objetos"
     ),
     ("*", "Snap rotation to this increment in degrees. 0 disables"): (
-        "Ajustar la rotación a este incremento en grados. 0 lo desactiva"
+        "Adherir la rotación a este incremento en grados. 0 lo desactiva"
     ),
     ("*", "Screen distance at which a guide engages"): (
         "Distancia en pantalla a la que una guía se activa"
@@ -70,7 +70,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Extra distance beyond the snap tolerance before an "
         "engaged guide releases",
     ): (
-        "Distancia adicional más allá de la tolerancia de ajuste "
+        "Distancia adicional más allá de la tolerancia de adherencia "
         "antes de que una guía activa se libere"
     ),
     (
@@ -78,7 +78,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Distance the cursor must leave the snap zone before a "
         "guide can engage again",
     ): (
-        "Distancia que el cursor debe alejarse de la zona de ajuste "
+        "Distancia que el cursor debe alejarse de la zona de adherencia "
         "antes de que una guía pueda activarse de nuevo"
     ),
     ("*", "Screen distance within which guides appear"): (
@@ -91,13 +91,13 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Distancia mínima en pantalla entre las guías mostradas"
     ),
     ("*", "Allow snapping to align on the X axis"): (
-        "Permitir el ajuste de alineación en el eje X"
+        "Permitir la adherencia de alineación en el eje X"
     ),
     ("*", "Allow snapping to align on the Y axis"): (
-        "Permitir el ajuste de alineación en el eje Y"
+        "Permitir la adherencia de alineación en el eje Y"
     ),
     ("*", "Allow snapping to align on the Z axis"): (
-        "Permitir el ajuste de alineación en el eje Z"
+        "Permitir la adherencia de alineación en el eje Z"
     ),
     ("*", "Show guides before they engage"): (
         "Mostrar las guías antes de que se activen"
@@ -108,45 +108,45 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Show tick marks at guide reference points"): (
         "Mostrar marcas en los puntos de referencia de las guías"
     ),
-    ("*", "Stretch guide lines across the 3D viewport"): (
+    ("*", "Stretch guide lines across the 3D Viewport"): (
         "Extender las líneas de guía a lo ancho de la vista 3D"
     ),
     ("*", "Fade guide opacity in as the cursor approaches the snap zone"): (
         "Aumentar gradualmente la opacidad de las guías "
-        "cuando el cursor se acerca a la zona de ajuste"
+        "cuando el cursor se acerca a la zona de adherencia"
     ),
     # ── Spacing metric enum ────────────────────────────────────────────────────
-    ("*", "Centers"): "Centros",
-    ("*", "Edges"): "Bordes",
-    ("*", "Both"): "Ambos",
-    ("*", "Distribute object centers evenly"): (
+    ("Magnets", "Centers"): "Centros",
+    ("Magnets", "Edges"): "Bordes",
+    ("Magnets", "Both"): "Ambos",
+    ("Magnets", "Distribute object centers evenly"): (
         "Distribuir los centros de los objetos de forma uniforme"
     ),
-    ("*", "Distribute the visible gaps between bounding boxes"): (
+    ("Magnets", "Distribute the visible gaps between bounding boxes"): (
         "Distribuir los huecos visibles entre las cajas delimitadoras"
     ),
-    ("*", "Detect even spacing of centers and of edges"): (
+    ("Magnets", "Detect even spacing of centers and of edges"): (
         "Detectar espaciado uniforme de centros y de bordes"
     ),
     # ── Alignment frame enum ───────────────────────────────────────────────────
-    ("*", "World"): "Global",
-    ("*", "Local"): "Local",
-    ("*", "View"): "Vista",
-    ("*", "Parent"): "Padre",
-    ("*", "Collection"): "Colección",
-    ("*", "Custom"): "Personalizado",
-    ("*", "Align to world X/Y/Z axes"): "Alinear a los ejes X/Y/Z globales",
-    ("*", "Align to the moving object's local axes"): (
+    ("Magnets", "World"): "Global",
+    ("Magnets", "Local"): "Local",
+    ("Magnets", "View"): "Vista",
+    ("Magnets", "Parent"): "Padre",
+    ("Magnets", "Collection"): "Colección",
+    ("Magnets", "Custom"): "Personalizado",
+    ("Magnets", "Align to world X/Y/Z axes"): "Alinear a los ejes X/Y/Z globales",
+    ("Magnets", "Align to the moving object's local axes"): (
         "Alinear a los ejes locales del objeto en movimiento"
     ),
-    ("*", "Align to the 3D View axes"): "Alinear a los ejes de la vista 3D",
-    ("*", "Align to the parent object's local axes"): (
+    ("Magnets", "Align to the 3D Viewport axes"): "Alinear a los ejes de la vista 3D",
+    ("Magnets", "Align to the parent object's local axes"): (
         "Alinear a los ejes locales del objeto padre"
     ),
-    ("*", "Align to a collection instance empty"): (
+    ("Magnets", "Align to a collection instance empty"): (
         "Alinear al vacío de una instancia de colección"
     ),
-    ("*", "Align to a custom reference object"): (
+    ("Magnets", "Align to a custom reference object"): (
         "Alinear a un objeto de referencia personalizado"
     ),
     # ── Constraint families ────────────────────────────────────────────────────
@@ -200,31 +200,27 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Active Color"): "Color activo",
     ("*", "Line Width"): "Grosor de línea",
     ("*", "Solid Lines"): "Líneas continuas",
-    ("*", "Snap Anchor Dot"): "Punto de anclaje de ajuste",
+    ("*", "Snap Anchor Dot"): "Punto de anclaje de adherencia",
     ("*", "Dot Radius"): "Radio del punto",
     ("*", "Intersection Dot"): "Punto de intersección",
-    ("*", "Snap Pulse"): "Pulso de ajuste",
+    ("*", "Snap Pulse"): "Pulso de adherencia",
     (
         "*",
-        "Bind G / R / S to the Magnets modal operators, which lock onto a "
-        "guide while dragging. Leave off to use Blender's native transform, "
-        "which snaps to the engaged guide when released",
+        "Replace G / R / S with the Magnets transform, which locks onto a guide while "
+        "dragging. When off, Blender's own transform is used and the snap is applied on release",
     ): (
-        "Asignar G / R / S a los operadores modales de Imanes, que se "
-        "bloquean a una guía al arrastrar. Desactivar para usar la "
-        "transformación nativa de Blender, que se ajusta a la guía activa "
-        "al soltar"
+        "Sustituir G / R / S por la transformación de Magnets, que se fija a una guía mientras se arrastra. Si está desactivado, se usa la transformación propia de Blender y la adherencia se aplica al soltar"
     ),
     (
         "*",
         "Log Magnets diagnostics to the system console "
         "(Window ▸ Toggle System Console)",
     ): (
-        "Registrar diagnósticos de Imanes en la consola del sistema "
+        "Registrar diagnósticos de Magnets en la consola del sistema "
         "(Ventana ▸ Alternar consola del sistema)"
     ),
     ("*", "Guide color while approaching the snap zone"): (
-        "Color de la guía al acercarse a la zona de ajuste"
+        "Color de la guía al acercarse a la zona de adherencia"
     ),
     ("*", "Guide color while engaged"): "Color de la guía cuando está activa",
     ("*", "Guide line width in pixels"): "Grosor de línea de las guías en píxeles",
@@ -235,7 +231,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Dibujar un punto en el lugar de coincidencia cuando una guía está activa"
     ),
     ("*", "Radius of the snap anchor dot in pixels"): (
-        "Radio del punto de anclaje de ajuste en píxeles"
+        "Radio del punto de anclaje de adherencia en píxeles"
     ),
     ("*", "Draw a marker where two engaged guides cross"): (
         "Dibujar un marcador donde se cruzan dos guías activas"
@@ -245,32 +241,32 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ),
     # ── Snapping hand-off, mode hints, custom frame ─────────────────────────────
     ("*", "Yield to Blender Snapping"): (
-        "Ceder al ajuste de Blender"
+        "Ceder a la adherencia de Blender"
     ),
     ("*", "Skip the Magnets snap whenever Blender's own snapping is active for the transform, so the two never fight"): (
-        "Omitir el ajuste de Imanes cuando el ajuste propio de Blender está activo en la transformación, para que ambos nunca entren en conflicto"
+        "Omitir la adherencia de Magnets cuando la adherencia propia de Blender está activo en la transformación, para que ambos nunca entren en conflicto"
     ),
     ("*", "Object whose axes define the alignment frame"): (
         "Objeto cuyos ejes definen el sistema de alineación"
     ),
-    ("*", "Guides only, no snapping"): "Solo guías, sin ajuste",
+    ("*", "Guides only, no snapping"): "Solo guías, sin adherencia",
     ("*", "Locks onto guides while dragging"): "Se fija a las guías al arrastrar",
-    ("*", "Snaps when you release G/R/S"): "Ajusta al soltar G/R/S",
-    ("*", "Blender snapping takes over"): "Prevalece el ajuste de Blender",
-    ("*", "Blender Snap"): "Ajuste de Blender",
+    ("*", "Snaps when G/R/S is released"): "Se adhiere al soltar G/R/S",
+    ("*", "Blender snapping takes over"): "Prevalece la adherencia de Blender",
+    ("*", "Blender Snap"): "Adherencia de Blender",
     ("*", "Yield"): "Ceder",
     # ── Header toggle, engaged colours, shortcut ──────────────────────────────
     ("*", "Header Toggle"): (
         "Botón en la cabecera"
     ),
     ("*", "Show the Magnets on/off button and settings popover in the 3D Viewport header"): (
-        "Mostrar el botón de activar/desactivar Imanes y el panel de ajustes en la cabecera de la vista 3D"
+        "Mostrar el botón de activar/desactivar Magnets y el panel de adherencias en la cabecera de la vista 3D"
     ),
     ("*", "Engaged Colors"): (
-        "Colores al ajustar"
+        "Colores de guía activa"
     ),
     ("*", "How engaged guides are colored"): (
-        "Cómo se colorean las guías ajustadas"
+        "Cómo se colorean las guías activas"
     ),
     ("*", "Axis Colors"): (
         "Colores de eje"
@@ -279,70 +275,78 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Las guías de alineación usan los colores de eje X/Y/Z del tema; las demás usan el color activo"
     ),
     ("*", "Every engaged guide uses the Active Color"): (
-        "Todas las guías ajustadas usan el color activo"
+        "Todas las guías activas usan el color activo"
     ),
     ("*", "Shortcut"): (
         "Atajo"
     ),
     ("Operator", "Toggle Magnets"): (
-        "Alternar Imanes"
+        "Alternar Magnets"
     ),
     ("*", "Turn Magnets guides and snapping on or off"): (
-        "Activar o desactivar las guías y el ajuste de Imanes"
+        "Activar o desactivar las guías y la adherencia de Magnets"
     ),
     ("*", "More options in the sidebar (N)"): "Más opciones en la barra lateral (N)",
     # ── Preset enum ────────────────────────────────────────────────────────────
-    ("*", "Preset"): "Preajuste",
-    ("*", "Precise"): "Preciso",
-    ("*", "Balanced"): "Equilibrado",
-    ("*", "Loose"): "Amplio",
-    ("*", "Tight tolerances for close work"): (
+    ("Magnets", "Preset"): "Preajuste",
+    ("Magnets", "Precise"): "Preciso",
+    ("Magnets", "Balanced"): "Equilibrado",
+    ("Magnets", "Loose"): "Amplio",
+    ("Magnets", "Tight tolerances for close work"): (
         "Tolerancias estrechas para trabajo de precisión"
     ),
-    ("*", "Default tolerances"): "Tolerancias predeterminadas",
-    ("*", "Wide tolerances for blocking out"): (
+    ("Magnets", "Default tolerances"): "Tolerancias predeterminadas",
+    ("Magnets", "Wide tolerances for blocking out"): (
         "Tolerancias amplias para el boceto / bloqueo de formas"
     ),
+    # ── Preset buttons (drawn as operator buttons) and reports ─────────────────
+    ("Operator", "Precise"): "Preciso",
+    ("Operator", "Balanced"): "Equilibrado",
+    ("Operator", "Loose"): "Amplio",
+    ("*", "Magnets on"): "Magnets activado",
+    ("*", "Magnets off"): "Magnets desactivado",
+    ("*", "Snapped"): "Adherido",
+    ("*", "X/Y/Z: lock axis"): "X/Y/Z: bloquear eje",
     # ── Operators (labels use Operator context) ────────────────────────────────
-    ("Operator", "Magnets Grab"): "Imanes: Mover",
-    ("Operator", "Magnets Rotate"): "Imanes: Rotar",
-    ("Operator", "Magnets Scale"): "Imanes: Escalar",
-    ("Operator", "Magnets Extrude"): "Imanes: Extrudir",
-    ("Operator", "Magnets Bevel"): "Imanes: Biselar",
-    ("Operator", "Magnets Inset"): "Imanes: Insetar",
-    ("Operator", "Magnets Knife"): "Imanes: Cuchilla",
-    ("Operator", "Magnets Preset"): "Imanes: Preajuste",
-    ("Operator", "Reset Magnets Options"): "Restablecer opciones de Imanes",
-    ("Operator", "Magnets: No-op"): "Imanes: No-op",
+    ("Operator", "Magnets Move"): "Magnets: Mover",
+    ("Operator", "Magnets Rotate"): "Magnets: Rotar",
+    ("Operator", "Magnets Scale"): "Magnets: Escalar",
+    ("Operator", "Magnets Extrude"): "Magnets: Extrudir",
+    ("Operator", "Magnets Bevel"): "Magnets: Biselar",
+    ("Operator", "Magnets Inset"): "Magnets: Insetar",
+    ("Operator", "Magnets Knife"): "Magnets: Cuchilla",
+    ("Operator", "Magnets Preset"): "Magnets: Preajuste",
+    ("Operator", "Reset Magnets Options"): "Restablecer opciones de Magnets",
+    ("Operator", "Magnets: No-op"): "Magnets: No-op",
     # ── Operator descriptions ──────────────────────────────────────────────────
     ("*", "Move with Magnets geometric guides"): (
-        "Mover con las guías geométricas de Imanes"
+        "Mover con las guías geométricas de Magnets"
     ),
     ("*", "Rotate with Magnets geometric guides"): (
-        "Rotar con las guías geométricas de Imanes"
+        "Rotar con las guías geométricas de Magnets"
     ),
     ("*", "Scale with Magnets geometric guides"): (
-        "Escalar con las guías geométricas de Imanes"
+        "Escalar con las guías geométricas de Magnets"
     ),
     ("*", "Extrude region then move with Magnets guides"): (
-        "Extrudir la región y luego mover con las guías de Imanes"
+        "Extrudir la región y luego mover con las guías de Magnets"
     ),
     ("*", "Bevel then adjust with Magnets guides"): (
-        "Biselar y luego ajustar con las guías de Imanes"
+        "Biselar y luego ajustar con las guías de Magnets"
     ),
     ("*", "Inset faces then move with Magnets guides"): (
-        "Insetar caras y luego mover con las guías de Imanes"
+        "Insetar caras y luego mover con las guías de Magnets"
     ),
     ("*", "Knife project cut then move with Magnets guides"): (
-        "Cortar con cuchilla y luego mover con las guías de Imanes"
+        "Cortar con cuchilla y luego mover con las guías de Magnets"
     ),
     ("*", "Set snap tolerances to a preset profile"): (
-        "Aplicar un perfil de tolerancias de ajuste"
+        "Aplicar un perfil de tolerancias de adherencia"
     ),
     ("*", "Reset all Magnets scene options to their defaults"): (
-        "Restablecer todas las opciones de Imanes de la escena a sus valores predeterminados"
+        "Restablecer todas las opciones de Magnets de la escena a sus valores predeterminados"
     ),
     ("*", "Internal Magnets registration smoke-test operator"): (
-        "Operador interno de Imanes para la prueba de registro"
+        "Operador interno de Magnets para la prueba de registro"
     ),
 }

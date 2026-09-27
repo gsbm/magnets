@@ -489,7 +489,7 @@
         ["= Cube.002 · 2 m", "Scale preview: the object whose size is matched.", "Scale", "scale size match"],
       ]},
       { g: "General", w: "panel", items: [
-        ["Enable Guides", "The checkbox in the panel header. Same as the header button and Shift Alt M.", "On"],
+        ["Magnets", "The checkbox in the panel header. Same as the header button and Shift Alt M.", "On"],
         ["Snap to Guides", "Off shows guides without snapping.", "On"],
         ["Precision Mode", "G, R and S run Magnets' operators, which lock onto guides while dragging. A line under it states what G/R/S will do.", "Off"],
         ["Presets", "Precise, Balanced or Loose tolerance profiles. The active one is highlighted. Reset restores every scene option.", "Balanced"],

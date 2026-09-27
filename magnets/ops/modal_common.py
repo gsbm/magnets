@@ -65,6 +65,19 @@ def is_nav_event(event) -> bool:
     return event.type in _NAV_PASSTHROUGH
 
 
+def header_text(label: str, qualifier: str, readout: str, snapped: bool) -> str:
+    """Translated modal header, e.g. ``Magnets Move [X]: Dx 1.000 ...  (X/Y/Z: lock axis)``.
+
+    ``label`` is the operator's bl_label (Operator context) and ``qualifier`` an
+    optional word such as "View"; axis letters and numbers are not translated.
+    """
+    from bpy.app.translations import pgettext_iface as iface
+
+    which = f" [{iface(qualifier)}]" if qualifier else ""
+    snap = f"  ·  {iface('Snapped')}" if snapped else ""
+    return f"{iface(label, 'Operator')}{which}: {readout}   ({iface('X/Y/Z: lock axis')}){snap}"
+
+
 def set_header(context, text: str) -> None:
     """Set the 3D View header text during a modal."""
     area = getattr(context, "area", None)

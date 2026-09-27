@@ -1,27 +1,27 @@
 """German (de_DE) UI translations for Magnets.
 
 Keys are ``(context, msgid)`` where msgid is the exact English source string.
-Contexts: ``*`` for panels/properties/layout; ``Operator`` for operator labels.
+Contexts: ``*`` for panels/properties/layout; ``Operator`` for operator labels
+and operator buttons; ``Magnets`` for the frame, spacing and preset options, whose short
+names collide with unrelated entries in Blender's own catalogue.
 """
 
 TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Panels / category ──────────────────────────────────────────────────────
-    ("*", "Magnets"): "Magnete",
+    ("*", "Magnets"): "Magnets",
     ("*", "Snapping"): "Einrasten",
     ("*", "Guides"): "Hilfslinien",
     ("*", "Alignment"): "Ausrichtung",
     ("*", "Guide Types"): "Hilfslinien-Typen",
-    ("*", "Presets"): "Voreinstellungen",
     ("*", "Show"): "Anzeigen",
     ("*", "Axes"): "Achsen",
     ("*", "Reference Points"): "Bezugspunkte",
-    ("*", "Frame"): "Bezugssystem",
+    ("Magnets", "Frame"): "Bezugssystem",
     ("*", "Object"): "Objekt",
     ("*", "Indicators"): "Indikatoren",
     # ── Scene options (names) ──────────────────────────────────────────────────
-    ("*", "Enable Guides"): "Hilfslinien aktivieren",
     ("*", "Snap to Guides"): "An Hilfslinien einrasten",
-    ("*", "Even Spacing"): "Gleichmäßiger Abstand",
+    ("Magnets", "Even Spacing"): "Gleichmäßiger Abstand",
     ("*", "Angle Snap"): "Winkeleinrastung",
     ("*", "Snap Tolerance"): "Einrasttoleranz",
     ("*", "Break Distance"): "Löseabstand",
@@ -37,7 +37,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Ticks"): "Teilstriche",
     ("*", "Extend to Viewport"): "Auf Ansicht ausdehnen",
     ("*", "Proximity Fade"): "Nähe-Einblendung",
-    ("*", "Alignment Frame"): "Ausrichtungsbezug",
+    ("Magnets", "Alignment Frame"): "Ausrichtungsbezug",
     ("*", "Custom Frame Object"): "Benutzerdefiniertes Bezugsobjekt",
     ("*", "Origin"): "Ursprung",
     ("*", "Pivot"): "Drehpunkt",
@@ -56,7 +56,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Beim Loslassen der Transformation an der aktiven Hilfslinie einrasten. "
         "Im Präzisionsmodus während des Ziehens daran festhalten"
     ),
-    ("*", "Which gap the equal-spacing guides equalise between objects"): (
+    ("Magnets", "Which gaps the Equal Spacing guides compare between objects"): (
         "Welchen Abstand die Hilfslinien für gleichen Abstand zwischen Objekten ausgleichen"
     ),
     ("*", "Snap rotation to this increment in degrees. 0 disables"): (
@@ -108,7 +108,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Show tick marks at guide reference points"): (
         "Teilstriche an den Bezugspunkten der Hilfslinien anzeigen"
     ),
-    ("*", "Stretch guide lines across the 3D viewport"): (
+    ("*", "Stretch guide lines across the 3D Viewport"): (
         "Hilfslinien über die 3D-Ansicht strecken"
     ),
     ("*", "Fade guide opacity in as the cursor approaches the snap zone"): (
@@ -116,37 +116,37 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "wenn sich der Cursor der Einrastzone nähert"
     ),
     # ── Spacing metric enum ────────────────────────────────────────────────────
-    ("*", "Centers"): "Mittelpunkte",
-    ("*", "Edges"): "Kanten",
-    ("*", "Both"): "Beides",
-    ("*", "Distribute object centers evenly"): (
+    ("Magnets", "Centers"): "Mittelpunkte",
+    ("Magnets", "Edges"): "Kanten",
+    ("Magnets", "Both"): "Beides",
+    ("Magnets", "Distribute object centers evenly"): (
         "Objektmittelpunkte gleichmäßig verteilen"
     ),
-    ("*", "Distribute the visible gaps between bounding boxes"): (
+    ("Magnets", "Distribute the visible gaps between bounding boxes"): (
         "Sichtbare Abstände zwischen Begrenzungsboxen verteilen"
     ),
-    ("*", "Detect even spacing of centers and of edges"): (
+    ("Magnets", "Detect even spacing of centers and of edges"): (
         "Gleichmäßigen Abstand von Mittelpunkten und Kanten erkennen"
     ),
     # ── Alignment frame enum ───────────────────────────────────────────────────
-    ("*", "World"): "Welt",
-    ("*", "Local"): "Lokal",
-    ("*", "View"): "Ansicht",
-    ("*", "Parent"): "Elternobjekt",
-    ("*", "Collection"): "Sammlung",
-    ("*", "Custom"): "Benutzerdefiniert",
-    ("*", "Align to world X/Y/Z axes"): "An den Weltachsen X/Y/Z ausrichten",
-    ("*", "Align to the moving object's local axes"): (
+    ("Magnets", "World"): "Welt",
+    ("Magnets", "Local"): "Lokal",
+    ("Magnets", "View"): "Ansicht",
+    ("Magnets", "Parent"): "Elternobjekt",
+    ("Magnets", "Collection"): "Sammlung",
+    ("Magnets", "Custom"): "Benutzerdefiniert",
+    ("Magnets", "Align to world X/Y/Z axes"): "An den Weltachsen X/Y/Z ausrichten",
+    ("Magnets", "Align to the moving object's local axes"): (
         "An den lokalen Achsen des bewegten Objekts ausrichten"
     ),
-    ("*", "Align to the 3D View axes"): "An den Achsen der 3D-Ansicht ausrichten",
-    ("*", "Align to the parent object's local axes"): (
+    ("Magnets", "Align to the 3D Viewport axes"): "An den Achsen der 3D-Ansicht ausrichten",
+    ("Magnets", "Align to the parent object's local axes"): (
         "An den lokalen Achsen des Elternobjekts ausrichten"
     ),
-    ("*", "Align to a collection instance empty"): (
+    ("Magnets", "Align to a collection instance empty"): (
         "Am Empty einer Sammlungsinstanz ausrichten"
     ),
-    ("*", "Align to a custom reference object"): (
+    ("Magnets", "Align to a custom reference object"): (
         "An einem benutzerdefinierten Bezugsobjekt ausrichten"
     ),
     # ── Constraint families ────────────────────────────────────────────────────
@@ -206,21 +206,17 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Snap Pulse"): "Einrastimpuls",
     (
         "*",
-        "Bind G / R / S to the Magnets modal operators, which lock onto a "
-        "guide while dragging. Leave off to use Blender's native transform, "
-        "which snaps to the engaged guide when released",
+        "Replace G / R / S with the Magnets transform, which locks onto a guide while "
+        "dragging. When off, Blender's own transform is used and the snap is applied on release",
     ): (
-        "G / R / S an die modalen Magnete-Operatoren binden, die während "
-        "des Ziehens an einer Hilfslinie einrasten. Ausgeschaltet wird "
-        "die native Transformation von Blender verwendet, die beim Loslassen "
-        "an der aktiven Hilfslinie einrastet"
+        "G / R / S durch die Magnets-Transformation ersetzen, die während des Ziehens an einer Hilfslinie einrastet. Wenn aus, wird Blenders eigene Transformation verwendet und beim Loslassen eingerastet"
     ),
     (
         "*",
         "Log Magnets diagnostics to the system console "
         "(Window ▸ Toggle System Console)",
     ): (
-        "Magnete-Diagnosen in die Systemkonsole schreiben "
+        "Magnets-Diagnosen in die Systemkonsole schreiben "
         "(Fenster ▸ Systemkonsole umschalten)"
     ),
     ("*", "Guide color while approaching the snap zone"): (
@@ -248,14 +244,14 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Blender-Einrasten Vorrang geben"
     ),
     ("*", "Skip the Magnets snap whenever Blender's own snapping is active for the transform, so the two never fight"): (
-        "Das Magnete-Einrasten überspringen, wenn Blenders eigenes Einrasten für die Transformation aktiv ist, damit sich beide nie widersprechen"
+        "Das Magnets-Einrasten überspringen, wenn Blenders eigenes Einrasten für die Transformation aktiv ist, damit sich beide nie widersprechen"
     ),
     ("*", "Object whose axes define the alignment frame"): (
         "Objekt, dessen Achsen den Ausrichtungsbezug festlegen"
     ),
     ("*", "Guides only, no snapping"): "Nur Hilfslinien, kein Einrasten",
     ("*", "Locks onto guides while dragging"): "Rastet beim Ziehen ein",
-    ("*", "Snaps when you release G/R/S"): "Rastet beim Loslassen ein",
+    ("*", "Snaps when G/R/S is released"): "Rastet beim Loslassen ein",
     ("*", "Blender snapping takes over"): "Blender-Einrasten hat Vorrang",
     ("*", "Blender Snap"): "Blender-Einrasten",
     ("*", "Yield"): "Vorrang geben",
@@ -264,7 +260,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Schalter in der Kopfzeile"
     ),
     ("*", "Show the Magnets on/off button and settings popover in the 3D Viewport header"): (
-        "Den Magnete-Ein/Aus-Schalter und das Einstellungs-Popover in der Kopfzeile des 3D-Viewports anzeigen"
+        "Den Magnets-Ein/Aus-Schalter und das Einstellungs-Popover in der Kopfzeile des 3D-Viewports anzeigen"
     ),
     ("*", "Engaged Colors"): (
         "Farben beim Einrasten"
@@ -285,64 +281,72 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Tastenkürzel"
     ),
     ("Operator", "Toggle Magnets"): (
-        "Magnete umschalten"
+        "Magnets umschalten"
     ),
     ("*", "Turn Magnets guides and snapping on or off"): (
-        "Magnete-Hilfslinien und Einrasten ein- oder ausschalten"
+        "Magnets-Hilfslinien und Einrasten ein- oder ausschalten"
     ),
     ("*", "More options in the sidebar (N)"): "Weitere Optionen in der Seitenleiste (N)",
     # ── Preset enum ────────────────────────────────────────────────────────────
-    ("*", "Preset"): "Voreinstellung",
-    ("*", "Precise"): "Präzise",
-    ("*", "Balanced"): "Ausgewogen",
-    ("*", "Loose"): "Weit",
-    ("*", "Tight tolerances for close work"): (
+    ("Magnets", "Preset"): "Voreinstellung",
+    ("Magnets", "Precise"): "Präzise",
+    ("Magnets", "Balanced"): "Ausgewogen",
+    ("Magnets", "Loose"): "Weit",
+    ("Magnets", "Tight tolerances for close work"): (
         "Enge Toleranzen für Feinarbeit"
     ),
-    ("*", "Default tolerances"): "Standardtoleranzen",
-    ("*", "Wide tolerances for blocking out"): (
+    ("Magnets", "Default tolerances"): "Standardtoleranzen",
+    ("Magnets", "Wide tolerances for blocking out"): (
         "Weite Toleranzen für das Groblayout"
     ),
+    # ── Preset buttons (drawn as operator buttons) and reports ─────────────────
+    ("Operator", "Precise"): "Präzise",
+    ("Operator", "Balanced"): "Ausgewogen",
+    ("Operator", "Loose"): "Weit",
+    ("*", "Magnets on"): "Magnets an",
+    ("*", "Magnets off"): "Magnets aus",
+    ("*", "Snapped"): "Eingerastet",
+    ("*", "X/Y/Z: lock axis"): "X/Y/Z: Achse sperren",
     # ── Operators (labels use Operator context) ────────────────────────────────
-    ("Operator", "Magnets Grab"): "Magnete: Verschieben",
-    ("Operator", "Magnets Rotate"): "Magnete: Rotieren",
-    ("Operator", "Magnets Scale"): "Magnete: Skalieren",
-    ("Operator", "Magnets Extrude"): "Magnete: Extrudieren",
-    ("Operator", "Magnets Bevel"): "Magnete: Abschrägen",
-    ("Operator", "Magnets Inset"): "Magnete: Einfügen",
-    ("Operator", "Magnets Knife"): "Magnete: Messer",
-    ("Operator", "Magnets Preset"): "Magnete: Voreinstellung",
-    ("Operator", "Reset Magnets Options"): "Magnete-Optionen zurücksetzen",
-    ("Operator", "Magnets: No-op"): "Magnete: No-op",
+    ("Operator", "Magnets Move"): "Magnets: Verschieben",
+    ("Operator", "Magnets Rotate"): "Magnets: Rotieren",
+    ("Operator", "Magnets Scale"): "Magnets: Skalieren",
+    ("Operator", "Magnets Extrude"): "Magnets: Extrudieren",
+    ("Operator", "Magnets Bevel"): "Magnets: Abschrägen",
+    ("Operator", "Magnets Inset"): "Magnets: Einfügen",
+    ("Operator", "Magnets Knife"): "Magnets: Messer",
+    ("Operator", "Magnets Preset"): "Magnets: Voreinstellung",
+    ("Operator", "Reset Magnets Options"): "Magnets-Optionen zurücksetzen",
+    ("Operator", "Magnets: No-op"): "Magnets: No-op",
     # ── Operator descriptions ──────────────────────────────────────────────────
     ("*", "Move with Magnets geometric guides"): (
-        "Mit geometrischen Magnete-Hilfslinien verschieben"
+        "Mit geometrischen Magnets-Hilfslinien verschieben"
     ),
     ("*", "Rotate with Magnets geometric guides"): (
-        "Mit geometrischen Magnete-Hilfslinien rotieren"
+        "Mit geometrischen Magnets-Hilfslinien rotieren"
     ),
     ("*", "Scale with Magnets geometric guides"): (
-        "Mit geometrischen Magnete-Hilfslinien skalieren"
+        "Mit geometrischen Magnets-Hilfslinien skalieren"
     ),
     ("*", "Extrude region then move with Magnets guides"): (
-        "Bereich extrudieren und danach mit Magnete-Hilfslinien verschieben"
+        "Bereich extrudieren und danach mit Magnets-Hilfslinien verschieben"
     ),
     ("*", "Bevel then adjust with Magnets guides"): (
-        "Abschrägen und danach mit Magnete-Hilfslinien anpassen"
+        "Abschrägen und danach mit Magnets-Hilfslinien anpassen"
     ),
     ("*", "Inset faces then move with Magnets guides"): (
-        "Flächen einfügen und danach mit Magnete-Hilfslinien verschieben"
+        "Flächen einfügen und danach mit Magnets-Hilfslinien verschieben"
     ),
     ("*", "Knife project cut then move with Magnets guides"): (
-        "Mit Messer schneiden und danach mit Magnete-Hilfslinien verschieben"
+        "Mit Messer schneiden und danach mit Magnets-Hilfslinien verschieben"
     ),
     ("*", "Set snap tolerances to a preset profile"): (
         "Einrasttoleranzen auf ein Voreinstellungsprofil setzen"
     ),
     ("*", "Reset all Magnets scene options to their defaults"): (
-        "Alle Magnete-Szenenoptionen auf die Standardwerte zurücksetzen"
+        "Alle Magnets-Szenenoptionen auf die Standardwerte zurücksetzen"
     ),
     ("*", "Internal Magnets registration smoke-test operator"): (
-        "Interner Magnete-Operator für den Registrierungstest"
+        "Interner Magnets-Operator für den Registrierungstest"
     ),
 }

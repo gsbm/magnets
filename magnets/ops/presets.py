@@ -5,6 +5,7 @@ from __future__ import annotations
 import bpy
 
 from ..properties import get_options
+from ..translations import CONTEXT
 
 # Screen-space tolerance profiles (pixels). Keys map to MagnetsOptions fields.
 # BALANCED must equal the property defaults (checked by the integration suite).
@@ -53,6 +54,7 @@ class MAGNETS_OT_options_preset(bpy.types.Operator):
 
     preset: bpy.props.EnumProperty(
         name="Preset",
+        translation_context=CONTEXT,
         items=[
             ("PRECISE", "Precise", "Tight tolerances for close work"),
             ("BALANCED", "Balanced", "Default tolerances"),
@@ -97,7 +99,10 @@ class MAGNETS_OT_toggle(bpy.types.Operator):
         """Run a non-modal operator action."""
         opts = get_options(context)
         opts.enabled = not opts.enabled
-        self.report({"INFO"}, "Magnets on" if opts.enabled else "Magnets off")
+        # Reports are not translated automatically; pgettext_rpt is Blender 4.0+.
+        translations = bpy.app.translations
+        rpt = getattr(translations, "pgettext_rpt", translations.pgettext_tip)
+        self.report({"INFO"}, rpt("Magnets on" if opts.enabled else "Magnets off"))
         for window in context.window_manager.windows:
             for area in window.screen.areas:
                 if area.type == "VIEW_3D":

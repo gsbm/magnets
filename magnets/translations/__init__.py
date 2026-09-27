@@ -9,14 +9,18 @@ from __future__ import annotations
 
 import bpy
 
-from . import de_DE, es_ES, fr_FR, it_IT, nl_NL
+from . import de_DE, es, fr_FR, it_IT, nl_NL
 
-# Locale keys match Blender UI language codes. ``es`` is what Blender reports
-# for Spanish; ``es_ES`` is registered as well for country-specific lookups.
+# Translation context for short msgids that Blender's own catalogue already
+# translates with an unrelated meaning ("Frame" is an animation frame there).
+# Blender's catalogue wins over add-on catalogues for a shared (context, msgid).
+CONTEXT = "Magnets"
+
+# Keys and module names match Blender's UI language codes
+# (``bpy.app.translations.locales``); Spanish is ``es``.
 translations_dict: dict[str, dict[tuple[str, str], str]] = {
     "fr_FR": fr_FR.TRANSLATIONS,
-    "es": es_ES.TRANSLATIONS,
-    "es_ES": es_ES.TRANSLATIONS,
+    "es": es.TRANSLATIONS,
     "it_IT": it_IT.TRANSLATIONS,
     "de_DE": de_DE.TRANSLATIONS,
     "nl_NL": nl_NL.TRANSLATIONS,

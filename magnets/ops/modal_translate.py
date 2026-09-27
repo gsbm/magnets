@@ -15,14 +15,20 @@ from ..core.tolerance import SnapHysteresis
 from ..core.transform import TransformMode
 from ..draw import handler as draw
 from ..properties import extract_options, get_options
-from .modal_common import AxisConstraint, clear_header, is_nav_event, set_header
+from .modal_common import (
+    AxisConstraint,
+    clear_header,
+    header_text,
+    is_nav_event,
+    set_header,
+)
 from .pipeline import push_guides, run_inference, set_world_location
 
 
 class MAGNETS_OT_translate(bpy.types.Operator):
     """Modal translate with Magnets guides."""
     bl_idname = "magnets.translate"
-    bl_label = "Magnets Grab"
+    bl_label = "Magnets Move"
     bl_description = "Move with Magnets geometric guides"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -195,14 +201,9 @@ class MAGNETS_OT_translate(bpy.types.Operator):
         self._set_header(context, free_delta, result)
 
     def _set_header(self, context, free_delta, result):
-        axis = f" [{self._axis.name}]" if self._axis.active else ""
-        snap = "  ·  snapped" if result.snapped else ""
-        set_header(
-            context,
-            f"Magnets Grab{axis}: "
-            f"Dx {free_delta.x:.3f}  Dy {free_delta.y:.3f}  Dz {free_delta.z:.3f}"
-            f"   (X/Y/Z lock axis){snap}",
-        )
+        readout = f"Dx {free_delta.x:.3f}  Dy {free_delta.y:.3f}  Dz {free_delta.z:.3f}"
+        axis = self._axis.name if self._axis.active else ""
+        set_header(context, header_text(self.bl_label, axis, readout, result.snapped))
 
     def _finish(self, context):
         if self.edit_mode and self.bm is not None:

@@ -13,6 +13,7 @@ from bpy.props import (
 
 from .core.families import FAMILIES
 from .core.frames import Frame
+from .translations import CONTEXT
 
 
 def _family_toggle_annotations() -> dict:
@@ -29,7 +30,7 @@ def _family_toggle_annotations() -> dict:
 _FRAME_ITEMS = [
     (Frame.WORLD.value, "World", "Align to world X/Y/Z axes"),
     (Frame.LOCAL.value, "Local", "Align to the moving object's local axes"),
-    (Frame.VIEW.value, "View", "Align to the 3D View axes"),
+    (Frame.VIEW.value, "View", "Align to the 3D Viewport axes"),
     (Frame.PARENT.value, "Parent", "Align to the parent object's local axes"),
     (Frame.COLLECTION.value, "Collection", "Align to a collection instance empty"),
     (Frame.CUSTOM.value, "Custom", "Align to a custom reference object"),
@@ -39,7 +40,7 @@ _FRAME_ITEMS = [
 class MagnetsOptions(bpy.types.PropertyGroup):
     """Per-scene Magnets options property group."""
     enabled: BoolProperty(
-        name="Enable Guides",
+        name="Magnets",
         description="Show geometric guides and snapping during transforms",
         default=True,
     )
@@ -57,7 +58,8 @@ class MagnetsOptions(bpy.types.PropertyGroup):
     )
     spacing_metric: EnumProperty(
         name="Even Spacing",
-        description="Which gap the equal-spacing guides equalise between objects",
+        description="Which gaps the Equal Spacing guides compare between objects",
+        translation_context=CONTEXT,
         items=[
             ("center", "Centers", "Distribute object centers evenly"),
             ("edge", "Edges", "Distribute the visible gaps between bounding boxes"),
@@ -153,12 +155,13 @@ class MagnetsOptions(bpy.types.PropertyGroup):
     )
     extend_guides_to_viewport: BoolProperty(
         name="Extend to Viewport",
-        description="Stretch guide lines across the 3D viewport",
+        description="Stretch guide lines across the 3D Viewport",
         default=True,
     )
     alignment_frame: EnumProperty(
         name="Alignment Frame",
         items=_FRAME_ITEMS,
+        translation_context=CONTEXT,
         default=Frame.WORLD.value,
     )
     custom_frame_object: PointerProperty(

@@ -11,7 +11,13 @@ from ..core.tolerance import SnapHysteresis
 from ..core.transform import TransformMode
 from ..draw import handler as draw
 from ..properties import extract_options, get_options
-from .modal_common import AxisConstraint, clear_header, is_nav_event, set_header
+from .modal_common import (
+    AxisConstraint,
+    clear_header,
+    header_text,
+    is_nav_event,
+    set_header,
+)
 from .pipeline import apply_object_scale, push_guides, run_inference
 
 
@@ -130,12 +136,8 @@ class MAGNETS_OT_scale(bpy.types.Operator):
         self._set_header(context, factor, result)
 
     def _set_header(self, context, factor, result):
-        which = f" [{self._axis.name}]" if self._axis.active else ""
-        snap = "  ·  snapped" if result.snapped else ""
-        set_header(
-            context,
-            f"Magnets Scale{which}: {factor:.3f}x   (X/Y/Z lock axis){snap}",
-        )
+        axis = self._axis.name if self._axis.active else ""
+        set_header(context, header_text(self.bl_label, axis, f"{factor:.3f}×", result.snapped))
 
     def _finish(self, context):
         draw.disable()
