@@ -388,6 +388,15 @@
     span.replaceWith(btn);
   });
 
+  /* ---------------- Changelog: open it when linked to ---------------- */
+  (function changelog() {
+    const log = $("#changelog");
+    const open = () => { if (location.hash === "#changelog") log.open = true; };
+    $$("[data-open-log]").forEach((a) => a.addEventListener("click", () => { log.open = true; }));
+    addEventListener("hashchange", open);
+    open();
+  })();
+
   /* ---------------- Reference: settings + viewport labels, with filter ---------------- */
   (function reference() {
     const where = {

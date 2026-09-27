@@ -54,7 +54,7 @@
           <a class="btn btn--ghost" href="https://github.com/gsbm/magnets" target="_blank">Source on GitHub</a>
         </div>
         <dl class="meta">
-          <div><dt>Version</dt><dd>0.0.1</dd></div>
+          <div><dt>Version</dt><dd><a href="#changelog" data-open-log>0.0.1</a></dd></div>
           <div><dt>Requires</dt><dd>Blender 4.2 LTS+</dd></div>
           <div><dt>License</dt><dd>GPL-3.0-or-later</dd></div>
         </dl>
@@ -385,8 +385,23 @@
   </main>
 
   <footer class="foot">
-    <span>Magnets 0.0.1 · GPL-3.0-or-later · © 2026 gsbm</span>
-    <span>Add-on interface available in English, Deutsch, Español, Français, Italiano and Nederlands</span>
+    <div class="foot__row">
+      <span>Magnets 0.0.1 · GPL-3.0-or-later · © 2026 gsbm</span>
+      <span>Add-on interface available in English, Deutsch, Español, Français, Italiano and Nederlands</span>
+    </div>
+
+    <details class="log" id="changelog">
+      <summary>Changelog</summary>
+      <!-- Newest release first. One <li> per version: version, optional <time datetime="YYYY-MM-DD">, then notes. -->
+      <ol class="log__list">
+        <li>
+          <span class="log__ver">0.0.1</span>
+          <ul class="log__notes">
+            <li>Initial release.</li>
+          </ul>
+        </li>
+      </ol>
+    </details>
   </footer>
 
   <script src="app.js" defer></script>
