@@ -259,13 +259,14 @@ def counting_rank(items, *args, **kwargs):
 
 pipeline.dispatch, scoring.rank = counting_dispatch, counting_rank
 POSES = ((0.3, 0.2, 0.1), (-2.7, 3.1, 0.4), (4.2, -1.6, -0.3))
-# Per view, summed over POSES. Before the solver/ranking work:
-#   top   rels 42757 items 21139   (~70 ms/tick over a drag)
-#   persp rels 89014 items 89014   (~160 ms/tick)
-# After: top 21519 / 5367, persp 69143 / 49602. Bounds leave ~5% headroom.
+# Per view, summed over POSES (relationships / ranked items):
+#   original            top 42757 / 21139   persp 89014 / 89014
+#   exact pruning       top 21519 /  5367   persp 69143 / 49602
+#   best per rank key   top  6932 /  1780   persp 11191 /  6526
+# Bounds leave ~5% headroom over the last row.
 for name, view, max_rels, max_items in (
-    ("top", TOP, 22_600, 5_650),
-    ("persp", PERSP, 72_600, 52_100),
+    ("top", TOP, 7_300, 1_870),
+    ("persp", PERSP, 11_750, 6_860),
 ):
     ov._end_session()
     mover.location = (-9.0, -9.0, 0.0)
@@ -291,7 +292,7 @@ for name, view, max_rels, max_items in (
     check(work["rels"] <= max_rels, f"{{name}}: {{work['rels']}} relationships > {{max_rels}}")
     check(work["items"] <= max_items, f"{{name}}: {{work['items']}} ranked items > {{max_items}}")
     check(work["items"] < work["rels"], f"{{name}}: out-of-range and duplicate items dropped")
-    # Reference: top ~30 ms/tick, persp ~85 ms/tick.
+    # Reference: top ~22 ms/tick, persp ~37 ms/tick (was ~70 / ~160).
     check(tick_ms < 600.0, f"{{name}}: dense inference too slow: {{tick_ms:.1f}} ms")
 pipeline.dispatch, scoring.rank = _dispatch, _rank
 ov._end_session()

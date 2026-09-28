@@ -34,7 +34,10 @@ Each inference tick (a timer frame or a modal `MOUSEMOVE`) runs:
 
 1. **Extraction**: Scene elements (`Entity`) become geometric primitives (`Feature`).
 2. **Dispatch**: Feature pairs go to solvers by type.
-3. **Solving**: Solvers emit `Relationship` values with a `ConstraintDelta` and `Guide`.
+3. **Solving**: Solvers emit `Relationship` values with a `ConstraintDelta` and `Guide`,
+   at most one per rank key (family, axis, target, moving kind, target kind):
+   the one ranking would pick. Hot solvers search pairs with numpy and decide
+   each key's winner with the exact per-pair arithmetic (`core/pair_search.py`).
 4. **Ranking**: Candidates are scored (screen distance, residual, family weight); slot suppression removes duplicates.
 5. **Resolution**: Top constraints become a transform offset applied to preview/commit state.
 
@@ -75,6 +78,7 @@ flowchart TB
 - `core/features.py`: Feature dataclasses.
 - `core/relationship.py`: `Relationship` and `ConstraintDelta`.
 - `core/solvers/`: Solvers implementing the `Solver` ABC.
+- `core/pair_search.py`: Vectorised pair search with exact per-key winners.
 - `core/resolver.py`: Merge constraints into translation / rotation / scale.
 - `core/spatial.py`: KDTree and hash-grid broad phase.
 - `adapters/`: Map `bpy` types to `Entity` / `Feature`.

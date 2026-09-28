@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import numpy as np
+
 from ..features import FeatureType, PointFeature
 from ..geometry import normalize, reflect_point
+from ..pair_search import as_array, best_rows, coord_margin, project_px, small_ids
 from ..relationship import ConstraintDelta, GuidePlane, Relationship
-from .base import BestPerKey, SolveContext, Solver
+from ..scoring import FAMILY_PRIORITY
+from .base import SolveContext, Solver
+
+# Moving points per numpy block (bounds memory for large Edit Mode selections).
+_BLOCK = 64
 
 _SYMMETRY_PLANES = (
     ("XY", "Z"),
@@ -23,8 +30,11 @@ class SymmetrySolver(Solver):
         return (FeatureType.POINT, FeatureType.POINT)
 
     def solve(self, moving: list[PointFeature], candidates: list[PointFeature], ctx: SolveContext):
-        """Return relationships between ``moving`` and ``candidates`` features."""
-        out: list[Relationship] = []
+        """Return the best relationship per rank key (see ``BestPerKey``).
+
+        numpy finds the pairs within tolerance and approximates their rank
+        order; each key's winner is then decided exactly (see ``pair_search``).
+        """
         tol = ctx.world_tol
         # A plane facing an orthographic view is hidden by the view filter.
         planes = [
@@ -32,40 +42,92 @@ class SymmetrySolver(Solver):
             for plane_name, axis_key in _SYMMETRY_PLANES
             if not ctx.direction_hidden(ctx.axes[axis_key])
         ]
-        # The residual is the part of (m - c) off the plane normal. This
-        # prefilter only skips pairs clearly beyond ``tol`` (margin for
-        # single-precision rounding); the exact test below is unchanged.
-        reject2 = (tol * (1.0 + 1e-3) + 1e-6) ** 2
-        best = BestPerKey() if ctx.best_per_key else None
-        for m in moving:
-            for c in candidates:
-                if c.entity_ref.name == m.entity_ref.name:
-                    continue
-                w = m.co - c.co
-                ww = w.dot(w)
-                mid = None
-                for plane_name, normal, unit in planes:
-                    along = w.dot(unit)
-                    if ww - along * along > reject2:
-                        continue
-                    if mid is None:
-                        mid = (m.co + c.co) * 0.5
-                    reflected = reflect_point(m.co, mid, normal)
-                    residual = (reflected - c.co).length
-                    if residual > tol:
-                        continue
-                    data = (m, c, plane_name, normal, residual, mid)
-                    if best is not None:
-                        # The correction is the full mirror move, not the
-                        # residual: rank candidates as ranking will.
-                        key = (plane_name, c.entity_ref.name, id(m.kind), id(c.kind))
-                        order = ctx.rank_order(self.family, m, residual, m.co, c.co - m.co)
-                        best.offer(key, order, data)
-                        continue
-                    out.append(self._relationship(*data))
-        if best is not None:
-            out = [self._relationship(*data) for data in best.winners()]
-        return out
+        if not moving or not candidates or not planes:
+            return []
+        m_co = as_array(m.co for m in moving)
+        c_co = as_array(c.co for c in candidates)
+        units = as_array(unit for _name, _normal, unit in planes)
+        margin = coord_margin(m_co, c_co)
+        # One id table for both sides, so equal names get equal ids.
+        ent = small_ids([m.entity_ref.name for m in moving] + [c.entity_ref.name for c in candidates])
+        m_ent, c_ent = ent[: len(moving)], ent[len(moving):]
+        m_kind = small_ids(id(m.kind) for m in moving)
+        c_kind = small_ids(id(c.kind) for c in candidates)
+        n, n_planes = len(candidates), len(planes)
+
+        # The residual is the part of (m - c) off the plane normal.
+        rows_m, rows_c, rows_p, rows_res = [], [], [], []
+        for lo in range(0, len(moving), _BLOCK):
+            hi = min(lo + _BLOCK, len(moving))
+            w = m_co[lo:hi, None, :] - c_co[None, :, :]
+            along = w @ units.T  # (b, n, planes)
+            res = np.sqrt(np.maximum((w * w).sum(-1)[:, :, None] - along * along, 0.0))
+            ok = res <= tol + margin
+            ok &= (m_ent[lo:hi, None] != c_ent[None, :])[:, :, None]
+            mi, ci, pi = np.nonzero(ok)  # C order: the original visiting order
+            rows_m.append(mi + lo)
+            rows_c.append(ci)
+            rows_p.append(pi)
+            rows_res.append(res[mi, ci, pi])
+        mi, ci, pi = (np.concatenate(r) for r in (rows_m, rows_c, rows_p))
+        res = np.concatenate(rows_res)
+        approx, walk_margin, keep = self._approx_order(ctx, moving, m_co, c_co, mi, ci, res, margin)
+        mi, ci, pi, approx = mi[keep], ci[keep], pi[keep], approx[keep]
+        n_ent, n_mk, n_ck = int(c_ent.max()) + 1, int(m_kind.max()) + 1, int(c_kind.max()) + 1
+        group = ((pi * n_ent + c_ent[ci]) * n_mk + m_kind[mi]) * n_ck + c_kind[ci]
+        seq = (mi * n + ci) * n_planes + pi
+
+        data: dict[int, tuple] = {}
+        mi_l, ci_l, pi_l = mi.tolist(), ci.tolist(), pi.tolist()
+
+        def exact(row: int):
+            m, c = moving[mi_l[row]], candidates[ci_l[row]]
+            plane_name, normal, _unit = planes[pi_l[row]]
+            mid = (m.co + c.co) * 0.5
+            residual = (reflect_point(m.co, mid, normal) - c.co).length
+            if residual > tol:
+                return None
+            # The correction is the full mirror move, not the residual: rank
+            # candidates as ranking will.
+            order = ctx.rank_order(self.family, m, residual, m.co, c.co - m.co)
+            if order is None:
+                return None
+            data[row] = (m, c, plane_name, normal, residual, mid)
+            return order[0], order
+
+        winners = best_rows(group, approx, seq, walk_margin, exact)
+        return [self._relationship(*data[row]) for row in winners]
+
+    def _approx_order(self, ctx, moving, m_co, c_co, mi, ci, res, margin):
+        """``(approx order, walk margin, rows kept)`` matching ``ctx.rank_order``.
+
+        Without a projection the order is the residual. With one, it is
+        -score from the approximate screen distance; rows clearly beyond the
+        passive range are dropped, and off-screen rows sort first so they are
+        decided exactly.
+        """
+        if ctx.projection is None or ctx.screen_dist is None:
+            return res, margin, np.ones(len(res), dtype=bool)
+        _matrix, width, height = ctx.projection
+        margin_px = 1e-4 * (width + height)
+        m_xy, m_ok = project_px(ctx.projection, m_co)
+        c_xy, c_ok = project_px(ctx.projection, c_co)
+        sd = np.linalg.norm(c_xy[ci] - m_xy[mi], axis=1)
+        valid = m_ok[mi] & c_ok[ci]
+        keep = ~valid | (sd <= ctx.passive_px + margin_px)
+        passive = max(ctx.passive_px, 1.0)
+        tol = max(ctx.world_tol, 1e-9)
+        prio = np.array([m.priority for m in moving], dtype=np.float64)[mi]
+        score = (
+            FAMILY_PRIORITY.get(self.family, 0) * 1000.0
+            + prio * 10.0
+            + np.maximum(0.0, 1.0 - sd / passive) * 100.0
+            + np.maximum(0.0, 1.0 - res / tol) * 50.0
+            - sd
+        )
+        approx = np.where(valid, -score, -np.inf)
+        walk_margin = margin_px * (1.0 + 100.0 / passive) + 50.0 * margin / tol + 1e-6
+        return approx, walk_margin, keep
 
     def _relationship(self, m, c, plane_name, normal, residual, mid) -> Relationship:
         return Relationship(

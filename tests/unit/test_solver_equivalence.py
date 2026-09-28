@@ -1,9 +1,11 @@
-"""Fast solver paths give the same results as the plain nested scans.
+"""Fast solver paths give the same results as plain nested scans.
 
-The references below are the original brute-force loops. The solvers now
-index candidates by coordinate, prefilter clearly-out-of-range pairs, build
-midpoints once, and skip exact duplicates; none of that may change what they
-return (or its order, which breaks ranking ties).
+The references below are the original brute-force loops followed by the
+best-per-key rule, written independently: of all pairs sharing a rank key,
+keep the lowest order value (earliest on ties), emitted in first-visit order.
+The solvers index candidates by coordinate, prefilter clearly-out-of-range
+pairs and build midpoints once; none of that may change what they return
+(or its order, which breaks ranking ties).
 """
 
 import random
@@ -12,8 +14,9 @@ import core.solvers  # noqa: F401 - register solver table
 from core.features import POINT_PRIORITY, EntityRef, PointFeature, PointKind
 from core.frames import matrix_axes, world_axes
 from core.geometry import reflect_point
+from core.scoring import RankItem, best_per_key, score_parts
 from core.solvers.alignment import AlignmentSolver
-from core.solvers.base import SolveContext
+from core.solvers.base import BestPerKey, SolveContext
 from core.solvers.midpoint import MidpointSolver
 from core.solvers.symmetry import _SYMMETRY_PLANES, SymmetrySolver
 from core.spatial import SortedProjection
@@ -45,56 +48,50 @@ def _mover(seed):
     return pts
 
 
-def _ctxs():
+def _ctxs(tol=0.7):
     rotated = matrix_axes(Matrix.Rotation(0.3, 4, "Z") @ Matrix.Rotation(0.2, 4, "X"))
     return [
-        SolveContext(axes=world_axes(), world_tol=0.7),
-        SolveContext(axes=rotated, world_tol=0.7),
-        SolveContext(axes=world_axes(), world_tol=0.7, view_normal=Vector((0, 0, -1))),
+        SolveContext(axes=world_axes(), world_tol=tol),
+        SolveContext(axes=rotated, world_tol=tol),
+        SolveContext(axes=world_axes(), world_tol=tol, view_normal=Vector((0, 0, -1))),
     ]
 
 
-def _sig(rels):
-    return [
-        (
-            id(r.moving), id(r.targets[0]), r.axis, r.residual,
-            tuple(r.delta.translation), tuple(getattr(r.guide, "point", r.guide.a)),
-        )
-        for r in rels
-    ]
+def _reduce(entries):
+    """Reference best-per-key: ``entries`` are (key, order, payload) in visit order."""
+    best = {}
+    for seq, (key, order, payload) in enumerate(entries):
+        if key not in best or order < best[key][0]:
+            best[key] = (order, seq, payload)
+    return [payload for _o, _s, payload in sorted(best.values(), key=lambda t: t[1])]
 
 
 # ── Reference implementations (the original nested loops) ───────────────────
 
 
 def _alignment_reference(moving, candidates, ctx):
-    """Original scan, then the view filter, then first-of-duplicates."""
-    out = []
+    entries = []
     for m in moving:
-        seen = set()
         for c in candidates:
             if c.entity_ref.name == m.entity_ref.name:
                 continue
             w = m.co - c.co
-            for ai, (axis_name, direction) in enumerate(ctx.axes.items()):
+            for axis_name, direction in ctx.axes.items():
                 along = w.dot(direction)
                 if abs(along) > ctx.world_tol:
                     continue
                 if ctx.direction_hidden(direction.normalized()):
                     continue  # the view filter drops it later anyway
                 perp = w - along * direction
-                guide_dir = perp.normalized() if perp.length > 1e-6 else None
-                hidden = ctx.direction_hidden(guide_dir) if guide_dir is not None else False
-                dup = (axis_name, c.entity_ref.name, c.kind, along, hidden)
-                if dup in seen:
-                    continue
-                seen.add(dup)
-                out.append((m, c, axis_name, abs(along), -along * direction))
-    return out
+                if perp.length > 1e-6 and ctx.direction_hidden(perp.normalized()):
+                    continue  # guide seen end-on: filtered out
+                key = (axis_name, c.entity_ref.name, m.kind, c.kind)
+                entries.append((key, abs(along), (m, c, axis_name, abs(along), -along * direction)))
+    return _reduce(entries)
 
 
 def _symmetry_reference(moving, candidates, ctx):
-    out = []
+    entries = []
     for m in moving:
         for c in candidates:
             if c.entity_ref.name == m.entity_ref.name:
@@ -106,27 +103,28 @@ def _symmetry_reference(moving, candidates, ctx):
                     continue
                 residual = (reflect_point(m.co, mid, normal) - c.co).length
                 if residual <= ctx.world_tol:
-                    out.append((m, c, plane_name, residual))
-    return out
+                    key = (plane_name, c.entity_ref.name, m.kind, c.kind)
+                    entries.append((key, (residual,), (m, c, plane_name, residual)))
+    return _reduce(entries)
 
 
 def _midpoint_reference(moving, candidates, ctx):
-    out = []
+    entries = []
     for m in moving:
         by_entity = {}
         for c in candidates:
             if c.entity_ref.name != m.entity_ref.name:
                 by_entity.setdefault(c.entity_ref.name, []).append(c)
-        for pts in by_entity.values():
+        for name, pts in by_entity.items():
             for i in range(len(pts)):
                 for j in range(i + 1, len(pts)):
                     a, b = pts[i], pts[j]
-                    if a.kind != b.kind:
+                    if a.kind != b.kind or ctx.direction_hidden(b.co - a.co):
                         continue
                     residual = (m.co - (a.co + b.co) * 0.5).length
                     if residual <= ctx.world_tol:
-                        out.append((m, a, b, residual))
-    return out
+                        entries.append(((name, m.kind, a.kind), (residual,), (m, a, b, residual)))
+    return _reduce(entries)
 
 
 # ── Tests ────────────────────────────────────────────────────────────────────
@@ -149,7 +147,6 @@ def test_sorted_projection_is_a_superset_of_the_exact_test():
 
 def test_alignment_matches_reference_scan():
     solver = AlignmentSolver()
-    skipped = 0
     for seed in range(4):
         cands, moving = _cloud(seed), _mover(seed)
         for ctx in _ctxs():
@@ -159,17 +156,6 @@ def test_alignment_matches_reference_scan():
                 (id(m), id(c), axis, res) for m, c, axis, res, _d in ref
             ]
             assert [tuple(r.delta.translation) for r in got] == [tuple(d) for *_x, d in ref]
-            raw = sum(
-                1
-                for m in moving
-                for c in cands
-                if c.entity_ref.name != m.entity_ref.name
-                for d in ctx.axes.values()
-                if abs((m.co - c.co).dot(d)) <= ctx.world_tol
-                and not ctx.direction_hidden(d.normalized())
-            )
-            skipped += raw - len(got)
-    assert skipped > 0, "the clouds must contain duplicates to skip"
 
 
 def test_alignment_skips_axes_along_the_view_depth():
@@ -193,20 +179,58 @@ def test_symmetry_matches_reference_scan():
 
 def test_midpoint_matches_reference_scan():
     solver = MidpointSolver()
+    found = 0
     for seed in range(4):
         cands, moving = _cloud(seed), _mover(seed)
-        ctx = SolveContext(axes=world_axes(), world_tol=0.7)
-        got = solver.solve(moving, cands, ctx)
-        ref = _midpoint_reference(moving, cands, ctx)
-        assert [(id(r.moving), id(r.targets[0]), id(r.targets[1]), r.residual) for r in got] == [
-            (id(m), id(a), id(b), res) for m, a, b, res in ref
-        ]
+        for ctx in _ctxs(tol=1.5):
+            got = solver.solve(moving, cands, ctx)
+            ref = _midpoint_reference(moving, cands, ctx)
+            assert [(id(r.moving), id(r.targets[0]), id(r.targets[1]), r.residual) for r in got] == [
+                (id(m), id(a), id(b), res) for m, a, b, res in ref
+            ]
+            found += len(got)
+    assert found > 0
+
+
+def test_best_per_key_collector():
+    best = BestPerKey()
+    best.offer("a", 3.0, "a3")
+    best.offer("b", 1.0, "b1")
+    best.offer("a", 2.0, "a2")  # better: replaces, keeps its own visit order
+    best.offer("a", 2.0, "a2-tie")  # tie: earliest stays
+    best.offer("c", None, "dropped")  # would be dropped by ranking
+    assert best.winners() == ["b1", "a2"]
+
+
+def test_rank_order_uses_screen_distance_and_passive_range():
+    m = PointFeature(Vector(), PointKind.BBOX_CORNER, EntityRef("m"))
+    ctx = SolveContext(axes=world_axes(), world_tol=1.0, passive_px=50.0)
+    assert ctx.rank_order("symmetry", m, 0.2, m.co, Vector((1, 0, 0))) == (0.2,)
+    ctx.screen_dist = lambda _co, corr: corr.length * 100.0  # 1 m = 100 px
+    near = ctx.rank_order("symmetry", m, 0.2, m.co, Vector((0.1, 0, 0)))
+    far = ctx.rank_order("symmetry", m, 0.1, m.co, Vector((0.3, 0, 0)))
+    assert near < far, "a nearer correction outranks a smaller residual"
+    sd = Vector((0.1, 0, 0)).length * 100.0  # ~10 px (single-precision Vector)
+    expected = score_parts("symmetry", POINT_PRIORITY[PointKind.BBOX_CORNER], 0.2, sd, 50.0, 1.0)
+    assert near == (-expected, sd)
+    assert ctx.rank_order("symmetry", m, 0.1, m.co, Vector((0.6, 0, 0))) is None, "beyond range"
+    ctx.screen_dist = lambda _co, _corr: None
+    assert ctx.rank_order("symmetry", m, 0.1, m.co, Vector((0.1, 0, 0))) is None, "off-screen"
+
+
+def test_scoring_best_per_key_keeps_the_item_rank_would_pick():
+    def item(key, score, dist, tag):
+        return RankItem(key=key, score=score, screen_dist=dist, payload=tag)
+
+    items = [item("a", 1.0, 5.0, "a-low"), item("b", 2.0, 1.0, "b"),
+             item("a", 3.0, 9.0, "a-high"), item("a", 3.0, 4.0, "a-high-near"),
+             item("a", 3.0, 4.0, "a-tie")]
+    assert [it.payload for it in best_per_key(items)] == ["b", "a-high-near"]
 
 
 def test_point_priority_is_cached_per_kind():
     ref = EntityRef("a")
     for kind in PointKind:
-        p = PointFeature(Vector(), kind, ref)
-        assert p.priority == POINT_PRIORITY[kind]
+        assert PointFeature(Vector(), kind, ref).priority == POINT_PRIORITY[kind]
     a = PointFeature(Vector((1, 2, 3)), PointKind.ORIGIN, ref)
     assert a == PointFeature(Vector((1, 2, 3)), PointKind.ORIGIN, ref), "equality unchanged"

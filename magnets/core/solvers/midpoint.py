@@ -22,8 +22,7 @@ class MidpointSolver(Solver):
         return (FeatureType.POINT, FeatureType.POINT)
 
     def solve(self, moving: list[PointFeature], candidates: list[PointFeature], ctx: SolveContext):
-        """Return relationships between ``moving`` and ``candidates`` features."""
-        out: list[Relationship] = []
+        """Return the best relationship per rank key (see ``BestPerKey``)."""
         tol = ctx.world_tol
         # Same-kind pairs per entity and their midpoints do not depend on the
         # moving point: build them once, in the original visiting order.
@@ -40,7 +39,7 @@ class MidpointSolver(Solver):
                         pairs.append((a, b, (a.co + b.co) * 0.5))
             if pairs:
                 pairs_by_entity.append((name, pairs))
-        best = BestPerKey() if ctx.best_per_key else None
+        best = BestPerKey()
         for m in moving:
             for name, pairs in pairs_by_entity:
                 if name == m.entity_ref.name:
@@ -49,17 +48,11 @@ class MidpointSolver(Solver):
                     residual = (m.co - mid).length
                     if residual > tol:
                         continue
-                    if best is not None:
-                        # An end-on guide segment is filtered out anyway.
-                        if not ctx.direction_hidden(b.co - a.co):
-                            order = ctx.rank_order(self.family, m, residual, m.co, mid - m.co)
-                            key = (name, id(m.kind), id(a.kind))
-                            best.offer(key, order, (m, a, b, residual, mid))
-                        continue
-                    out.append(self._relationship(m, a, b, residual, mid))
-        if best is not None:
-            out = [self._relationship(*data) for data in best.winners()]
-        return out
+                    if ctx.direction_hidden(b.co - a.co):
+                        continue  # an end-on guide segment is filtered out anyway
+                    order = ctx.rank_order(self.family, m, residual, m.co, mid - m.co)
+                    best.offer((name, id(m.kind), id(a.kind)), order, (m, a, b, residual, mid))
+        return [self._relationship(*data) for data in best.winners()]
 
     def _relationship(self, m, a, b, residual, mid) -> Relationship:
         return Relationship(

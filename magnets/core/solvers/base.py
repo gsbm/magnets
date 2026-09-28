@@ -37,12 +37,12 @@ class SolveContext:
     # World view direction of an orthographic view (None in perspective).
     # Solvers may skip what ``view_filter`` would hide in this view anyway.
     view_normal: Vector | None = None
-    # Emit only the lowest-residual relationship per rank key (family, axis,
-    # target entity, moving kind, target kind) instead of every pair.
-    best_per_key: bool = False
     # (moving_co, correction) -> screen distance in px, or None off-screen.
     # Lets best-per-key solvers rank candidates exactly as ranking will.
     screen_dist: Callable[[Vector, Vector], float | None] | None = None
+    # (4x4 perspective matrix rows, region width, region height) of the same
+    # view, for vectorised approximations of ``screen_dist``.
+    projection: tuple | None = None
 
     def rank_order(self, family: str, moving, residual: float, moving_co, correction):
         """Sort value ``scoring.rank`` gives a relationship (lower sorts first).

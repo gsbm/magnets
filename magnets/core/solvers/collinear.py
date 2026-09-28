@@ -22,10 +22,9 @@ class CollinearSolver(Solver):
         candidates: list[LineFeature],
         ctx: SolveContext,
     ):
-        """Return relationships between ``moving`` and ``candidates`` features."""
-        out: list[Relationship] = []
+        """Return the best relationship per rank key (see ``BestPerKey``)."""
         tol = ctx.world_tol
-        best = BestPerKey() if ctx.best_per_key else None
+        best = BestPerKey()
         for m in moving:
             for c in candidates:
                 if c.entity_ref.name == m.entity_ref.name:
@@ -33,15 +32,10 @@ class CollinearSolver(Solver):
                 residual = distance_point_line(m.co, c.point, c.direction)
                 if residual > tol:
                     continue
-                if best is not None:
-                    # An end-on guide line is filtered out anyway.
-                    if not ctx.direction_hidden(c.direction):
-                        best.offer((c.entity_ref.name, id(m.kind), c.kind), residual, (m, c, residual))
-                    continue
-                out.append(self._relationship(m, c, residual))
-        if best is not None:
-            out = [self._relationship(*data) for data in best.winners()]
-        return out
+                if ctx.direction_hidden(c.direction):
+                    continue  # an end-on guide line is filtered out anyway
+                best.offer((c.entity_ref.name, id(m.kind), c.kind), residual, (m, c, residual))
+        return [self._relationship(*data) for data in best.winners()]
 
     def _relationship(self, m, c, residual) -> Relationship:
         proj = project_point_on_line(m.co, c.point, c.direction)

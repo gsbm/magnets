@@ -22,10 +22,9 @@ class CoplanarSolver(Solver):
         candidates: list[PlaneFeature],
         ctx: SolveContext,
     ):
-        """Return relationships between ``moving`` and ``candidates`` features."""
-        out: list[Relationship] = []
+        """Return the best relationship per rank key (see ``BestPerKey``)."""
         tol = ctx.world_tol
-        best = BestPerKey() if ctx.best_per_key else None
+        best = BestPerKey()
         for m in moving:
             for c in candidates:
                 if c.entity_ref.name == m.entity_ref.name:
@@ -33,15 +32,10 @@ class CoplanarSolver(Solver):
                 residual = distance_point_plane(m.co, c.point, c.normal)
                 if residual > tol:
                     continue
-                if best is not None:
-                    # A plane snapping along the view depth is filtered anyway.
-                    if not ctx.direction_hidden(c.normal):
-                        best.offer((c.entity_ref.name, id(m.kind), c.kind), residual, (m, c, residual))
-                    continue
-                out.append(self._relationship(m, c, residual))
-        if best is not None:
-            out = [self._relationship(*data) for data in best.winners()]
-        return out
+                if ctx.direction_hidden(c.normal):
+                    continue  # a plane snapping along the view depth is filtered anyway
+                best.offer((c.entity_ref.name, id(m.kind), c.kind), residual, (m, c, residual))
+        return [self._relationship(*data) for data in best.winners()]
 
     def _relationship(self, m, c, residual) -> Relationship:
         n = normalize(c.normal)
