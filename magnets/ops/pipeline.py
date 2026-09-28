@@ -102,6 +102,32 @@ def screen_metrics(region, rv3d, rel: Relationship):
     return (a - b).length, anchor
 
 
+# Prototype switch: solvers emit, and ranking keeps, only the best relationship
+# per rank key instead of every candidate pair.
+BEST_PER_KEY = False
+
+
+def _screen_dist_fn(region, rv3d):
+    """``(moving_co, correction) -> px`` with the same math as ``_rank_items``."""
+    project = view3d_utils.location_3d_to_region_2d
+    cache: dict[tuple, object] = {}
+
+    def screen_dist(moving_co: Vector, correction: Vector) -> float | None:
+        key = moving_co.to_tuple()
+        if key in cache:
+            a = cache[key]
+        else:
+            a = cache[key] = project(region, rv3d, moving_co)
+        if a is None:
+            return None
+        b = project(region, rv3d, moving_co + correction)
+        if b is None:
+            return None
+        return (a - b).length
+
+    return screen_dist
+
+
 def _rank_items(
     rels: list[Relationship],
     region,
@@ -160,6 +186,8 @@ def _rank_items(
         items.append(
             scoring.RankItem(key=key, score=score, screen_dist=sd, payload=rel)
         )
+    if BEST_PER_KEY:
+        items = scoring.best_per_key(items)
     return items
 
 
@@ -237,6 +265,8 @@ def run_inference(
         spacing_metric=options.spacing_metric,
         length_format=length_formatter(context),
         view_normal=view_normal_world(rv3d),
+        best_per_key=BEST_PER_KEY,
+        screen_dist=_screen_dist_fn(region, rv3d) if BEST_PER_KEY else None,
     )
     rels = dispatch(moving, candidate_pool, ctx, enabled_families(options))
     rels = filter_for_view(rels, rv3d)

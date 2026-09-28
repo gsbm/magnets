@@ -41,12 +41,26 @@ def relationship_score(
 
     Family priority dominates; screen proximity and residual refine it.
     """
-    w_type = FAMILY_PRIORITY.get(rel.family, 0)
-    w_feature = rel.base_priority
+    return score_parts(
+        rel.family, rel.base_priority, rel.residual, screen_dist_px, passive_px, world_tol
+    )
+
+
+def score_parts(
+    family: str,
+    base_priority: int,
+    residual: float,
+    screen_dist_px: float,
+    passive_px: float,
+    world_tol: float,
+) -> float:
+    """``relationship_score`` from its parts, for callers without a Relationship."""
+    w_type = FAMILY_PRIORITY.get(family, 0)
+    w_feature = base_priority
     passive = max(passive_px, 1.0)
     tol = max(world_tol, 1e-9)
     f_screen = max(0.0, 1.0 - screen_dist_px / passive)
-    f_res = max(0.0, 1.0 - rel.residual / tol)
+    f_res = max(0.0, 1.0 - residual / tol)
     return (
         w_type * _TYPE_WEIGHT
         + w_feature * _FEATURE_WEIGHT
@@ -140,3 +154,17 @@ def with_engaged(
         it for it in ranked if it.key not in seen and _nms_slot(it.key) not in slots
     ]
     return engaged + rest[: max(0, top_k - len(engaged))]
+
+
+def best_per_key(items: list[RankItem]) -> list[RankItem]:
+    """Keep, per key, the item ``rank`` would sort first (earliest on ties).
+
+    Winners keep their original relative order, so ``rank``'s stable sort
+    breaks remaining ties the same way.
+    """
+    best: dict[tuple, int] = {}
+    for i, it in enumerate(items):
+        j = best.get(it.key)
+        if j is None or (-it.score, it.screen_dist) < (-items[j].score, items[j].screen_dist):
+            best[it.key] = i
+    return [items[i] for i in sorted(best.values())]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..features import FeatureType, PointFeature
 from ..relationship import ConstraintDelta, GuideSegment, Relationship
-from .base import SolveContext, Solver
+from .base import BestPerKey, SolveContext, Solver
 
 
 class MidpointSolver(Solver):
@@ -40,6 +40,7 @@ class MidpointSolver(Solver):
                         pairs.append((a, b, (a.co + b.co) * 0.5))
             if pairs:
                 pairs_by_entity.append((name, pairs))
+        best = BestPerKey() if ctx.best_per_key else None
         for m in moving:
             for name, pairs in pairs_by_entity:
                 if name == m.entity_ref.name:
@@ -48,16 +49,26 @@ class MidpointSolver(Solver):
                     residual = (m.co - mid).length
                     if residual > tol:
                         continue
-                    out.append(
-                        Relationship(
-                            family=self.family,
-                            axis=f"mid_{a.entity}_{b.entity}",
-                            label="◇",
-                            moving=m,
-                            targets=(a, b),
-                            residual=residual,
-                            delta=ConstraintDelta.from_vector(mid - m.co),
-                            guide=GuideSegment(a=a.co.copy(), b=b.co.copy()),
-                        )
-                    )
+                    if best is not None:
+                        # An end-on guide segment is filtered out anyway.
+                        if not ctx.direction_hidden(b.co - a.co):
+                            order = ctx.rank_order(self.family, m, residual, m.co, mid - m.co)
+                            key = (name, id(m.kind), id(a.kind))
+                            best.offer(key, order, (m, a, b, residual, mid))
+                        continue
+                    out.append(self._relationship(m, a, b, residual, mid))
+        if best is not None:
+            out = [self._relationship(*data) for data in best.winners()]
         return out
+
+    def _relationship(self, m, a, b, residual, mid) -> Relationship:
+        return Relationship(
+            family=self.family,
+            axis=f"mid_{a.entity}_{b.entity}",
+            label="◇",
+            moving=m,
+            targets=(a, b),
+            residual=residual,
+            delta=ConstraintDelta.from_vector(mid - m.co),
+            guide=GuideSegment(a=a.co.copy(), b=b.co.copy()),
+        )

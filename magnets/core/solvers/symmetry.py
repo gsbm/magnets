@@ -5,7 +5,7 @@ from __future__ import annotations
 from ..features import FeatureType, PointFeature
 from ..geometry import normalize, reflect_point
 from ..relationship import ConstraintDelta, GuidePlane, Relationship
-from .base import SolveContext, Solver
+from .base import BestPerKey, SolveContext, Solver
 
 _SYMMETRY_PLANES = (
     ("XY", "Z"),
@@ -36,6 +36,7 @@ class SymmetrySolver(Solver):
         # prefilter only skips pairs clearly beyond ``tol`` (margin for
         # single-precision rounding); the exact test below is unchanged.
         reject2 = (tol * (1.0 + 1e-3) + 1e-6) ** 2
+        best = BestPerKey() if ctx.best_per_key else None
         for m in moving:
             for c in candidates:
                 if c.entity_ref.name == m.entity_ref.name:
@@ -53,16 +54,27 @@ class SymmetrySolver(Solver):
                     residual = (reflected - c.co).length
                     if residual > tol:
                         continue
-                    out.append(
-                        Relationship(
-                            family=self.family,
-                            axis=f"sym_{plane_name}_{c.entity}",
-                            label=f"⇔ {plane_name}",
-                            moving=m,
-                            targets=(c,),
-                            residual=residual,
-                            delta=ConstraintDelta.from_vector(c.co - m.co),
-                            guide=GuidePlane(point=mid.copy(), normal=normal.copy()),
-                        )
-                    )
+                    data = (m, c, plane_name, normal, residual, mid)
+                    if best is not None:
+                        # The correction is the full mirror move, not the
+                        # residual: rank candidates as ranking will.
+                        key = (plane_name, c.entity_ref.name, id(m.kind), id(c.kind))
+                        order = ctx.rank_order(self.family, m, residual, m.co, c.co - m.co)
+                        best.offer(key, order, data)
+                        continue
+                    out.append(self._relationship(*data))
+        if best is not None:
+            out = [self._relationship(*data) for data in best.winners()]
         return out
+
+    def _relationship(self, m, c, plane_name, normal, residual, mid) -> Relationship:
+        return Relationship(
+            family=self.family,
+            axis=f"sym_{plane_name}_{c.entity}",
+            label=f"⇔ {plane_name}",
+            moving=m,
+            targets=(c,),
+            residual=residual,
+            delta=ConstraintDelta.from_vector(c.co - m.co),
+            guide=GuidePlane(point=mid.copy(), normal=normal.copy()),
+        )

@@ -75,3 +75,13 @@ def test_max_active_screen_dist_uses_worst_axis():
         RankItem(key=("alignment", "Y", "B"), score=1.0, screen_dist=22.0, payload="y"),
     ]
     assert max_active_screen_dist(keys, items) == 22.0
+
+
+def test_max_active_screen_dist_measures_the_engaged_item_per_key():
+    """A far pair sharing the engaged key must not count (it broke latches)."""
+    key = ("alignment", "Y", "B")
+    items = [  # best-ranked first, as ``visible`` is sorted
+        RankItem(key=key, score=2.0, screen_dist=4.2, payload="engaged"),
+        RankItem(key=key, score=1.0, screen_dist=58.1, payload="far face center"),
+    ]
+    assert max_active_screen_dist({key}, items) == 4.2

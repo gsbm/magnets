@@ -58,12 +58,17 @@ def max_active_screen_dist(
     active_keys: set[tuple],
     items: list,
 ) -> float:
-    """Return the largest screen distance among active keys, or 0."""
+    """Return the largest screen distance among active keys, or 0.
+
+    Each key is measured by its first item in ``items`` (best-ranked first):
+    the one that engaged. Other pairs sharing the key, e.g. a far face center
+    of the same object, must not break the latch.
+    """
     if not active_keys or not items:
         return 0.0
     by_key: dict[tuple, float] = {}
     for it in items:
-        if it.key in active_keys:
+        if it.key in active_keys and it.key not in by_key:
             by_key[it.key] = it.screen_dist
     if not by_key:
         return 0.0

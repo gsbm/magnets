@@ -9,11 +9,11 @@ from __future__ import annotations
 from mathutils import Vector
 
 from ..features import FeatureType, LineFeature, PointFeature
-from ..geometry import lines_parallel, normalize
+from ..geometry import normalize
 from ..labels import alignment_label
 from ..relationship import ConstraintDelta, GuideLine, Relationship
 from ..spatial import SortedProjection
-from .base import SolveContext, Solver
+from .base import BestPerKey, SolveContext, Solver
 
 
 def _fallback_perp(direction: Vector) -> Vector:
@@ -44,6 +44,7 @@ class AlignmentSolver(Solver):
             if not ctx.direction_hidden(direction.normalized())
         ]
         indexes = [SortedProjection([c.co for c in candidates], d) for _n, d in axes]
+        best = BestPerKey() if ctx.best_per_key else None
         for m in moving:
             # Same (candidate, axis) visiting order as a full nested scan.
             hits = sorted(
@@ -71,29 +72,39 @@ class AlignmentSolver(Solver):
                 # guide for an X match, horizontal for Y, etc.
                 perp = w - along * direction
                 guide_dir = perp.normalized() if perp.length > 1e-6 else _fallback_perp(direction)
-                dup_key = (ai, c.entity_ref.name, c.kind, along, ctx.direction_hidden(guide_dir))
+                hidden = ctx.direction_hidden(guide_dir)
+                if best is not None:
+                    if not hidden:  # an end-on guide is filtered out anyway
+                        # id(): hashing an Enum member runs Python code.
+                        key = (ai, c.entity_ref.name, id(m.kind), id(c.kind))
+                        best.offer(key, residual, (m, c, axis_name, direction, along, guide_dir))
+                    continue
+                dup_key = (ai, c.entity_ref.name, c.kind, along, hidden)
                 if dup_key in seen:
                     continue
                 seen.add(dup_key)
-                # Correction: slide the moving point along this axis until
-                # its coordinate matches the candidate's. Other axes untouched.
-                correction = -along * direction
-                out.append(
-                    Relationship(
-                        family=self.family,
-                        axis=axis_name,
-                        label=alignment_label(
-                            axis_name, c.kind, residual, ctx.unit_scale, ctx.length_format
-                        ),
-                        moving=m,
-                        targets=(c,),
-                        residual=residual,
-                        delta=ConstraintDelta.from_vector(correction),
-                        guide=GuideLine(point=c.co.copy(), direction=guide_dir),
-                        constraint_dir=direction.normalized(),
-                    )
-                )
+                out.append(self._relationship(m, c, axis_name, direction, along, guide_dir, ctx))
+        if best is not None:
+            out = [self._relationship(*data, ctx) for data in best.winners()]
         return out
+
+    def _relationship(self, m, c, axis_name, direction, along, guide_dir, ctx) -> Relationship:
+        residual = abs(along)
+        # Correction: slide the moving point along this axis until its
+        # coordinate matches the candidate's. Other axes untouched.
+        return Relationship(
+            family=self.family,
+            axis=axis_name,
+            label=alignment_label(
+                axis_name, c.kind, residual, ctx.unit_scale, ctx.length_format
+            ),
+            moving=m,
+            targets=(c,),
+            residual=residual,
+            delta=ConstraintDelta.from_vector(-along * direction),
+            guide=GuideLine(point=c.co.copy(), direction=guide_dir),
+            constraint_dir=direction.normalized(),
+        )
 
 
 class EdgeAlignmentSolver(Solver):
@@ -113,12 +124,15 @@ class EdgeAlignmentSolver(Solver):
         """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
+        # ``lines_parallel`` normalises both directions; do each once per call.
+        c_dirs = [normalize(c.direction) for c in candidates]
         for m in moving:
             m_dir = normalize(m.direction)
-            for c in candidates:
+            m_unit = normalize(m_dir)
+            for c, c_dir in zip(candidates, c_dirs):
                 if c.entity_ref.name == m.entity_ref.name:
                     continue
-                if not lines_parallel(m_dir, c.direction, angle_tol=0.08):
+                if abs(abs(m_unit.dot(c_dir)) - 1.0) > 0.08:
                     continue
                 w = m.point - c.point
                 for axis_name, direction in ctx.axes.items():
