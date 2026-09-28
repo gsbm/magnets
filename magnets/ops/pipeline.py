@@ -17,8 +17,10 @@ from ..core import scoring
 from ..core import solvers as _solvers  # noqa: F401 - register solver table
 from ..core.families import families_for_mode
 from ..core.features import Feature, FeaturePool, feature_anchor
+from ..core.frames import world_axes
 from ..core.graph import build_active_set, coincident_targets, one_guide_per_direction
 from ..core.guide_draw import (
+    axis_route,
     endpoint_ticks,
     guide_ticks,
     guide_to_drawables,
@@ -44,6 +46,7 @@ from ..core.view_filter import (
     depth_threshold,
     filter_relationships_for_view,
     restrict_snap_axes,
+    restrict_to_axis_mask,
 )
 from ..core.view_lod import FAR_FAMILIES, ViewLOD, far_moving
 from ..draw import handler as draw
@@ -118,6 +121,8 @@ class InferenceResult:
     # Engaged alignment rank key -> other objects' targets on the same
     # coordinate (drawn as marks on the one guide line).
     coincident: dict | None = None
+    # Alignment frame axes (name -> unit vector), for routing guides.
+    axes: dict | None = None
 
 
 def screen_metrics(region, rv3d, rel: Relationship):
@@ -236,10 +241,13 @@ def run_inference(
     snap: SnapHysteresis,
     transform_mode: TransformMode = TransformMode.TRANSLATE,
     frozen_world_tol: float | None = None,
+    axis_mask: tuple | None = None,
 ) -> InferenceResult:
     """Run extract, solve, rank and resolve for one modal event.
 
     ``frozen_world_tol`` overrides the pixel-derived world tolerance.
+    ``axis_mask`` (three booleans, global X/Y/Z) is a native axis lock: guides
+    that could not move the selection under it are dropped.
     """
     options = get_options(context)
     if not options.enabled:
@@ -345,6 +353,7 @@ def run_inference(
         rels += dispatch(far_moving(moving), far_pool, far_ctx, families & FAR_FAMILIES)
     rels = filter_relationships_for_view(rels, depth_dir, parallel_threshold=depth_thr)
     rels = restrict_snap_axes(rels, enabled_snap_axes(options))
+    rels = restrict_to_axis_mask(rels, axis_mask)
 
     items = _rank_items(rels, region, rv3d, passive_px, passive_world)
     ranked, visible = scoring.rank(
@@ -427,6 +436,7 @@ def run_inference(
         max_active_screen_dist=max_dist,
         snap_apply=apply_mode,
         coincident=coincident,
+        axes=axes,
     )
 
 
@@ -437,6 +447,25 @@ _SPAN_VIEWPORTS = 3.0     # spanning lines reach this many viewport diagonals
 _DASH_PX = 8.0            # dash / gap length on screen (at the anchor depth)
 _GAP_PX = 5.0
 _INTERSECT_PX = 3.0       # engaged guides this close on screen "cross"
+
+
+# Routed alignment guides reach this far past their two ends (1x UI px).
+_ROUTE_OVERSHOOT_PX = 10.0
+
+
+def _is_routed_alignment(rel: Relationship) -> bool:
+    """Alignment guides are drawn along the frame axes (``axis_route``)."""
+    return (
+        rel.family == "alignment"
+        and rel.constraint_dir is not None
+        and isinstance(rel.guide, GuideLine)
+    )
+
+
+def _tick(point: Vector, along: Vector, size: float, color) -> GuideDrawItem:
+    """A tick across ``along`` at ``point``."""
+    a, b = endpoint_ticks(point, along, size)
+    return GuideDrawItem(a=a, b=b, color=color)
 
 
 def _span_guide_line(
@@ -556,33 +585,47 @@ def push_guides(
     tick_size = wpp * 8.0 * px
 
     # Engaged guide *lines* only: span bars, caps and circles are glyphs, and
-    # crossing them would scatter meaningless intersection dots.
-    active_segments: list[tuple[Vector, Vector]] = []
+    # crossing them would scatter meaningless intersection dots. Each entry
+    # remembers its guide, so an L's own legs do not mark a crossing.
+    active_segments: list[tuple[tuple[Vector, Vector], int]] = []
+    route_axes = list((result.axes or world_axes()).values())
     # Segment identity -> index in guide_items, so a segment two guides share
     # is drawn once (translucent overdraw reads brighter), engaged copy kept.
     drawn: dict[tuple, int] = {}
     dedupe_eps = max(wpp * 0.25, 1e-9)
 
-    for item in ranked:
+    for guide_index, item in enumerate(ranked):
         rel = item.payload
         is_active = snapped and item.key in active_keys
         moving_co = rel.moving_co + (
             rel.delta.translation if is_active else Vector((0, 0, 0))
         )
 
-        if is_active:
-            base_color = engaged_color(
-                rel.family,
-                rel.axis,
-                use_axis_colors=use_axis_colors,
-                active_color=active_color,
-                axis_colors=axis_colors,
-            )
-        else:
-            base_color = passive_color
+        # Lines use the Active Color; the axis color goes on the label. An
+        # alignment line runs across its axis (in the shared plane), so a red
+        # line for an X match would read as "along X", which it is not.
+        base_color = active_color if is_active else passive_color
+        label_color = engaged_color(
+            rel.family,
+            rel.axis,
+            use_axis_colors=use_axis_colors,
+            active_color=active_color,
+            axis_colors=axis_colors,
+        )
         color = _fade_alpha(base_color, item.screen_dist, passive_px, is_active, fade_enabled)
 
-        if extend_vp and isinstance(rel.guide, GuideLine):
+        routed = _is_routed_alignment(rel)
+        if routed:
+            # Along the frame axes in the shared plane: one segment or an L.
+            segs = axis_route(
+                rel.guide.point,
+                moving_co,
+                rel.constraint_dir,
+                route_axes,
+                min_leg=wpp * 1.0 * px,
+                overshoot=wpp * _ROUTE_OVERSHOOT_PX * px,
+            )
+        elif extend_vp and isinstance(rel.guide, GuideLine):
             segs = [_span_guide_line(rel.guide, span_extent)]
         else:
             segs = guide_to_drawables(rel.guide, moving_co)
@@ -597,23 +640,32 @@ def push_guides(
                 guide_items.append(draw_item)
             elif is_active and not guide_items[index].active:
                 guide_items[index] = draw_item
-            if is_active and is_line:
-                active_segments.append(seg)
+            # A routed guide only meets another where both reach the moving
+            # object: its last leg; crossings of the other legs mean nothing.
+            if is_active and is_line and (not routed or seg is segs[-1]):
+                active_segments.append((seg, guide_index))
 
         # Ticks mark the two reference points, not the spanning line's ends.
-        if options.show_guide_ticks and isinstance(rel.guide, GuideLine):
+        if options.show_guide_ticks and routed and segs:
+            tick_color = (color[0], color[1], color[2], color[3] * 0.85)
+            first, last = segs[0], segs[-1]
+            tick_items.append(_tick(rel.guide.point, first[1] - first[0], tick_size, tick_color))
+            tick_items.append(_tick(last[1], last[1] - last[0], tick_size, tick_color))
+        elif options.show_guide_ticks and isinstance(rel.guide, GuideLine):
             tick_color = (color[0], color[1], color[2], color[3] * 0.85)
             for ta, tb in guide_ticks(
                 rel.guide.point, moving_co, rel.guide.direction, tick_size
             ):
                 tick_items.append(GuideDrawItem(a=ta, b=tb, color=tick_color))
 
-        # Other objects on the same coordinate: a mark on this one line
-        # instead of a line each.
-        if is_active and options.show_guide_ticks and isinstance(rel.guide, GuideLine):
+        # Other objects on the same coordinate: a small cross in the shared
+        # plane at each, instead of a line each.
+        if is_active and options.show_guide_ticks and routed:
             for co in (result.coincident or {}).get(item.key, ()):
-                ta, tb = endpoint_ticks(co, rel.guide.direction, tick_size)
-                tick_items.append(GuideDrawItem(a=ta, b=tb, color=color))
+                for axis in route_axes:
+                    if abs(axis.normalized().dot(rel.constraint_dir.normalized())) < 0.5:
+                        ta, tb = endpoint_ticks(co, axis.cross(rel.constraint_dir), tick_size)
+                        tick_items.append(GuideDrawItem(a=ta, b=tb, color=color))
 
         if is_active and prefs.show_snap_dot:
             snap_dots.append((feature_anchor(rel.target), color))
@@ -623,16 +675,16 @@ def push_guides(
         if is_active:
             hint = feature_hint(rel.target) if options.show_feature_hints else ""
             anchor_co = feature_anchor(rel.target)
-            labels.append(((anchor_co + moving_co) * 0.5, rel.label, hint, color))
+            labels.append(((anchor_co + moving_co) * 0.5, rel.label, hint, label_color))
 
     if prefs.show_intersection_dot and len(active_segments) >= 2:
         tol = wpp * _INTERSECT_PX * px
-        for i, (a0, a1) in enumerate(active_segments):
-            for j, (b0, b1) in enumerate(active_segments):
-                if j <= i:
+        for i, ((a0, a1), gi) in enumerate(active_segments):
+            for j, ((b0, b1), gj) in enumerate(active_segments):
+                if j <= i or gi == gj:
                     continue
                 pt = _segment_intersection_3d(a0, a1, b0, b1, tol)
-                if pt is not None:
+                if pt is not None and all((pt - q).length > tol for q in intersection_dots):
                     intersection_dots.append(pt)
 
     for world_pos, text in preview_labels:

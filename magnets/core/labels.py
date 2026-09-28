@@ -96,3 +96,30 @@ def rotation_snap_label(angle_rad: float) -> str:
 def size_match_label(name: str, size_text: str) -> str:
     """Preview text for a scale snap, e.g. ``= Cube.002 · 2 m``."""
     return f"= {name} · {size_text}"
+
+
+def spread_labels(
+    boxes: list[tuple[float, float, float, float]],
+    gap: float = 2.0,
+) -> list[tuple[float, float]]:
+    """Positions for screen label boxes ``(x, y, w, h)`` so none overlap.
+
+    Boxes keep their x; a box that would overlap one already placed moves
+    down just below it. The highest box is placed first, so the stacking is
+    stable from frame to frame. Returns the new ``(x, y)`` in input order.
+    """
+    order = sorted(range(len(boxes)), key=lambda i: -boxes[i][1])
+    placed: list[tuple[float, float, float, float]] = []
+    out: list[tuple[float, float]] = [(0.0, 0.0)] * len(boxes)
+    for i in order:
+        x, y, w, h = boxes[i]
+        moved = True
+        while moved:
+            moved = False
+            for px, py, pw, ph in placed:
+                if x < px + pw and px < x + w and y < py + ph and py < y + h:
+                    y = py - h - gap
+                    moved = True
+        placed.append((x, y, w, h))
+        out[i] = (x, y)
+    return out

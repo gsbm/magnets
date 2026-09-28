@@ -170,3 +170,45 @@ def guide_to_drawables(
         # Adjacent equal gaps share an end cap.
         return dedupe_segments(out)
     return []
+
+
+def axis_route(
+    target: Vector,
+    moving: Vector,
+    normal: Vector,
+    axes,
+    *,
+    min_leg: float = 1e-6,
+    overshoot: float = 0.0,
+) -> list[tuple[Vector, Vector]]:
+    """Segments joining ``target`` to ``moving`` along frame axes only.
+
+    For an alignment on ``normal`` (the shared coordinate), ``moving`` is first
+    projected onto the plane through ``target``; the route then follows the
+    two frame ``axes`` lying in that plane: one segment when the points differ
+    along one of them, an L otherwise. Lines parallel to the frame axes read
+    as "same coordinate" in any view, where a slanted line would not. The
+    more vertical leg (closer to world Z) ends at ``moving``, so the elbow sits
+    at the target's height. ``overshoot`` extends the two outer ends.
+    """
+    n = normal.normalized()
+    in_plane = [a.normalized() for a in axes if abs(a.normalized().dot(n)) < 0.5]
+    if len(in_plane) != 2:
+        return [(target.copy(), moving - n * (moving - target).dot(n))]
+    d = moving - target
+    d -= n * d.dot(n)
+    legs = [(a, d.dot(a)) for a in in_plane]
+    up = Vector((0.0, 0.0, 1.0))
+    legs.sort(key=lambda leg: (abs(leg[0].dot(up)), -abs(leg[1])))
+    points = [target.copy()]
+    for axis, length in legs:
+        if abs(length) > min_leg:
+            points.append(points[-1] + axis * length)
+    if len(points) < 2:
+        return []
+    if overshoot > 0.0:
+        first = (points[1] - points[0]).normalized()
+        last = (points[-1] - points[-2]).normalized()
+        points[0] = points[0] - first * overshoot
+        points[-1] = points[-1] + last * overshoot
+    return [(points[i], points[i + 1]) for i in range(len(points) - 1)]

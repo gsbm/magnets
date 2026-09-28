@@ -179,7 +179,8 @@ class MagnetsOptions(bpy.types.PropertyGroup):
     )
     extend_guides_to_viewport: BoolProperty(
         name="Extend to Viewport",
-        description="Stretch guide lines across the 3D Viewport",
+        description="Stretch edge guide lines across the 3D Viewport "
+        "(alignment guides join the two objects)",
         default=True,
     )
     alignment_frame: EnumProperty(

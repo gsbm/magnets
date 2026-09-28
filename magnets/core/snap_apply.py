@@ -73,3 +73,19 @@ def max_active_screen_dist(
     if not by_key:
         return 0.0
     return max(by_key.values())
+
+
+def inferred_axis_mask(start, current, move_eps: float):
+    """Global axes a native transform is visibly locked to, or None.
+
+    Blender keeps a locked coordinate *exactly* at its start value, and the
+    running operator does not report a lock typed mid-drag (``G`` then ``X``).
+    So once the selection has moved more than ``move_eps``, an axis whose
+    coordinate is still bit-for-bit unchanged is treated as locked. None
+    before any real move, or when every axis moved (free drag).
+    """
+    d = [current[i] - start[i] for i in range(3)]
+    if max(abs(c) for c in d) <= move_eps:
+        return None
+    mask = tuple(c != 0.0 for c in d)
+    return None if all(mask) else mask

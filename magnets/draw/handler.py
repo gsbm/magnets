@@ -12,6 +12,7 @@ from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
 from ..adapters.view import pixel_size, ui_scale
+from ..core.labels import spread_labels
 from ..core.style import (
     ACTIVE_WIDTH_SCALE,
     pulse_strength,
@@ -388,23 +389,39 @@ def _draw_labels(region, rv3d, scale: float):
     hint_size = 9.0 * scale
     dx = 7.0 * scale
 
+    # Screen boxes first, so labels that would overlap are stacked instead
+    # (two engaged guides often label the same corner).
+    placed = []
+    for world_pos, primary, hint, color in s.labels:
+        co = r2d(region, rv3d, world_pos)
+        if co is None:
+            continue
+        blf.size(font_id, main_size)
+        width = blf.dimensions(font_id, primary)[0]
+        bottom = co.y + 3.0 * scale
+        if hint:
+            blf.size(font_id, hint_size)
+            width = max(width, blf.dimensions(font_id, hint)[0])
+            bottom = co.y - 11.0 * scale
+        top = co.y + 5.0 * scale + main_size
+        placed.append(((co.x + dx, bottom, width, top - bottom), co.y - bottom, primary, hint, color))
+    positions = spread_labels([p[0] for p in placed], gap=2.0 * scale)
+
     blf.enable(font_id, blf.SHADOW)
     blf.shadow(font_id, 3, 0.0, 0.0, 0.0, 0.85)
     blf.shadow_offset(font_id, 1, -1)
     try:
-        for world_pos, primary, hint, color in s.labels:
-            co = r2d(region, rv3d, world_pos)
-            if co is None:
-                continue
+        for (x, bottom), (_box, below, primary, hint, color) in zip(positions, placed):
+            y = bottom + below  # the label's anchor height after stacking
             pr, pg, pb, pa = color
             blf.size(font_id, main_size)
             blf.color(font_id, pr, pg, pb, min(pa + 0.1, 1.0))
-            blf.position(font_id, co.x + dx, co.y + 5.0 * scale, 0.0)
+            blf.position(font_id, x, y + 5.0 * scale, 0.0)
             blf.draw(font_id, primary)
             if hint:
                 blf.size(font_id, hint_size)
                 blf.color(font_id, pr, pg, pb, max(pa - 0.05, 0.0))
-                blf.position(font_id, co.x + dx, co.y - 9.0 * scale, 0.0)
+                blf.position(font_id, x, y - 9.0 * scale, 0.0)
                 blf.draw(font_id, hint)
     finally:
         blf.disable(font_id, blf.SHADOW)

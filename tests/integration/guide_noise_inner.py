@@ -191,7 +191,8 @@ def check_frame(label, result, view_normal, opts):
           tag + "non-finite guide coordinates")
     check(len(state.guide_items) <= 64, tag + f"{len(state.guide_items)} strokes")
     line_guides = sum(isinstance(it.payload.guide, GuideLine) for it in ranked)
-    marks = sum(len(v) for v in (result.coincident or {}).values())
+    # Each coincident object is marked with a small cross (two ticks).
+    marks = 2 * sum(len(v) for v in (result.coincident or {}).values())
     check(len(state.tick_items) <= 4 * line_guides + marks, tag + "ticks without line guides")
     # One guide per direction: at most the selection's free directions are
     # drawn beyond the engaged ones (two on screen in an orthographic view).

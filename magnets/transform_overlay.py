@@ -28,7 +28,11 @@ from .core.bbox import bbox_edges, from_blender_bound_box
 from .core.features import FeaturePool
 from .core.labels import format_length, rotation_snap_label, size_match_label
 from .core.session import native_snap_in_effect, selection_matches_session
-from .core.snap_apply import masked_translation, project_out_direction
+from .core.snap_apply import (
+    inferred_axis_mask,
+    masked_translation,
+    project_out_direction,
+)
 from .core.tolerance import SnapHysteresis
 from .core.transform import TransformMode
 from .core.transform_snap import (
@@ -411,6 +415,39 @@ def _yield_to_native_snap(context, options, *, finished: bool) -> bool:
     return native_snap_in_effect(tool_use_snap, op_snap)
 
 
+def _running_constraint(context) -> tuple | None:
+    """Global-axis lock the running native transform was started with, or None.
+
+    Read from ``Window.modal_operators`` (``active_operator`` is None mid-drag).
+    A lock typed during the drag is not reflected there; see
+    ``inferred_axis_mask``.
+    """
+    wm = getattr(context, "window_manager", None)
+    for window in list(getattr(wm, "windows", []) or []):
+        for op in getattr(window, "modal_operators", None) or []:
+            if getattr(op, "bl_idname", None) not in _TRANSFORM_OPS:
+                continue
+            caxis = _op_prop(op, "constraint_axis")
+            orient = _op_prop(op, "orient_type")
+            try:
+                caxis = tuple(bool(v) for v in caxis)
+            except TypeError:
+                return None
+            if any(caxis) and orient in ("GLOBAL", ""):
+                return caxis
+            return None
+    return None
+
+
+def _live_constraint(context, anchor, region, rv3d) -> tuple | None:
+    """The axis lock in force during a drag: started with it, or seen in motion."""
+    mask = _running_constraint(context)
+    if mask is not None or _session.start_anchor is None:
+        return mask
+    move_eps = world_per_pixel(region, rv3d, anchor) * 2.0
+    return inferred_axis_mask(_session.start_anchor, anchor, move_eps)
+
+
 def _read_native_constraint(context) -> tuple | None:
     """Return the global-axis mask of the running transform's lock, or None.
 
@@ -501,6 +538,9 @@ def _tick(context, view=None):
     _session.last_matrix = primary_m.copy() if primary_m is not None else None
 
     transform_mode = _TRANSFORM_OPS.get(_session.op, TransformMode.TRANSLATE)
+    # Track the native axis lock (G X, G Shift+Z) so the guides, the ghost and
+    # the release commit all respect it.
+    _session.constraint = _live_constraint(context, anchor, region, rv3d)
     _t0 = time.perf_counter()
     result = run_inference(
         context,
@@ -512,6 +552,7 @@ def _tick(context, view=None):
         snap=_session.snap,
         transform_mode=transform_mode,
         frozen_world_tol=_session.world_tol,
+        axis_mask=_session.constraint if transform_mode == TransformMode.TRANSLATE else None,
     )
     _session.last_infer_s = time.perf_counter() - _t0
 
@@ -521,10 +562,6 @@ def _tick(context, view=None):
             f"tick: ranked={len(result.ranked)} snapped={result.snapped} "
             f"best_screen_px={best:.1f} active={len(result.active_set)}"
         )
-
-    # Track the native axis lock (G X, G Shift+Z) so the ghost and the release
-    # commit both respect it.
-    _session.constraint = _read_native_constraint(context)
 
     # Landing preview: show where a release would put the selection, using the
     # same helpers as the commit so the preview and the result always agree.
@@ -713,6 +750,11 @@ def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm)
         log.debug("commit skip: unmoved (cancelled or zero move)")
         return
 
+    # Prefer a fresh read of the finished transform's lock; fall back to the one
+    # tracked on the last drag frame (active_operator may already be gone).
+    native_mask = _read_native_constraint(context)
+    if native_mask is None:
+        native_mask = _session.constraint
     result = run_inference(
         context,
         region=region,
@@ -723,6 +765,7 @@ def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm)
         snap=_session.snap,
         transform_mode=TransformMode.TRANSLATE,
         frozen_world_tol=_session.world_tol,
+        axis_mask=native_mask,
     )
     if not result.snapped:
         best = result.ranked[0].screen_dist if result.ranked else -1.0
@@ -732,11 +775,6 @@ def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm)
         )
         return
 
-    # Prefer a fresh read of the finished transform's lock; fall back to the one
-    # captured on the last drag frame (active_operator may already be gone).
-    native_mask = _read_native_constraint(context)
-    if native_mask is None:
-        native_mask = _session.constraint
     correction = _snap_correction(result.translation, rv3d, native_mask)
     if correction.length_squared < 1e-12:
         log.debug(f"commit skip: correction ~0 (lock={native_mask})")

@@ -108,8 +108,8 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Show tick marks at guide reference points"): (
         "Afficher des graduations aux points de référence des guides"
     ),
-    ("*", "Stretch guide lines across the 3D Viewport"): (
-        "Étirer les lignes de guide à travers la vue 3D"
+    ("*", "Stretch edge guide lines across the 3D Viewport (alignment guides join the two objects)"): (
+        "Étirer les guides d’arêtes à travers la vue 3D (les guides d’alignement relient les deux objets)"
     ),
     ("*", "Fade guide opacity in as the cursor approaches the snap zone"): (
         "Faire apparaître progressivement l’opacité des guides "
@@ -292,8 +292,8 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Axis Colors"): (
         "Couleurs des axes"
     ),
-    ("*", "Alignment guides use the theme's X/Y/Z axis colors; other guides use the Active Color"): (
-        "Les guides d’alignement prennent les couleurs d’axe X/Y/Z du thème ; les autres guides la couleur active"
+    ("*", "Alignment labels use the theme's X/Y/Z axis colors; guide lines use the Active Color"): (
+        "Les étiquettes d’alignement prennent les couleurs d’axe X/Y/Z du thème ; les lignes de guide la couleur active"
     ),
     ("*", "Every engaged guide uses the Active Color"): (
         "Tous les guides engagés utilisent la couleur active"

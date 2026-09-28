@@ -108,8 +108,8 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Show tick marks at guide reference points"): (
         "Teilstriche an den Bezugspunkten der Hilfslinien anzeigen"
     ),
-    ("*", "Stretch guide lines across the 3D Viewport"): (
-        "Hilfslinien über die 3D-Ansicht strecken"
+    ("*", "Stretch edge guide lines across the 3D Viewport (alignment guides join the two objects)"): (
+        "Kanten-Hilfslinien über die 3D-Ansicht strecken (Ausrichtungs-Hilfslinien verbinden die beiden Objekte)"
     ),
     ("*", "Fade guide opacity in as the cursor approaches the snap zone"): (
         "Deckkraft der Hilfslinien schrittweise erhöhen, "
@@ -292,8 +292,8 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Axis Colors"): (
         "Achsenfarben"
     ),
-    ("*", "Alignment guides use the theme's X/Y/Z axis colors; other guides use the Active Color"): (
-        "Ausrichtungs-Hilfslinien nutzen die X/Y/Z-Achsenfarben des Themes; andere Hilfslinien die aktive Farbe"
+    ("*", "Alignment labels use the theme's X/Y/Z axis colors; guide lines use the Active Color"): (
+        "Ausrichtungs-Beschriftungen nutzen die X/Y/Z-Achsenfarben des Themes; Hilfslinien die aktive Farbe"
     ),
     ("*", "Every engaged guide uses the Active Color"): (
         "Alle eingerasteten Hilfslinien nutzen die aktive Farbe"

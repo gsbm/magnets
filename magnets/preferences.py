@@ -81,8 +81,8 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
                 "AXIS",
                 "Axis Colors",
                 (
-                    "Alignment guides use the theme's X/Y/Z axis colors; other "
-                    "guides use the Active Color"
+                    "Alignment labels use the theme's X/Y/Z axis colors; guide "
+                    "lines use the Active Color"
                 ),
             ),
             ("SINGLE", "Active Color", "Every engaged guide uses the Active Color"),

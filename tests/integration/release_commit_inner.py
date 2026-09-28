@@ -234,7 +234,9 @@ begin()
 move(ob("Mover"), by=(-3.85, 1.5, 0.0))
 ov._session.constraint = (False, True, False)
 release()
-check(close(loc(ob("Mover")), (0.15, 1.5, 0.0)), "a native axis lock blocks off-axis snaps")
+# X stays put; a snap along the allowed Y axis may still apply.
+check(abs(loc(ob("Mover")).x - 0.15) < 1e-4,
+      f"a native axis lock blocks off-axis snaps: {tuple(loc(ob('Mover')))}")
 
 # Native X lock keeps the X correction.
 reset()

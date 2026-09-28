@@ -119,3 +119,30 @@ def restrict_snap_axes(
         for rel in rels
         if rel.family != "alignment" or rel.axis in enabled_axes
     ]
+
+
+def restrict_to_axis_mask(
+    rels: list[Relationship],
+    axis_mask: tuple | None,
+) -> list[Relationship]:
+    """Drop relationships that pull mostly along axes a native lock forbids.
+
+    ``axis_mask`` is None (free) or three booleans for global X/Y/Z. The
+    release keeps only the allowed components of a correction, so a guide
+    whose pull lies mostly on locked axes (less than half on allowed ones)
+    could not be applied and is not shown or engaged. Relationships without
+    a translation are kept.
+    """
+    if axis_mask is None:
+        return rels
+    out = []
+    for rel in rels:
+        d = rel.constraint_dir if rel.constraint_dir is not None else rel.delta.translation
+        if d.length <= 1e-9:
+            out.append(rel)
+            continue
+        d = d.normalized()
+        allowed = math.sqrt(sum(d[i] * d[i] for i in range(3) if axis_mask[i]))
+        if allowed >= 0.5:
+            out.append(rel)
+    return out
