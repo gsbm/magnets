@@ -56,6 +56,18 @@ class MagnetsOptions(bpy.types.PropertyGroup):
         "active for the transform, so the two never fight",
         default=True,
     )
+    allow_diagonal_guides: BoolProperty(
+        name="Diagonal Guides",
+        description="Also offer midpoint and size-repeat guides between points "
+        "that lie diagonally on an object, not only along the alignment axes",
+        default=False,
+    )
+    prioritize_nearby: BoolProperty(
+        name="Prioritize Nearby Objects",
+        description="Ignore objects outside the view and limit distant ones to "
+        "alignment guides near snapping. Faster in large scenes",
+        default=True,
+    )
     spacing_metric: EnumProperty(
         name="Even Spacing",
         description="Which gaps the Equal Spacing guides compare between objects",

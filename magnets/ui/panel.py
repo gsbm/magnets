@@ -121,6 +121,7 @@ class MAGNETS_PT_snapping(bpy.types.Panel):
         col.prop(opts, "snap_reengage_margin_px")
         layout.prop(opts, "angle_snap_increment")
         layout.prop(opts, "spacing_metric")
+        layout.prop(opts, "prioritize_nearby")
 
         col = layout.column(heading="Blender Snap")
         col.prop(opts, "defer_to_native_snap", text="Yield")
@@ -214,6 +215,7 @@ class MAGNETS_PT_families(bpy.types.Panel):
         grid = layout.grid_flow(columns=2, even_columns=True)
         for fid, _label in FAMILIES:
             grid.prop(opts, f"enable_{fid}")
+        layout.prop(opts, "allow_diagonal_guides")
 
 
 def draw_view3d_header(self, context):

@@ -23,7 +23,7 @@ from mathutils import Vector
 
 addon_utils.enable("magnets", default_set=True)
 
-from fake_view import FRONT, PERSP, TOP
+from fake_view import FRONT, PERSP, TOP, make_rv3d
 
 from magnets import transform_overlay as ov
 from magnets.draw import handler as draw
@@ -184,6 +184,21 @@ push("native move")
 release()
 check(close(loc(ob("Mover")), (2.4, 5.0, 0.0)),
       f"approach then release snaps Y onto Target: {tuple(loc(ob('Mover')))}")
+
+# The snapped coordinate is the target's exact stored value, not a near miss
+# (aligning to X 2.336 lands on 2.336, never 2.3359999).
+for odd_x in (2.336, -7.1234, 137.41):
+    reset()
+    ob("Target").location.x = odd_x
+    bpy.context.view_layer.update()
+    push("move target")  # the undo collapse reloads the scene from this step
+    # A top view centred on the target, so large coordinates stay on screen.
+    view = (TOP[0], make_rv3d(TOP[1].view_rotation.to_matrix(), (odd_x, 0.0, 50.0), False))
+    begin(view=view)
+    move(ob("Mover"), by=(odd_x - 4.0 + 0.1, 1.5, 0.0))  # lands 0.1 m (5 px) off
+    release(view=view)
+    check(ob("Mover").location.x == ob("Target").location.x,
+          f"snap lands exactly on X {odd_x}: {ob('Mover').location.x!r} vs {ob('Target').location.x!r}")
 
 # ── Translate: which axes may snap ───────────────────────────────────────────
 # Native Y lock (G Y): the X correction is masked away.

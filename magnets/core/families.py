@@ -3,6 +3,8 @@
 Family ids are stable preference keys (``enable_<id>``) and solver registry keys.
 """
 
+from .transform import TransformMode
+
 # (id, human-readable label).
 FAMILIES: tuple[tuple[str, str], ...] = (
     ("alignment", "Alignment"),
@@ -20,7 +22,26 @@ FAMILIES: tuple[tuple[str, str], ...] = (
 
 FAMILY_IDS: tuple[str, ...] = tuple(fid for fid, _label in FAMILIES)
 
+# Families whose result the action can actually apply. Every solver emits a
+# translation, except equal size (a scale factor) and perpendicular (no
+# correction at all). Rotate snaps to angle increments outside the solvers,
+# so no solver guide can act while rotating: perpendicular compares edges in
+# 3D and is trivially true for any vertical/horizontal pair, so it runs
+# nowhere until a rotation-plane version exists.
+_ROTATE_FAMILIES: frozenset[str] = frozenset()
+_SCALE_FAMILIES = frozenset(("equal_size",))
+_TRANSLATE_EXCLUDED = frozenset(("equal_size", "perpendicular"))
+
 
 def is_family(family_id: str) -> bool:
     """Return True if ``family_id`` is a known marker family."""
     return family_id in FAMILY_IDS
+
+
+def families_for_mode(mode, enabled: set[str]) -> set[str]:
+    """The enabled families that can act in ``mode`` (Extrude moves too)."""
+    if mode == TransformMode.ROTATE:
+        return enabled & _ROTATE_FAMILIES
+    if mode == TransformMode.SCALE:
+        return enabled & _SCALE_FAMILIES
+    return enabled - _TRANSLATE_EXCLUDED

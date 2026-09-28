@@ -33,6 +33,25 @@ def small_ids(values: Iterable[Hashable]) -> np.ndarray:
     return np.array([table.setdefault(v, len(table)) for v in values], dtype=np.int64)
 
 
+# A pair counts as straight within this angle of an alignment axis.
+STRAIGHT_PAIR_DEG = 5.0
+
+
+def straight_pairs(ctx, co: np.ndarray, pa: np.ndarray, pb: np.ndarray):
+    """``(pa, pb)`` kept to pairs whose line runs along one of ``ctx.axes``.
+
+    Unchanged when ``ctx.allow_diagonal`` (or with no axes).
+    """
+    if ctx.allow_diagonal or not ctx.axes or not len(pa):
+        return pa, pb
+    axes = np.array([tuple(v.normalized()) for v in ctx.axes.values()], dtype=np.float64)
+    d = co[pb] - co[pa]
+    length = np.linalg.norm(d, axis=1)
+    cos = np.abs(d @ axes.T).max(axis=1)
+    keep = cos >= np.cos(np.radians(STRAIGHT_PAIR_DEG)) * np.maximum(length, 1e-12)
+    return pa[keep], pb[keep]
+
+
 def coord_margin(*arrays: np.ndarray) -> float:
     """Margin covering single-precision error for coordinates of this scale."""
     scale = 1.0
@@ -105,7 +124,7 @@ def approx_rank_order(
     b_xy, b_ok = project_px(ctx.projection, moving_co + correction)
     sd = np.linalg.norm(b_xy - a_xy, axis=1)
     valid = a_ok & b_ok
-    keep = ~valid | (sd <= ctx.passive_px + margin_px)
+    keep = ~valid | (sd <= ctx.screen_limit + margin_px)
     passive = max(ctx.passive_px, 1.0)
     tol = max(ctx.world_tol, 1e-9)
     score = (

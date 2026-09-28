@@ -13,6 +13,7 @@ from ..pair_search import (
     entity_pairs,
     exact_rank,
     small_ids,
+    straight_pairs,
 )
 from ..relationship import ConstraintDelta, GuideSegment, Relationship
 from .base import SolveContext, Solver
@@ -56,7 +57,7 @@ class MidpointSolver(Solver):
         # Same-kind pairs per entity, in the plain scan order.
         pa, pb = entity_pairs(c_ent)
         same = c_kind[pa] == c_kind[pb]
-        pa, pb = pa[same], pb[same]
+        pa, pb = straight_pairs(ctx, c_co, pa[same], pb[same])
         if len(pa) == 0:
             return []
         mids = (c_co[pa] + c_co[pb]) * 0.5

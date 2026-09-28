@@ -18,6 +18,8 @@ class InteractionSnapshot:
         self.pool = pool
         self.index = index
         self.surface_index = surface_index
+        # Screen rectangles for Prioritize Nearby Objects (built on first use).
+        self.view_lod = None
 
     @classmethod
     def from_context(

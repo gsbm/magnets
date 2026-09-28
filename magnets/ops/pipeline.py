@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
+import numpy as np
 from bpy_extras import view3d_utils
 from mathutils import Vector
 
@@ -13,6 +14,7 @@ from ..adapters.units import length_formatter, scene_unit_info
 from ..adapters.view import filter_for_view, ui_scale, view_normal_world
 from ..core import scoring
 from ..core import solvers as _solvers  # noqa: F401 - register solver table
+from ..core.families import families_for_mode
 from ..core.features import Feature, FeaturePool, feature_anchor
 from ..core.graph import build_active_set
 from ..core.guide_draw import guide_ticks, guide_to_drawables, segment_key
@@ -33,6 +35,7 @@ from ..core.tolerance import SnapHysteresis
 from ..core.transform import TransformMode
 from ..core.transform_snap import rotated_matrix
 from ..core.view_filter import restrict_snap_axes
+from ..core.view_lod import FAR_FAMILIES, ViewLOD, far_moving
 from ..draw import handler as draw
 from ..draw.handler import GuideDrawItem
 from ..preferences import get_prefs
@@ -44,12 +47,30 @@ from ..properties import (
     get_options,
 )
 
+# "Prioritize Nearby Objects" (``core.view_lod``): objects off screen are
+# ignored; the ones nearest the selection on screen, plus its row/column
+# neighbours, get every guide; the rest only alignment near snapping.
+NEARBY_MAX = 8
+NEARBY_ROW_NEIGHBOURS = 2
+
 
 def world_per_pixel(region, rv3d, depth_co: Vector) -> float:
     """Return the world length of one screen pixel at ``depth_co``."""
     a = view3d_utils.region_2d_to_location_3d(region, rv3d, (0.0, 0.0), depth_co)
     b = view3d_utils.region_2d_to_location_3d(region, rv3d, (1.0, 0.0), depth_co)
     return (a - b).length or 1e-6
+
+
+def _view_ray(rv3d, point: Vector) -> Vector | None:
+    """World direction from the viewer to ``point`` (perspective views)."""
+    try:
+        eye = rv3d.view_matrix.inverted().translation
+    except ValueError:  # singular view matrix
+        return None
+    ray = point - eye
+    if ray.length_squared < 1e-12:
+        return None
+    return ray.normalized()
 
 
 def feature_kind(feature: Feature) -> str:
@@ -235,8 +256,30 @@ def run_inference(
         custom_object=custom_frame_object(context, options),
     )
 
-    nearby_feats = broad_phase(snapshot.index, anchor_world, passive_world)
-    candidate_pool = FeaturePool.from_features(list(nearby_feats))
+    projection = (
+        tuple(tuple(row) for row in rv3d.perspective_matrix),
+        region.width,
+        region.height,
+    )
+    families = families_for_mode(transform_mode, enabled_families(options))
+    far_pool = None
+    if getattr(options, "prioritize_nearby", True):
+        lod = getattr(snapshot, "view_lod", None)
+        if lod is None:
+            lod = snapshot.view_lod = ViewLOD(snapshot.pool)
+        tiers = lod.tiers(
+            projection,
+            np.array([tuple(p.co) for p in moving.points], dtype=np.float64),
+            margin_px=passive_px,
+            max_near=NEARBY_MAX,
+            row_neighbours=NEARBY_ROW_NEIGHBOURS,
+        )
+        # The screen tiers replace the broad phase (whose radius spans the
+        # scene anyway).
+        candidate_pool, far_pool = lod.pools(tiers, families)
+    else:
+        nearby_feats = broad_phase(snapshot.index, anchor_world, passive_world)
+        candidate_pool = FeaturePool.from_features(list(nearby_feats))
 
     if options.enable_tangency and snapshot.surface_index is not None:
         surfaces = surface_features_for_point(
@@ -260,13 +303,19 @@ def run_inference(
         length_format=length_formatter(context),
         view_normal=view_normal_world(rv3d),
         screen_dist=_screen_dist_fn(region, rv3d),
-        projection=(
-            tuple(tuple(row) for row in rv3d.perspective_matrix),
-            region.width,
-            region.height,
-        ),
+        projection=projection,
+        allow_diagonal=options.allow_diagonal_guides,
     )
-    rels = dispatch(moving, candidate_pool, ctx, enabled_families(options))
+    rels = dispatch(moving, candidate_pool, ctx, families)
+    if far_pool is not None:
+        # Far objects only feed alignment, only near the snap zone, and (in
+        # perspective too) never along the axis the view looks down.
+        far_ctx = replace(
+            ctx,
+            max_screen_px=snap_px + hysteresis_px,
+            view_normal=ctx.view_normal or _view_ray(rv3d, anchor_world),
+        )
+        rels += dispatch(far_moving(moving), far_pool, far_ctx, families & FAR_FAMILIES)
     rels = filter_for_view(rels, rv3d)
     rels = restrict_snap_axes(rels, enabled_snap_axes(options))
 

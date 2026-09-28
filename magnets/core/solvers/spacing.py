@@ -16,6 +16,7 @@ from ..pair_search import (
     entity_pairs,
     exact_rank,
     small_ids,
+    straight_pairs,
 )
 from ..relationship import ConstraintDelta, GuideSegment, Relationship
 from .base import SolveContext, Solver
@@ -56,7 +57,7 @@ class SpacingSolver(Solver):
         m_kind = small_ids(id(m.kind) for m in moving)
         c_kind = small_ids(id(c.kind) for c in candidates)
 
-        pa, pb = entity_pairs(c_ent)
+        pa, pb = straight_pairs(ctx, c_co, *entity_pairs(c_ent))
         a_co, b_co = c_co[pa], c_co[pb]
         ab_vec = b_co - a_co
         ab = np.linalg.norm(ab_vec, axis=1)

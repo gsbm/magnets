@@ -43,6 +43,19 @@ class SolveContext:
     # (4x4 perspective matrix rows, region width, region height) of the same
     # view, for vectorised approximations of ``screen_dist``.
     projection: tuple | None = None
+    # Optional screen cutoff (px) tighter than ``passive_px``; scoring is
+    # unchanged. Used for far objects, which only show guides near snapping.
+    max_screen_px: float | None = None
+    # Pair solvers (midpoint, own-size spacing) also use pairs of points that
+    # lie diagonally; False keeps pairs running along one of ``axes``.
+    allow_diagonal: bool = True
+
+    @property
+    def screen_limit(self) -> float:
+        """Screen distance beyond which a relationship is dropped."""
+        if self.max_screen_px is None:
+            return self.passive_px
+        return min(self.passive_px, self.max_screen_px)
 
     def rank_order(self, family: str, moving, residual: float, moving_co, correction):
         """Sort value ``scoring.rank`` gives a relationship (lower sorts first).
@@ -53,7 +66,7 @@ class SolveContext:
         if self.screen_dist is None:
             return (residual,)
         sd = self.screen_dist(moving_co, correction)
-        if sd is None or sd > self.passive_px:
+        if sd is None or sd > self.screen_limit:
             return None
         score = score_parts(
             family, feature_priority(moving), residual, sd, self.passive_px, self.world_tol
