@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from mathutils import Vector
 
 from .relationship import (
@@ -89,11 +91,22 @@ def _edge_on(normal: Vector, view_normal: Vector, threshold: float) -> bool:
 def filter_relationships_for_view(
     rels: list[Relationship],
     view_normal: Vector | None,
+    *,
+    parallel_threshold: float = 0.15,
 ) -> list[Relationship]:
     """Drop relationships invisible in the view (``view_normal`` None keeps all)."""
     if view_normal is None:
         return rels
-    return [rel for rel in rels if relationship_visible_in_view(rel, view_normal)]
+    return [
+        rel
+        for rel in rels
+        if relationship_visible_in_view(rel, view_normal, parallel_threshold=parallel_threshold)
+    ]
+
+
+def depth_threshold(cutoff_rad: float) -> float:
+    """``parallel_threshold`` hiding directions within ``cutoff_rad`` of the view."""
+    return 1.0 - math.cos(max(0.0, cutoff_rad))
 
 
 def restrict_snap_axes(

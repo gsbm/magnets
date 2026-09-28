@@ -49,7 +49,7 @@ VIEWS = {
     "persp": (PERSP, None),
 }
 AXIS_OF = {"X": Vector((1, 0, 0)), "Y": Vector((0, 1, 0)), "Z": Vector((0, 0, 1))}
-PARALLEL = 0.85  # |cos| above this counts as pointing into the screen
+PARALLEL = math.cos(math.radians(30.0))  # default Depth Axis Cutoff: into the screen
 
 
 # ── Scenes ───────────────────────────────────────────────────────────────────
@@ -191,7 +191,13 @@ def check_frame(label, result, view_normal, opts):
           tag + "non-finite guide coordinates")
     check(len(state.guide_items) <= 64, tag + f"{len(state.guide_items)} strokes")
     line_guides = sum(isinstance(it.payload.guide, GuideLine) for it in ranked)
-    check(len(state.tick_items) <= 4 * line_guides, tag + "ticks without line guides")
+    marks = sum(len(v) for v in (result.coincident or {}).values())
+    check(len(state.tick_items) <= 4 * line_guides + marks, tag + "ticks without line guides")
+    # One guide per direction: at most the selection's free directions are
+    # drawn beyond the engaged ones (two on screen in an orthographic view).
+    passive = [it for it in ranked if it.key not in active_keys]
+    if view_normal is not None:
+        check(len(passive) <= 2, tag + f"{len(passive)} passive guides in an ortho view")
 
 
 def run_drag(scene_name, build, view_name):

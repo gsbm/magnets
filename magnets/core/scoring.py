@@ -14,6 +14,7 @@ from .relationship import Relationship
 FAMILY_PRIORITY = {
     "alignment": 100,
     "spacing": 90,
+    "repeat_size": 89,
     "equal_size": 85,
     "midpoint": 88,
     "tangency": 82,

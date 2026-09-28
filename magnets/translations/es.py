@@ -193,6 +193,31 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Detect and show Symmetry markers"): (
         "Detectar y mostrar marcadores de simetría"
     ),
+    # ── Candidate and depth options, Repeat Size ────────────────────────────
+    ("*", "Repeat Size"): (
+        "Repetir tamaño"
+    ),
+    ("*", "Detect and show Repeat Size markers"): (
+        "Detectar y mostrar marcadores de repetir tamaño"
+    ),
+    ("*", "Prioritize Nearby Objects"): (
+        "Priorizar objetos cercanos"
+    ),
+    ("*", "Ignore objects outside the view and limit distant ones to alignment guides near snapping. Faster in large scenes"): (
+        "Ignorar los objetos fuera de la vista y limitar los lejanos a guías de alineación cerca de la adherencia. Más rápido en escenas grandes"
+    ),
+    ("*", "Diagonal Guides"): (
+        "Guías diagonales"
+    ),
+    ("*", "Also offer Midpoint and Repeat Size guides between points that lie diagonally on an object, not only along the alignment axes"): (
+        "Ofrecer también guías de punto medio y de repetir tamaño entre puntos en diagonal de un objeto, no solo a lo largo de los ejes de alineación"
+    ),
+    ("*", "Depth Axis Cutoff"): (
+        "Límite del eje de profundidad"
+    ),
+    ("*", "Ignore guides and snaps along directions within this angle of the view direction, where a move into the screen is hard to see"): (
+        "Ignorar guías y adherencias en direcciones dentro de este ángulo de la dirección de vista, donde un movimiento hacia dentro de la pantalla es difícil de ver"
+    ),
     # ── Preferences ────────────────────────────────────────────────────────────
     ("*", "Precision Mode"): "Modo precisión",
     ("*", "Debug Logging"): "Registro de depuración",

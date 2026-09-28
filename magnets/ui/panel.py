@@ -121,6 +121,7 @@ class MAGNETS_PT_snapping(bpy.types.Panel):
         col.prop(opts, "snap_reengage_margin_px")
         layout.prop(opts, "angle_snap_increment")
         layout.prop(opts, "spacing_metric")
+        layout.prop(opts, "depth_axis_cutoff")
         layout.prop(opts, "prioritize_nearby")
 
         col = layout.column(heading="Blender Snap")

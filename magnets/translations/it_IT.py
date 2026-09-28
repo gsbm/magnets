@@ -193,6 +193,31 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Detect and show Symmetry markers"): (
         "Rileva e mostra i marcatori di simmetria"
     ),
+    # ── Candidate and depth options, Repeat Size ────────────────────────────
+    ("*", "Repeat Size"): (
+        "Ripeti dimensione"
+    ),
+    ("*", "Detect and show Repeat Size markers"): (
+        "Rileva e mostra i marcatori di ripetizione della dimensione"
+    ),
+    ("*", "Prioritize Nearby Objects"): (
+        "Dai priorità agli oggetti vicini"
+    ),
+    ("*", "Ignore objects outside the view and limit distant ones to alignment guides near snapping. Faster in large scenes"): (
+        "Ignora gli oggetti fuori dalla vista e limita quelli lontani alle guide di allineamento vicine all’aggancio. Più veloce nelle scene grandi"
+    ),
+    ("*", "Diagonal Guides"): (
+        "Guide diagonali"
+    ),
+    ("*", "Also offer Midpoint and Repeat Size guides between points that lie diagonally on an object, not only along the alignment axes"): (
+        "Offri anche guide di punto medio e di ripetizione della dimensione tra punti in diagonale su un oggetto, non solo lungo gli assi di allineamento"
+    ),
+    ("*", "Depth Axis Cutoff"): (
+        "Soglia dell’asse di profondità"
+    ),
+    ("*", "Ignore guides and snaps along directions within this angle of the view direction, where a move into the screen is hard to see"): (
+        "Ignora guide e agganci nelle direzioni entro questo angolo dalla direzione di vista, dove uno spostamento dentro lo schermo è difficile da vedere"
+    ),
     # ── Preferences ────────────────────────────────────────────────────────────
     ("*", "Precision Mode"): "Modalità precisione",
     ("*", "Debug Logging"): "Registro di debug",

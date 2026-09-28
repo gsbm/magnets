@@ -193,6 +193,31 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Detect and show Symmetry markers"): (
         "Symmetriemarkeringen detecteren en tonen"
     ),
+    # ── Candidate and depth options, Repeat Size ────────────────────────────
+    ("*", "Repeat Size"): (
+        "Grootte herhalen"
+    ),
+    ("*", "Detect and show Repeat Size markers"): (
+        "Markeringen voor grootte herhalen detecteren en tonen"
+    ),
+    ("*", "Prioritize Nearby Objects"): (
+        "Nabije objecten voorrang geven"
+    ),
+    ("*", "Ignore objects outside the view and limit distant ones to alignment guides near snapping. Faster in large scenes"): (
+        "Objecten buiten beeld negeren en verre objecten beperken tot uitlijnhulplijnen vlak bij het vastklikken. Sneller in grote scènes"
+    ),
+    ("*", "Diagonal Guides"): (
+        "Diagonale hulplijnen"
+    ),
+    ("*", "Also offer Midpoint and Repeat Size guides between points that lie diagonally on an object, not only along the alignment axes"): (
+        "Ook middelpunt- en grootte-herhalen-hulplijnen aanbieden tussen punten die diagonaal op een object liggen, niet alleen langs de uitlijnassen"
+    ),
+    ("*", "Depth Axis Cutoff"): (
+        "Grenshoek diepte-as"
+    ),
+    ("*", "Ignore guides and snaps along directions within this angle of the view direction, where a move into the screen is hard to see"): (
+        "Hulplijnen en vastklikken negeren in richtingen binnen deze hoek van de kijkrichting, waar een beweging het scherm in moeilijk te zien is"
+    ),
     # ── Preferences ────────────────────────────────────────────────────────────
     ("*", "Precision Mode"): "Precisiemodus",
     ("*", "Debug Logging"): "Debuglogboek",

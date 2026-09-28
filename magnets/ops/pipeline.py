@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -11,13 +12,18 @@ from mathutils import Vector
 from ..adapters.frames import frame_axes
 from ..adapters.surface import append_surfaces, surface_features_for_point
 from ..adapters.units import length_formatter, scene_unit_info
-from ..adapters.view import filter_for_view, ui_scale, view_normal_world
+from ..adapters.view import ui_scale, view_normal_world
 from ..core import scoring
 from ..core import solvers as _solvers  # noqa: F401 - register solver table
 from ..core.families import families_for_mode
 from ..core.features import Feature, FeaturePool, feature_anchor
-from ..core.graph import build_active_set
-from ..core.guide_draw import guide_ticks, guide_to_drawables, segment_key
+from ..core.graph import build_active_set, coincident_targets, one_guide_per_direction
+from ..core.guide_draw import (
+    endpoint_ticks,
+    guide_ticks,
+    guide_to_drawables,
+    segment_key,
+)
 from ..core.labels import feature_hint
 from ..core.registry import dispatch
 from ..core.relationship import GuideLine, GuideSegment, Relationship
@@ -34,7 +40,11 @@ from ..core.style import engaged_color
 from ..core.tolerance import SnapHysteresis
 from ..core.transform import TransformMode
 from ..core.transform_snap import rotated_matrix
-from ..core.view_filter import restrict_snap_axes
+from ..core.view_filter import (
+    depth_threshold,
+    filter_relationships_for_view,
+    restrict_snap_axes,
+)
 from ..core.view_lod import FAR_FAMILIES, ViewLOD, far_moving
 from ..draw import handler as draw
 from ..draw.handler import GuideDrawItem
@@ -105,6 +115,9 @@ class InferenceResult:
     scale: Vector
     max_active_screen_dist: float = 0.0
     snap_apply: str = HOLD
+    # Engaged alignment rank key -> other objects' targets on the same
+    # coordinate (drawn as marks on the one guide line).
+    coincident: dict | None = None
 
 
 def screen_metrics(region, rv3d, rel: Relationship):
@@ -273,6 +286,10 @@ def run_inference(
         region.height,
     )
     families = families_for_mode(transform_mode, enabled_families(options))
+    # Depth Axis Cutoff: the depth direction is the view direction (ortho) or
+    # the view ray through the selection (perspective).
+    depth_dir = view_normal_world(rv3d) or _view_ray(rv3d, anchor_world)
+    depth_thr = depth_threshold(getattr(options, "depth_axis_cutoff", math.radians(30.0)))
     far_pool = None
     if getattr(options, "prioritize_nearby", True):
         lod = getattr(snapshot, "view_lod", None)
@@ -312,22 +329,21 @@ def run_inference(
         transform_mode=transform_mode,
         spacing_metric=options.spacing_metric,
         length_format=length_formatter(context),
-        view_normal=view_normal_world(rv3d),
+        view_normal=depth_dir,
+        depth_threshold=depth_thr,
         screen_dist=_screen_dist_fn(region, rv3d),
         projection=projection,
         allow_diagonal=options.allow_diagonal_guides,
     )
     rels = dispatch(moving, candidate_pool, ctx, families)
     if far_pool is not None:
-        # Far objects only feed alignment, only near the snap zone, and (in
-        # perspective too) never along the axis the view looks down.
+        # Far objects only feed alignment, and only near the snap zone.
         far_ctx = replace(
             ctx,
             max_screen_px=snap_px + hysteresis_px,
-            view_normal=ctx.view_normal or _view_ray(rv3d, anchor_world),
         )
         rels += dispatch(far_moving(moving), far_pool, far_ctx, families & FAR_FAMILIES)
-    rels = filter_for_view(rels, rv3d)
+    rels = filter_relationships_for_view(rels, depth_dir, parallel_threshold=depth_thr)
     rels = restrict_snap_axes(rels, enabled_snap_axes(options))
 
     items = _rank_items(rels, region, rv3d, passive_px, passive_world)
@@ -379,12 +395,22 @@ def run_inference(
             max_dist = 0.0
             apply_mode = HOLD
 
+    engaged: list[scoring.RankItem] = []
+    coincident: dict = {}
     if snapped and active_keys:
         # Engaged guides are always drawn, even when latched from outside the
         # decluttered top-K.
         ranked = scoring.with_engaged(
             ranked, ranked + visible + [active_item], active_keys, options.max_guides
         )
+        engaged = [it for it in ranked if it.key in active_keys]
+        for rel in active_set:
+            marks = coincident_targets(rel, visible)
+            if marks:
+                coincident[rank_key(rel)] = marks
+    # One guide per direction on screen: engaged first, then passive guides
+    # only for directions still free.
+    ranked = one_guide_per_direction(engaged, visible, options.max_guides)
 
     rot_axis, rot_angle = resolve_rotation(
         active_set, angle_snap_deg=options.angle_snap_increment
@@ -400,6 +426,7 @@ def run_inference(
         scale=resolve_scale(active_set),
         max_active_screen_dist=max_dist,
         snap_apply=apply_mode,
+        coincident=coincident,
     )
 
 
@@ -580,6 +607,13 @@ def push_guides(
                 rel.guide.point, moving_co, rel.guide.direction, tick_size
             ):
                 tick_items.append(GuideDrawItem(a=ta, b=tb, color=tick_color))
+
+        # Other objects on the same coordinate: a mark on this one line
+        # instead of a line each.
+        if is_active and options.show_guide_ticks and isinstance(rel.guide, GuideLine):
+            for co in (result.coincident or {}).get(item.key, ()):
+                ta, tb = endpoint_ticks(co, rel.guide.direction, tick_size)
+                tick_items.append(GuideDrawItem(a=ta, b=tb, color=color))
 
         if is_active and prefs.show_snap_dot:
             snap_dots.append((feature_anchor(rel.target), color))

@@ -1,4 +1,4 @@
-"""Equal-spacing solver for a candidate object's internal span."""
+"""Repeat Size solver: repeat a candidate object's own span as a gap."""
 
 from __future__ import annotations
 
@@ -30,8 +30,11 @@ def _gap_label(ctx: SolveContext, ab: float) -> str:
 
 
 class SpacingSolver(Solver):
-    """Equal internal-span spacing solver."""
-    family = "spacing"
+    """Repeat Size: place the selection one span of an object away from it.
+
+    Equal spacing *between* objects is ``DistributionSolver``.
+    """
+    family = "repeat_size"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
         """Return the (moving, candidate) feature types this solver handles."""

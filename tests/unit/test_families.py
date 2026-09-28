@@ -3,9 +3,14 @@
 from core import families
 
 
-def test_eleven_families():
-    # The spec defines exactly 11 core marker families.
-    assert len(families.FAMILIES) == 11
+def test_twelve_families():
+    # 11 core marker families, plus Repeat Size split out of Equal Spacing.
+    assert len(families.FAMILIES) == 12
+
+
+def test_less_used_families_default_off():
+    assert families.DEFAULT_OFF == {"repeat_size", "symmetry", "collinear", "concentric"}
+    assert families.DEFAULT_OFF <= set(families.FAMILY_IDS)
 
 
 def test_ids_unique_and_slug_like():

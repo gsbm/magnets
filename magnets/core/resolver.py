@@ -19,6 +19,7 @@ FAMILY_PRIORITY: tuple[str, ...] = (
     "collinear",
     "symmetry",
     "spacing",
+    "repeat_size",
     "midpoint",
 )
 _FAMILY_RANK = {family: i for i, family in enumerate(FAMILY_PRIORITY)}

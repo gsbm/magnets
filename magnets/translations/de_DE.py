@@ -193,6 +193,31 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Detect and show Symmetry markers"): (
         "Symmetriemarker erkennen und anzeigen"
     ),
+    # ── Candidate and depth options, Repeat Size ────────────────────────────
+    ("*", "Repeat Size"): (
+        "Größe wiederholen"
+    ),
+    ("*", "Detect and show Repeat Size markers"): (
+        "Marker für Größe wiederholen erkennen und anzeigen"
+    ),
+    ("*", "Prioritize Nearby Objects"): (
+        "Nahe Objekte bevorzugen"
+    ),
+    ("*", "Ignore objects outside the view and limit distant ones to alignment guides near snapping. Faster in large scenes"): (
+        "Objekte außerhalb der Ansicht ignorieren und entfernte Objekte auf Ausrichtungs-Hilfslinien nahe dem Einrasten beschränken. Schneller in großen Szenen"
+    ),
+    ("*", "Diagonal Guides"): (
+        "Diagonale Hilfslinien"
+    ),
+    ("*", "Also offer Midpoint and Repeat Size guides between points that lie diagonally on an object, not only along the alignment axes"): (
+        "Mittelpunkt- und Größe-wiederholen-Hilfslinien auch zwischen diagonal liegenden Punkten eines Objekts anbieten, nicht nur entlang der Ausrichtungsachsen"
+    ),
+    ("*", "Depth Axis Cutoff"): (
+        "Grenzwinkel der Tiefenachse"
+    ),
+    ("*", "Ignore guides and snaps along directions within this angle of the view direction, where a move into the screen is hard to see"): (
+        "Hilfslinien und Einrasten in Richtungen ignorieren, die weniger als diesen Winkel von der Blickrichtung abweichen, wo eine Bewegung in den Bildschirm hinein schwer zu sehen ist"
+    ),
     # ── Preferences ────────────────────────────────────────────────────────────
     ("*", "Precision Mode"): "Präzisionsmodus",
     ("*", "Debug Logging"): "Debug-Protokollierung",

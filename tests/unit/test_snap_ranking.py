@@ -171,3 +171,76 @@ def test_coincident_spacing_confirms_an_engaged_alignment():
     other_spot = _pull_rel("spacing", "X", (0.4, 0, 0))
     assert adds_direction(same_spot, [x])
     assert not adds_direction(other_spot, [x])
+
+
+# ── Drawn guides: one per direction, coincident targets as marks ─────────────
+
+
+def _drawn(rel, dist):
+    from core.scoring import RankItem
+
+    key = (rel.family, rel.axis, rel.targets[0].entity, "origin", "origin")
+    return RankItem(key=key, score=1.0, screen_dist=dist, payload=rel)
+
+
+def test_passive_guides_only_on_free_directions():
+    from core.graph import one_guide_per_direction
+
+    x = _drawn(_pull_rel("alignment", "X", (0.1, 0, 0), (1, 0, 0)), 3.0)
+    x_other = _drawn(_pull_rel("alignment", "X2", (0.5, 0, 0), (1, 0, 0)), 20.0)
+    diag = _drawn(_pull_rel("midpoint", "mid", (0.2, 0.2, 0)), 25.0)
+    y = _drawn(_pull_rel("alignment", "Y", (0, 0.3, 0), (0, 1, 0)), 30.0)
+    drawn = one_guide_per_direction([x], [x_other, diag, y], top_k=5)
+    # X is engaged; the other X guide adds nothing; the diagonal is the closest
+    # new direction; after it, Y lies in the covered XY plane.
+    assert [it.payload.axis for it in drawn] == ["X", "mid"]
+
+
+def test_undirected_passive_guides_are_limited_to_one():
+    from core.graph import one_guide_per_direction
+
+    a = _drawn(_pull_rel("parallel", "par_A", (0, 0, 0)), 0.0)
+    b = _drawn(_pull_rel("parallel", "par_B", (0, 0, 0)), 0.0)
+    assert len(one_guide_per_direction([], [a, b], top_k=5)) == 1
+
+
+def test_coincident_alignment_targets_become_marks():
+    from core.features import PointFeature, PointKind
+    from core.graph import coincident_targets
+    from core.relationship import ConstraintDelta, GuideLine, Relationship
+    from mathutils import Vector
+
+    m = PointFeature.from_name(Vector((0, 0, 0)), PointKind.ORIGIN, "M")
+
+    def align(entity, x, y):
+        t = PointFeature.from_name(Vector((x, y, 0)), PointKind.ORIGIN, entity)
+        return Relationship(
+            family="alignment", axis="X", label="", moving=m, targets=(t,), residual=0.0,
+            delta=ConstraintDelta.from_vector(Vector((x, 0, 0))),
+            guide=GuideLine(point=t.co.copy(), direction=Vector((0, 1, 0))),
+            constraint_dir=Vector((1, 0, 0)),
+        )
+
+    engaged = align("A", 2.0, 5.0)
+    pool = [_drawn(r, 1.0) for r in (align("B", 2.0, -3.0), align("C", 2.0, 8.0), align("D", 2.5, 1.0))]
+    marks = coincident_targets(engaged, pool)
+    assert sorted(round(v.y) for v in marks) == [-3, 8], "B and C line up, D does not"
+
+
+def test_depth_axis_cutoff_angle():
+    import math
+
+    from core.frames import world_axes
+    from core.solvers.base import SolveContext
+    from core.view_filter import depth_threshold
+    from mathutils import Vector
+
+    ray = Vector((0.0, math.sin(math.radians(40)), -math.cos(math.radians(40))))  # 40° off -Z
+    z = Vector((0, 0, 1))
+    wide = SolveContext(axes=world_axes(), world_tol=1.0, view_normal=ray,
+                        depth_threshold=depth_threshold(math.radians(45)))
+    narrow = SolveContext(axes=world_axes(), world_tol=1.0, view_normal=ray,
+                          depth_threshold=depth_threshold(math.radians(30)))
+    assert wide.direction_hidden(z), "Z is 40° from the view: hidden by a 45° cutoff"
+    assert not narrow.direction_hidden(z), "and kept by a 30° cutoff"
+    assert not wide.direction_hidden(Vector((1, 0, 0)))

@@ -34,9 +34,12 @@ class SolveContext:
     # Scene-aware length formatter for labels (e.g. "12.3 cm"); None falls back
     # to a plain number scaled by ``unit_scale``.
     length_format: LengthFormat | None = None
-    # World view direction of an orthographic view (None in perspective).
+    # Depth direction: the view direction of an orthographic view, or the
+    # view ray through the selection in perspective (None: no depth filter).
     # Solvers may skip what ``view_filter`` would hide in this view anyway.
     view_normal: Vector | None = None
+    # ``view_filter`` parallel threshold for ``view_normal`` (Depth Axis Cutoff).
+    depth_threshold: float = 0.15
     # (moving_co, correction) -> screen distance in px, or None off-screen.
     # Lets best-per-key solvers rank candidates exactly as ranking will.
     screen_dist: Callable[[Vector, Vector], float | None] | None = None
@@ -77,7 +80,9 @@ class SolveContext:
         """True when the view filter hides a snap/guide along ``direction``."""
         if self.view_normal is None:
             return False
-        return not guide_direction_visible(direction, self.view_normal)
+        return not guide_direction_visible(
+            direction, self.view_normal, parallel_threshold=self.depth_threshold
+        )
 
     def format_length(self, value: float) -> str:
         """Format a world-space length for a guide label."""

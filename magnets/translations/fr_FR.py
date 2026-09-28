@@ -193,6 +193,31 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Detect and show Symmetry markers"): (
         "Détecter et afficher les marqueurs de symétrie"
     ),
+    # ── Candidate and depth options, Repeat Size ────────────────────────────
+    ("*", "Repeat Size"): (
+        "Répétition de taille"
+    ),
+    ("*", "Detect and show Repeat Size markers"): (
+        "Détecter et afficher les marqueurs de répétition de taille"
+    ),
+    ("*", "Prioritize Nearby Objects"): (
+        "Prioriser les objets proches"
+    ),
+    ("*", "Ignore objects outside the view and limit distant ones to alignment guides near snapping. Faster in large scenes"): (
+        "Ignorer les objets hors de la vue et limiter les objets éloignés aux guides d’alignement proches de l’aimantation. Plus rapide dans les grandes scènes"
+    ),
+    ("*", "Diagonal Guides"): (
+        "Guides diagonaux"
+    ),
+    ("*", "Also offer Midpoint and Repeat Size guides between points that lie diagonally on an object, not only along the alignment axes"): (
+        "Proposer aussi des guides Milieu et Répétition de taille entre des points en diagonale sur un objet, pas seulement le long des axes d’alignement"
+    ),
+    ("*", "Depth Axis Cutoff"): (
+        "Seuil de l’axe de profondeur"
+    ),
+    ("*", "Ignore guides and snaps along directions within this angle of the view direction, where a move into the screen is hard to see"): (
+        "Ignorer les guides et aimantations dans les directions à moins de cet angle de la direction de vue, où un déplacement dans l’écran est difficile à voir"
+    ),
     # ── Preferences ────────────────────────────────────────────────────────────
     ("*", "Precision Mode"): "Mode précision",
     ("*", "Debug Logging"): "Journal de débogage",

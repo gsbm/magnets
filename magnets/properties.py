@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import bpy
 from bpy.props import (
     BoolProperty,
@@ -11,7 +13,7 @@ from bpy.props import (
     PointerProperty,
 )
 
-from .core.families import FAMILIES
+from .core.families import DEFAULT_OFF, FAMILIES
 from .core.frames import Frame
 from .translations import CONTEXT
 
@@ -22,7 +24,7 @@ def _family_toggle_annotations() -> dict:
         ann[f"enable_{fid}"] = BoolProperty(
             name=label,
             description=f"Detect and show {label} markers",
-            default=True,
+            default=fid not in DEFAULT_OFF,
         )
     return ann
 
@@ -58,9 +60,19 @@ class MagnetsOptions(bpy.types.PropertyGroup):
     )
     allow_diagonal_guides: BoolProperty(
         name="Diagonal Guides",
-        description="Also offer midpoint and size-repeat guides between points "
+        description="Also offer Midpoint and Repeat Size guides between points "
         "that lie diagonally on an object, not only along the alignment axes",
         default=False,
+    )
+    depth_axis_cutoff: FloatProperty(
+        name="Depth Axis Cutoff",
+        description="Ignore guides and snaps along directions within this angle "
+        "of the view direction, where a move into the screen is hard to see",
+        subtype="ANGLE",
+        default=math.radians(30.0),
+        min=0.0,
+        max=math.radians(80.0),
+        soft_max=math.radians(60.0),
     )
     prioritize_nearby: BoolProperty(
         name="Prioritize Nearby Objects",
@@ -199,7 +211,9 @@ def enabled_families(options) -> set[str]:
     """Set of currently enabled constraint family ids."""
     from .core.families import FAMILY_IDS
 
-    return {fid for fid in FAMILY_IDS if getattr(options, f"enable_{fid}", True)}
+    return {
+        fid for fid in FAMILY_IDS if getattr(options, f"enable_{fid}", fid not in DEFAULT_OFF)
+    }
 
 
 def enabled_snap_axes(options) -> set[str]:

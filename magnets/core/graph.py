@@ -7,7 +7,7 @@ from .scoring import TIE_PX, RankItem, closest_in_zone, snap_tier
 
 # Orthogonal translation families that generally compose with each other.
 _TRANSLATION_FAMILIES = frozenset(
-    {"alignment", "midpoint", "spacing", "symmetry", "collinear", "coplanar"}
+    {"alignment", "midpoint", "spacing", "repeat_size", "symmetry", "collinear", "coplanar"}
 )
 
 
@@ -174,3 +174,77 @@ def build_active_set(
             try_add(item, hold_px)
 
     return selected
+
+
+def one_guide_per_direction(
+    engaged: list[RankItem],
+    pool: list[RankItem],
+    top_k: int,
+) -> list[RankItem]:
+    """The guides to draw: every engaged one, then passive ones by direction.
+
+    A passive guide is drawn only when it adds a direction the drawn guides do
+    not cover (``adds_direction``): at most as many as the selection has free
+    directions, closest first, primary tier before secondary. Other guides on
+    a covered direction would be redundant (same spot) or unreachable at once
+    (another spot). Passive guides with no direction (already satisfied, or a
+    size match) are limited to one. Capped at ``top_k`` unless the engaged
+    ones exceed it.
+    """
+    kept = list(engaged)
+    rels = [it.payload for it in kept]
+    keys = {it.key for it in kept}
+    slots = {snap_axis_slot(it.payload) for it in kept}
+    undirected = 0
+    for it in sorted(pool, key=lambda it: (snap_tier(it.key), it.screen_dist)):
+        if len(kept) >= top_k:
+            break
+        if it.key in keys or snap_axis_slot(it.payload) in slots:
+            continue
+        if _pull_direction(it.payload) is None:
+            if undirected:
+                continue
+            undirected += 1
+        elif not adds_direction(it.payload, rels):
+            continue
+        kept.append(it)
+        rels.append(it.payload)
+        keys.add(it.key)
+        slots.add(snap_axis_slot(it.payload))
+    return kept
+
+
+def coincident_targets(
+    rel: Relationship,
+    pool: list[RankItem],
+    limit: int = 8,
+) -> list:
+    """Anchors of other objects' alignment targets on ``rel``'s coordinate.
+
+    For an engaged alignment: every other object whose aligned feature sits
+    on the same coordinate of the same axis ("these line up"), so one line
+    plus a mark per object replaces a line per object.
+    """
+    if rel.family != "alignment" or rel.constraint_dir is None:
+        return []
+    d = rel.constraint_dir.normalized()
+    own = rel.targets[0]
+    coord = own.co.dot(d) if hasattr(own, "co") else None
+    if coord is None:
+        return []
+    eps = 1e-5 * (1.0 + abs(coord))
+    seen = {own.entity}
+    out = []
+    for it in pool:
+        other = it.payload
+        if other.family != "alignment" or other.axis != rel.axis:
+            continue
+        target = other.targets[0]
+        if target.entity in seen or not hasattr(target, "co"):
+            continue
+        if abs(target.co.dot(d) - coord) <= eps:
+            seen.add(target.entity)
+            out.append(target.co.copy())
+            if len(out) >= limit:
+                break
+    return out
