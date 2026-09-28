@@ -215,6 +215,18 @@ for view_name, view in (("top", TOP), ("persp", PERSP)):
     check(abs(loc(ob("Mover")).x - 0.7) < 1e-4,
           f"{view_name}: face alignment wins over the origin: {tuple(loc(ob('Mover')))}")
 
+# Two faces at once: flush against Target's +X face (x = 1.3) and top-aligned
+# with its +Y face (y = 5.7), each 3 px off, origins competing on both axes.
+reset()
+ob("Mover").scale = (0.3, 0.3, 0.3)
+bpy.context.view_layer.update()
+push("shrink mover")
+begin()
+move(ob("Mover"), by=(1.36 - 4.0, 5.64, 0.0))
+release()
+check(close(loc(ob("Mover")), (1.3, 5.7, 0.0)),
+      f"two face alignments snap together: {tuple(loc(ob('Mover')))}")
+
 # ── Translate: which axes may snap ───────────────────────────────────────────
 # Native Y lock (G Y): the X correction is masked away.
 reset()

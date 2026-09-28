@@ -24,7 +24,6 @@ from core.solvers.coplanar import CoplanarSolver
 from core.solvers.equal_size import EqualSizeSolver
 from core.solvers.midpoint import MidpointSolver
 from core.solvers.parallel import ParallelSolver
-from core.solvers.perpendicular import PerpendicularSolver
 from core.solvers.spacing import SpacingSolver
 from core.solvers.symmetry import SymmetrySolver
 from core.solvers.tangency import TangencySolver
@@ -121,28 +120,6 @@ def test_parallel_lines():
     b = LineFeature(Vector((0, 1, 0)), Vector((1, 0, 0)), "b", EntityRef("b"))
     rels = solver.solve([a], [b], _ctx(2.0))
     assert rels
-
-
-def test_perpendicular_lines():
-    solver = PerpendicularSolver()
-    a = LineFeature(Vector((0, 0, 0)), Vector((1, 0, 0)), "a", EntityRef("a"))
-    b = LineFeature(Vector((0, 0, 0)), Vector((0, 1, 0)), "b", EntityRef("b"))
-    ctx = _ctx(2.0)
-    ctx.transform_mode = TransformMode.ROTATE
-    assert solver.solve([a], [b], ctx)
-
-
-def test_perpendicular_is_rotate_only():
-    """A move cannot change edge directions; box edges are nearly always
-    perpendicular to a neighbour's, so it would latch at 0 px and block the
-    alignments that can be applied."""
-    solver = PerpendicularSolver()
-    a = LineFeature(Vector((0, 0, 0)), Vector((1, 0, 0)), "a", EntityRef("a"))
-    b = LineFeature(Vector((0, 0, 0)), Vector((0, 1, 0)), "b", EntityRef("b"))
-    for mode in (TransformMode.TRANSLATE, TransformMode.SCALE):
-        ctx = _ctx(2.0)
-        ctx.transform_mode = mode
-        assert solver.solve([a], [b], ctx) == []
 
 
 def test_concentric_circles():

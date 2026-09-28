@@ -155,7 +155,6 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Midpoint"): "Mittelpunkt",
     ("*", "Tangency"): "Tangente",
     ("*", "Parallel"): "Parallel",
-    ("*", "Perpendicular"): "Senkrecht",
     ("*", "Collinear"): "Kollinear",
     ("*", "Coplanar"): "Komplanar",
     ("*", "Concentric"): "Konzentrisch",
@@ -177,9 +176,6 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ),
     ("*", "Detect and show Parallel markers"): (
         "Parallelitätsmarker erkennen und anzeigen"
-    ),
-    ("*", "Detect and show Perpendicular markers"): (
-        "Senkrechtigkeitsmarker erkennen und anzeigen"
     ),
     ("*", "Detect and show Collinear markers"): (
         "Kollinearitätsmarker erkennen und anzeigen"

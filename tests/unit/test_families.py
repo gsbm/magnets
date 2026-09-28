@@ -3,9 +3,10 @@
 from core import families
 
 
-def test_twelve_families():
-    # 11 core marker families, plus Repeat Size split out of Equal Spacing.
-    assert len(families.FAMILIES) == 12
+def test_eleven_families():
+    # Repeat Size was split out of Equal Spacing; Perpendicular was removed
+    # (compared in 3D it held for any box, and nothing could apply it).
+    assert len(families.FAMILIES) == 11
 
 
 def test_less_used_families_default_off():

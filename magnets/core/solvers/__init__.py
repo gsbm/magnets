@@ -9,7 +9,6 @@ from .distribution import DistributionSolver
 from .equal_size import EqualSizeSolver
 from .midpoint import MidpointSolver
 from .parallel import DirectionParallelSolver, ParallelSolver
-from .perpendicular import PerpendicularSolver
 from .spacing import SpacingSolver
 from .symmetry import SymmetrySolver
 from .tangency import SurfaceTangencySolver, TangencySolver
@@ -25,7 +24,6 @@ for _solver in (
     SurfaceTangencySolver(),
     ParallelSolver(),
     DirectionParallelSolver(),
-    PerpendicularSolver(),
     CollinearSolver(),
     CoplanarSolver(),
     ConcentricSolver(),

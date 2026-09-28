@@ -24,7 +24,7 @@ def _ctx(allow_diagonal):
 def test_move_runs_every_translation_family():
     fams = families_for_mode(TransformMode.TRANSLATE, ALL)
     assert "alignment" in fams and "parallel" in fams and "spacing" in fams
-    assert "equal_size" not in fams and "perpendicular" not in fams
+    assert "equal_size" not in fams
     assert families_for_mode(TransformMode.EXTRUDE, ALL) == fams
 
 

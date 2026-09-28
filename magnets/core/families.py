@@ -14,7 +14,6 @@ FAMILIES: tuple[tuple[str, str], ...] = (
     ("midpoint", "Midpoint"),
     ("tangency", "Tangency"),
     ("parallel", "Parallel"),
-    ("perpendicular", "Perpendicular"),
     ("collinear", "Collinear"),
     ("coplanar", "Coplanar"),
     ("concentric", "Concentric"),
@@ -28,14 +27,11 @@ FAMILY_IDS: tuple[str, ...] = tuple(fid for fid, _label in FAMILIES)
 DEFAULT_OFF: frozenset[str] = frozenset(("repeat_size", "symmetry", "collinear", "concentric"))
 
 # Families whose result the action can actually apply. Every solver emits a
-# translation, except equal size (a scale factor) and perpendicular (no
-# correction at all). Rotate snaps to angle increments outside the solvers,
-# so no solver guide can act while rotating: perpendicular compares edges in
-# 3D and is trivially true for any vertical/horizontal pair, so it runs
-# nowhere until a rotation-plane version exists.
+# translation, except equal size (a scale factor). Rotate snaps to angle
+# increments outside the solvers, so no solver guide runs while rotating.
 _ROTATE_FAMILIES: frozenset[str] = frozenset()
 _SCALE_FAMILIES = frozenset(("equal_size",))
-_TRANSLATE_EXCLUDED = frozenset(("equal_size", "perpendicular"))
+_TRANSLATE_EXCLUDED = frozenset(("equal_size",))
 
 
 def is_family(family_id: str) -> bool:

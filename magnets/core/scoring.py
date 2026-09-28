@@ -19,7 +19,6 @@ FAMILY_PRIORITY = {
     "midpoint": 88,
     "tangency": 82,
     "parallel": 80,
-    "perpendicular": 80,
     "collinear": 78,
     "coplanar": 78,
     "concentric": 86,
