@@ -46,7 +46,9 @@ class TangencySolver(Solver):
                         Relationship(
                             family=self.family,
                             axis=f"tan_{c.entity}",
-                            label="◎",
+                            # A large and a small circle side by side ("touching");
+                            # ◎ is Concentric.
+                            label="○∘",
                             moving=m,
                             targets=(c,),
                             residual=residual,
