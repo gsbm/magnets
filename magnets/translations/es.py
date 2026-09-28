@@ -153,7 +153,8 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Equal Spacing"): "Espaciado igual",
     ("*", "Equal Size"): "Tamaño igual",
     ("*", "Midpoint"): "Punto medio",
-    ("*", "Tangency"): "Tangencia",
+    ("*", "Surface Contact"): "Contacto de superficie",
+    ("*", "Sphere Tangency"): "Tangencia esférica",
     ("*", "Parallel"): "Paralelo",
     ("*", "Collinear"): "Colineal",
     ("*", "Coplanar"): "Coplanar",
@@ -171,8 +172,11 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Detect and show Midpoint markers"): (
         "Detectar y mostrar marcadores de punto medio"
     ),
-    ("*", "Detect and show Tangency markers"): (
-        "Detectar y mostrar marcadores de tangencia"
+    ("*", "Detect and show Surface Contact markers"): (
+        "Detectar y mostrar marcadores de contacto de superficie"
+    ),
+    ("*", "Detect and show Sphere Tangency markers"): (
+        "Detectar y mostrar marcadores de tangencia esférica"
     ),
     ("*", "Detect and show Parallel markers"): (
         "Detectar y mostrar marcadores de paralelismo"

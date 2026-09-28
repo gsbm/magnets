@@ -9,8 +9,13 @@ from .base import SolveContext, Solver
 
 
 class TangencySolver(Solver):
-    """Circle tangency solver."""
-    family = "tangency"
+    """Sphere Tangency: bounding spheres (circle features) touching.
+
+    Off by default: for boxes the bounding sphere is not a shape the user
+    sees, so "touching" there reads as a random offset. Surface contact is
+    ``SurfaceTangencySolver``.
+    """
+    family = "sphere_tangency"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
         """Return the (moving, candidate) feature types this solver handles."""
@@ -57,7 +62,7 @@ class TangencySolver(Solver):
 
 
 class SurfaceTangencySolver(Solver):
-    """Point-to-surface tangency / offset using BVH samples."""
+    """Surface Contact: point-to-surface tangency / offset using BVH samples."""
 
     family = "tangency"
 

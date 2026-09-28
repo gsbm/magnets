@@ -153,7 +153,8 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Equal Spacing"): "Gelijke tussenruimte",
     ("*", "Equal Size"): "Gelijke grootte",
     ("*", "Midpoint"): "Middelpunt",
-    ("*", "Tangency"): "Raaklijn",
+    ("*", "Surface Contact"): "Oppervlaktecontact",
+    ("*", "Sphere Tangency"): "Bolraaklijn",
     ("*", "Parallel"): "Parallel",
     ("*", "Collinear"): "Colineair",
     ("*", "Coplanar"): "Coplanair",
@@ -171,8 +172,11 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Detect and show Midpoint markers"): (
         "Middelpuntmarkeringen detecteren en tonen"
     ),
-    ("*", "Detect and show Tangency markers"): (
-        "Raaklijnmarkeringen detecteren en tonen"
+    ("*", "Detect and show Surface Contact markers"): (
+        "Oppervlaktecontactmarkeringen detecteren en tonen"
+    ),
+    ("*", "Detect and show Sphere Tangency markers"): (
+        "Bolraaklijnmarkeringen detecteren en tonen"
     ),
     ("*", "Detect and show Parallel markers"): (
         "Paralleliteitsmarkeringen detecteren en tonen"

@@ -18,6 +18,7 @@ FAMILY_PRIORITY = {
     "equal_size": 85,
     "midpoint": 88,
     "tangency": 82,
+    "sphere_tangency": 81,
     "parallel": 80,
     "collinear": 78,
     "coplanar": 78,
@@ -35,7 +36,9 @@ SWITCH_PX = 6.0
 # Snap tiers: a secondary-tier guide (niche 3D relationships) only snaps
 # when no primary one is in the snap zone, never displaces an engaged primary
 # guide and never engages alongside another guide as a secondary.
-SECONDARY_FAMILIES = frozenset(("tangency", "symmetry", "concentric", "collinear"))
+SECONDARY_FAMILIES = frozenset(
+    ("tangency", "sphere_tangency", "symmetry", "concentric", "collinear")
+)
 
 
 def snap_tier(key: tuple) -> int:

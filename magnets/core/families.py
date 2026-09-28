@@ -12,7 +12,9 @@ FAMILIES: tuple[tuple[str, str], ...] = (
     ("repeat_size", "Repeat Size"),
     ("equal_size", "Equal Size"),
     ("midpoint", "Midpoint"),
-    ("tangency", "Tangency"),
+    # Id kept for saved settings; it also gates the surface (BVH) sampling.
+    ("tangency", "Surface Contact"),
+    ("sphere_tangency", "Sphere Tangency"),
     ("parallel", "Parallel"),
     ("collinear", "Collinear"),
     ("coplanar", "Coplanar"),
@@ -24,7 +26,9 @@ FAMILY_IDS: tuple[str, ...] = tuple(fid for fid, _label in FAMILIES)
 
 # Less-used families, off until the user enables them in Guide Types: a plain
 # align or distribute should not meet them.
-DEFAULT_OFF: frozenset[str] = frozenset(("repeat_size", "symmetry", "collinear", "concentric"))
+DEFAULT_OFF: frozenset[str] = frozenset(
+    ("repeat_size", "sphere_tangency", "symmetry", "collinear", "concentric")
+)
 
 # Families whose result the action can actually apply. Every solver emits a
 # translation, except equal size (a scale factor). Rotate snaps to angle
