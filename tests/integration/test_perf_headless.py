@@ -263,10 +263,11 @@ POSES = ((0.3, 0.2, 0.1), (-2.7, 3.1, 0.4), (4.2, -1.6, -0.3))
 #   original            top 42757 / 21139   persp 89014 / 89014
 #   exact pruning       top 21519 /  5367   persp 69143 / 49602
 #   best per rank key   top  6932 /  1780   persp 11191 /  6526
+#   + all solvers       top  2064 /  1780   persp  7576 /  6526
 # Bounds leave ~5% headroom over the last row.
 for name, view, max_rels, max_items in (
-    ("top", TOP, 7_300, 1_870),
-    ("persp", PERSP, 11_750, 6_860),
+    ("top", TOP, 2_170, 1_870),
+    ("persp", PERSP, 7_950, 6_860),
 ):
     ov._end_session()
     mover.location = (-9.0, -9.0, 0.0)
@@ -292,7 +293,7 @@ for name, view, max_rels, max_items in (
     check(work["rels"] <= max_rels, f"{{name}}: {{work['rels']}} relationships > {{max_rels}}")
     check(work["items"] <= max_items, f"{{name}}: {{work['items']}} ranked items > {{max_items}}")
     check(work["items"] < work["rels"], f"{{name}}: out-of-range and duplicate items dropped")
-    # Reference: top ~22 ms/tick, persp ~37 ms/tick (was ~70 / ~160).
+    # Reference: top ~14 ms/tick, persp ~33 ms/tick (was ~70 / ~160).
     check(tick_ms < 600.0, f"{{name}}: dense inference too slow: {{tick_ms:.1f}} ms")
 pipeline.dispatch, scoring.rank = _dispatch, _rank
 ov._end_session()

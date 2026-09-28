@@ -82,7 +82,7 @@ class Relationship:
     """Scored candidate constraint between features."""
     family: str
     axis: str
-    label: str
+    label: str  # or a zero-argument callable returning it (see below)
     moving: Feature
     targets: tuple[Feature, ...]
     residual: float
@@ -124,3 +124,20 @@ class Relationship:
     def moving_point(self) -> PointFeature | None:
         """Moving feature if it is a PointFeature, else None."""
         return self.moving if isinstance(self.moving, PointFeature) else None
+
+
+def _get_label(self) -> str:
+    label = self.__dict__["_label"]
+    if callable(label):
+        label = self.__dict__["_label"] = label()
+    return label
+
+
+def _set_label(self, value) -> None:
+    self.__dict__["_label"] = value
+
+
+# ``label`` may be given as a zero-argument callable: it runs on first read and
+# the text is cached. Only drawn guides are ever read, so hot solvers pass one
+# instead of formatting a length for every candidate.
+Relationship.label = property(_get_label, _set_label, doc="Guide label text.")

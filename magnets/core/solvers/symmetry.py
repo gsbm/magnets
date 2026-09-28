@@ -6,9 +6,15 @@ import numpy as np
 
 from ..features import FeatureType, PointFeature
 from ..geometry import normalize, reflect_point
-from ..pair_search import as_array, best_rows, coord_margin, project_px, small_ids
+from ..pair_search import (
+    approx_rank_order,
+    as_array,
+    best_rows,
+    coord_margin,
+    exact_rank,
+    small_ids,
+)
 from ..relationship import ConstraintDelta, GuidePlane, Relationship
-from ..scoring import FAMILY_PRIORITY
 from .base import SolveContext, Solver
 
 # Moving points per numpy block (bounds memory for large Edit Mode selections).
@@ -71,7 +77,11 @@ class SymmetrySolver(Solver):
             rows_res.append(res[mi, ci, pi])
         mi, ci, pi = (np.concatenate(r) for r in (rows_m, rows_c, rows_p))
         res = np.concatenate(rows_res)
-        approx, walk_margin, keep = self._approx_order(ctx, moving, m_co, c_co, mi, ci, res, margin)
+        prio = np.array([m.priority for m in moving], dtype=np.float64)
+        # The correction is the full mirror move (c - m), not the residual.
+        approx, walk_margin, keep = approx_rank_order(
+            ctx, self.family, prio[mi], m_co[mi], c_co[ci] - m_co[mi], res, margin
+        )
         mi, ci, pi, approx = mi[keep], ci[keep], pi[keep], approx[keep]
         n_ent, n_mk, n_ck = int(c_ent.max()) + 1, int(m_kind.max()) + 1, int(c_kind.max()) + 1
         group = ((pi * n_ent + c_ent[ci]) * n_mk + m_kind[mi]) * n_ck + c_kind[ci]
@@ -87,47 +97,13 @@ class SymmetrySolver(Solver):
             residual = (reflect_point(m.co, mid, normal) - c.co).length
             if residual > tol:
                 return None
-            # The correction is the full mirror move, not the residual: rank
-            # candidates as ranking will.
-            order = ctx.rank_order(self.family, m, residual, m.co, c.co - m.co)
-            if order is None:
-                return None
-            data[row] = (m, c, plane_name, normal, residual, mid)
-            return order[0], order
+            ranked = exact_rank(ctx, self.family, m, residual, m.co, c.co - m.co)
+            if ranked is not None:
+                data[row] = (m, c, plane_name, normal, residual, mid)
+            return ranked
 
         winners = best_rows(group, approx, seq, walk_margin, exact)
         return [self._relationship(*data[row]) for row in winners]
-
-    def _approx_order(self, ctx, moving, m_co, c_co, mi, ci, res, margin):
-        """``(approx order, walk margin, rows kept)`` matching ``ctx.rank_order``.
-
-        Without a projection the order is the residual. With one, it is
-        -score from the approximate screen distance; rows clearly beyond the
-        passive range are dropped, and off-screen rows sort first so they are
-        decided exactly.
-        """
-        if ctx.projection is None or ctx.screen_dist is None:
-            return res, margin, np.ones(len(res), dtype=bool)
-        _matrix, width, height = ctx.projection
-        margin_px = 1e-4 * (width + height)
-        m_xy, m_ok = project_px(ctx.projection, m_co)
-        c_xy, c_ok = project_px(ctx.projection, c_co)
-        sd = np.linalg.norm(c_xy[ci] - m_xy[mi], axis=1)
-        valid = m_ok[mi] & c_ok[ci]
-        keep = ~valid | (sd <= ctx.passive_px + margin_px)
-        passive = max(ctx.passive_px, 1.0)
-        tol = max(ctx.world_tol, 1e-9)
-        prio = np.array([m.priority for m in moving], dtype=np.float64)[mi]
-        score = (
-            FAMILY_PRIORITY.get(self.family, 0) * 1000.0
-            + prio * 10.0
-            + np.maximum(0.0, 1.0 - sd / passive) * 100.0
-            + np.maximum(0.0, 1.0 - res / tol) * 50.0
-            - sd
-        )
-        approx = np.where(valid, -score, -np.inf)
-        walk_margin = margin_px * (1.0 + 100.0 / passive) + 50.0 * margin / tol + 1e-6
-        return approx, walk_margin, keep
 
     def _relationship(self, m, c, plane_name, normal, residual, mid) -> Relationship:
         return Relationship(

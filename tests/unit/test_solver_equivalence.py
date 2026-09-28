@@ -11,15 +11,29 @@ pairs and build midpoints once; none of that may change what they return
 import random
 
 import core.solvers  # noqa: F401 - register solver table
-from core.features import POINT_PRIORITY, EntityRef, PointFeature, PointKind
+from core.features import (
+    POINT_PRIORITY,
+    EntityRef,
+    LineFeature,
+    PointFeature,
+    PointKind,
+)
 from core.frames import matrix_axes, world_axes
-from core.geometry import reflect_point
+from core.geometry import (
+    collinear,
+    distance_point_line,
+    normalize,
+    project_point_on_line,
+    reflect_point,
+)
+from core.relationship import ConstraintDelta, GuideLine, Relationship
 from core.scoring import RankItem, best_per_key, score_parts
-from core.solvers.alignment import AlignmentSolver
+from core.solvers.alignment import AlignmentSolver, EdgeAlignmentSolver
 from core.solvers.base import BestPerKey, SolveContext
+from core.solvers.collinear import CollinearSolver
 from core.solvers.midpoint import MidpointSolver
+from core.solvers.spacing import SpacingSolver
 from core.solvers.symmetry import _SYMMETRY_PLANES, SymmetrySolver
-from core.spatial import SortedProjection
 from mathutils import Matrix, Vector
 
 _KINDS = (PointKind.ORIGIN, PointKind.BBOX_CORNER, PointKind.BBOX_FACE_CENTER)
@@ -127,22 +141,103 @@ def _midpoint_reference(moving, candidates, ctx):
     return _reduce(entries)
 
 
+def _lines(seed, n_entities=10):
+    """Box-like edges: axis-aligned directions, some tilted, grid-snapped points."""
+    rng = random.Random(seed + 7)
+    dirs = [Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1)), Vector((1, 0.05, 0))]
+    out = []
+    for e in range(n_entities):
+        ref = EntityRef(f"obj{e}")
+        base = Vector((rng.uniform(-5, 5), rng.uniform(-5, 5), rng.uniform(-1, 1)))
+        for _ in range(6):
+            off = Vector(tuple(round(rng.uniform(-1, 1) * 4) / 4 for _ in range(3)))
+            out.append(LineFeature(base + off, rng.choice(dirs).copy(), rng.choice(("bbox_edge", "edge")), ref))
+    return out
+
+
+def _moving_lines(seed):
+    ref = EntityRef("mover")
+    base = _mover(seed)[-1].co
+    return [LineFeature(base + Vector(o), Vector(d), "bbox_edge", ref)
+            for o, d in (((0, 0.5, 0.5), (1, 0, 0)), ((0.5, 0, 0.5), (0, 1, 0)), ((0.5, 0.5, 0), (0, 0, 1)))]
+
+
+def _edge_alignment_reference(moving, candidates, ctx):
+    entries = []
+    for m in moving:
+        m_dir = normalize(m.direction)
+        for c in candidates:
+            if c.entity_ref.name == m.entity_ref.name:
+                continue
+            if abs(abs(normalize(m_dir).dot(normalize(c.direction))) - 1.0) > 0.08:
+                continue
+            w = m.point - c.point
+            for axis_name, direction in ctx.axes.items():
+                if abs(m_dir.dot(direction)) > 0.9:
+                    continue
+                along = w.dot(direction)
+                if abs(along) > ctx.world_tol or ctx.direction_hidden(direction.normalized()):
+                    continue
+                perp = w - along * direction
+                if perp.length > 1e-6 and ctx.direction_hidden(perp.normalized()):
+                    continue
+                key = (axis_name, c.entity_ref.name, m.kind, c.kind)
+                entries.append((key, (abs(along),), (m, c, axis_name, abs(along))))
+    return _reduce(entries)
+
+
+def _collinear_reference(moving, candidates, ctx):
+    entries = []
+    for m in moving:
+        for c in candidates:
+            if c.entity_ref.name == m.entity_ref.name or ctx.direction_hidden(c.direction):
+                continue
+            residual = distance_point_line(m.co, c.point, c.direction)
+            if residual <= ctx.world_tol:
+                proj = project_point_on_line(m.co, c.point, c.direction)
+                entries.append(((c.entity_ref.name, m.kind, c.kind), (residual,), (m, c, residual, proj - m.co)))
+    return _reduce(entries)
+
+
+def _spacing_reference(moving, candidates, ctx):
+    tol = ctx.world_tol
+    entries = []
+    for m in moving:
+        by_entity = {}
+        for c in candidates:
+            if c.entity_ref.name != m.entity_ref.name:
+                by_entity.setdefault(c.entity_ref.name, []).append(c)
+        for name, pts in by_entity.items():
+            for i in range(len(pts)):
+                for j in range(i + 1, len(pts)):
+                    a, b = pts[i], pts[j]
+                    ab = (b.co - a.co).length
+                    if ab <= tol or not collinear(a.co, b.co, m.co, tol):
+                        continue
+                    if ctx.direction_hidden(b.co - a.co):
+                        continue
+                    for target in (a, b):
+                        residual = abs((m.co - target.co).length - ab)
+                        if residual > tol:
+                            continue
+                        entries.append(((name, m.kind, a.kind), (residual,), (m, a, b, target, residual)))
+    return _reduce(entries)
+
+
+def _spacing_cloud(seed):
+    """Points strung along lines, so equal gaps occur."""
+    rng = random.Random(seed + 3)
+    pts = []
+    for e in range(8):
+        ref = EntityRef(f"row{e}")
+        start = Vector((rng.uniform(-4, 4), rng.uniform(-4, 4), rng.uniform(-0.5, 0.5)))
+        step = Vector(rng.choice(((1, 0, 0), (0, 1, 0), (0.7, 0.7, 0), (0, 0.6, 0.8)))) * rng.choice((0.5, 1.0))
+        for k in range(5):
+            pts.append(PointFeature(start + step * k, rng.choice(_KINDS[:2]), ref))
+    return pts
+
+
 # ── Tests ────────────────────────────────────────────────────────────────────
-
-
-def test_sorted_projection_is_a_superset_of_the_exact_test():
-    rng = random.Random(7)
-    pts = [Vector((rng.uniform(-50, 50), rng.uniform(-50, 50), 0.0)) for _ in range(300)]
-    d = Vector((0.6, 0.8, 0.0))
-    index = SortedProjection(pts, d)
-    for _ in range(50):
-        q = Vector((rng.uniform(-50, 50), rng.uniform(-50, 50), 0.0))
-        tol = rng.uniform(0.0, 5.0)
-        exact = {i for i, p in enumerate(pts) if abs((q - p).dot(d)) <= tol}
-        near = index.near(q.dot(d), tol)
-        assert exact <= set(near)
-        assert len(near) == len(set(near)), "no index twice"
-    assert SortedProjection([], d).near(0.0, 1.0) == []
 
 
 def test_alignment_matches_reference_scan():
@@ -234,3 +329,81 @@ def test_point_priority_is_cached_per_kind():
         assert PointFeature(Vector(), kind, ref).priority == POINT_PRIORITY[kind]
     a = PointFeature(Vector((1, 2, 3)), PointKind.ORIGIN, ref)
     assert a == PointFeature(Vector((1, 2, 3)), PointKind.ORIGIN, ref), "equality unchanged"
+
+
+def test_edge_alignment_matches_reference_scan():
+    solver = EdgeAlignmentSolver()
+    found = 0
+    for seed in range(4):
+        cands, moving = _lines(seed), _moving_lines(seed)
+        for ctx in _ctxs():
+            got = solver.solve(moving, cands, ctx)
+            ref = _edge_alignment_reference(moving, cands, ctx)
+            assert [(id(r.moving), id(r.targets[0]), r.axis, r.residual) for r in got] == [
+                (id(m), id(c), axis, res) for m, c, axis, res in ref
+            ]
+            found += len(got)
+    assert found > 0
+
+
+def test_collinear_matches_reference_scan():
+    solver = CollinearSolver()
+    found = 0
+    for seed in range(4):
+        cands, moving = _lines(seed), _mover(seed)
+        for ctx in _ctxs(tol=1.0):
+            got = solver.solve(moving, cands, ctx)
+            ref = _collinear_reference(moving, cands, ctx)
+            assert [(id(r.moving), id(r.targets[0]), r.residual) for r in got] == [
+                (id(m), id(c), res) for m, c, res, _d in ref
+            ]
+            assert [tuple(r.delta.translation) for r in got] == [tuple(d) for *_x, d in ref]
+            found += len(got)
+    assert found > 0
+
+
+def test_spacing_matches_reference_scan():
+    solver = SpacingSolver()
+    found = 0
+    for seed in range(6):
+        cands = _spacing_cloud(seed)
+        rng = random.Random(seed)
+        # Moving points near the continuation of some rows.
+        moving = [
+            PointFeature(p.co + Vector((rng.uniform(-0.2, 0.2), rng.uniform(-0.2, 0.2), 0.0)),
+                         PointKind.BBOX_CORNER, EntityRef("mover"))
+            for p in cands[4::5]
+        ]
+        # A front view: rows along Y run into the screen and must be skipped.
+        for ctx in _ctxs(tol=0.5) + [
+            SolveContext(axes=world_axes(), world_tol=0.5, view_normal=Vector((0, 1, 0)))
+        ]:
+            got = solver.solve(moving, cands, ctx)
+            ref = _spacing_reference(moving, cands, ctx)
+            assert [
+                (id(r.moving), id(r.targets[0]), id(r.targets[1]), r.axis, r.residual) for r in got
+            ] == [
+                (id(m), id(a), id(b), f"gap_{t.entity}", res) for m, a, b, t, res in ref
+            ]
+            found += len(got)
+    assert found > 0
+
+
+def test_label_may_be_lazy():
+    p = PointFeature(Vector(), PointKind.ORIGIN, EntityRef("a"))
+    calls = []
+
+    def text():
+        calls.append(1)
+        return "X · 1 cm"
+
+    rel = Relationship("alignment", "X", text, p, (p,), 0.1, ConstraintDelta(),
+                       GuideLine(Vector(), Vector((1, 0, 0))))
+    assert calls == [], "not formatted until read"
+    assert rel.label == "X · 1 cm" and rel.label == "X · 1 cm"
+    assert calls == [1], "formatted once, then cached"
+    plain = Relationship("alignment", "X", "X", p, (p,), 0.1, ConstraintDelta(),
+                         GuideLine(Vector(), Vector((1, 0, 0))))
+    assert plain.label == "X"
+    plain.label = "Y"
+    assert plain.label == "Y"

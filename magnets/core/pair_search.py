@@ -15,6 +15,8 @@ from collections.abc import Callable, Hashable, Iterable
 
 import numpy as np
 
+from .scoring import FAMILY_PRIORITY
+
 # float32 rounding is ~1.2e-7 relative; margins use ~20x that per unit scale.
 _REL_MARGIN = 1e-5
 
@@ -40,6 +42,25 @@ def coord_margin(*arrays: np.ndarray) -> float:
     return _REL_MARGIN * scale
 
 
+def entity_pairs(entity_ids: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Index pairs ``(i, j)``, i before j, of candidates sharing an entity.
+
+    ``entity_ids`` come from ``small_ids`` (numbered by first appearance), so
+    pairs follow the plain scan order: entities by first appearance, then
+    each entity's points in candidate order, i outer and j inner.
+    """
+    firsts, seconds = [], []
+    for e in range(int(entity_ids.max()) + 1 if len(entity_ids) else 0):
+        idx = np.flatnonzero(entity_ids == e)
+        i, j = np.triu_indices(len(idx), 1)
+        firsts.append(idx[i])
+        seconds.append(idx[j])
+    if not firsts:
+        empty = np.zeros(0, dtype=np.int64)
+        return empty, empty
+    return np.concatenate(firsts), np.concatenate(seconds)
+
+
 def project_px(projection, points: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Approximate ``location_3d_to_region_2d`` for many points.
 
@@ -56,6 +77,55 @@ def project_px(projection, points: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     half = np.array([width / 2.0, height / 2.0])
     xy = half + half * (prj[:, :2] / safe_w[:, None])
     return xy, valid
+
+
+def approx_rank_order(
+    ctx,
+    family: str,
+    priority: np.ndarray,
+    moving_co: np.ndarray,
+    correction: np.ndarray,
+    residual: np.ndarray,
+    margin: float,
+) -> tuple[np.ndarray, float, np.ndarray]:
+    """Approximate ``SolveContext.rank_order`` per row: ``(approx, walk margin, keep)``.
+
+    ``priority``, ``moving_co``, ``correction`` and ``residual`` are per row;
+    ``margin`` bounds the world-space error of the inputs. Without a
+    projection the order is the residual. With one it is -score from the
+    approximate screen distance; rows clearly beyond the passive range are
+    dropped (``keep``) and off-screen rows sort first, so they are decided
+    exactly.
+    """
+    if ctx.projection is None or ctx.screen_dist is None:
+        return residual, margin, np.ones(len(residual), dtype=bool)
+    _matrix, width, height = ctx.projection
+    margin_px = 1e-4 * (width + height)
+    a_xy, a_ok = project_px(ctx.projection, moving_co)
+    b_xy, b_ok = project_px(ctx.projection, moving_co + correction)
+    sd = np.linalg.norm(b_xy - a_xy, axis=1)
+    valid = a_ok & b_ok
+    keep = ~valid | (sd <= ctx.passive_px + margin_px)
+    passive = max(ctx.passive_px, 1.0)
+    tol = max(ctx.world_tol, 1e-9)
+    score = (
+        FAMILY_PRIORITY.get(family, 0) * 1000.0
+        + priority * 10.0
+        + np.maximum(0.0, 1.0 - sd / passive) * 100.0
+        + np.maximum(0.0, 1.0 - residual / tol) * 50.0
+        - sd
+    )
+    approx = np.where(valid, -score, -np.inf)
+    walk_margin = margin_px * (1.0 + 100.0 / passive) + 50.0 * margin / tol + 1e-6
+    return approx, walk_margin, keep
+
+
+def exact_rank(ctx, family: str, moving, residual: float, moving_co, correction):
+    """``(scalar, order)`` for ``best_rows`` from ``ctx.rank_order``, or None."""
+    order = ctx.rank_order(family, moving, residual, moving_co, correction)
+    if order is None:
+        return None
+    return order[0], order
 
 
 def best_rows(
