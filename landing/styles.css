@@ -8,7 +8,7 @@
   --line: #242424;
   --line-2: #333333;
   --passive: #5a5a5a;
-  /* Guide colors mirror the add-on: axis colors for alignment, Active Color (magenta) for the rest. */
+  /* Guide colors mirror the add-on: engaged lines in the Active Color (magenta), axis colors on alignment labels. */
   --axis-x: #ff4d64;
   --axis-y: #8bd13a;
   --axis-z: #4a9bff;
@@ -299,7 +299,7 @@ kbd {
 .legend li > span:last-child { grid-column: 2; font-size: var(--fs-ui); line-height: 1.5; color: var(--muted); }
 .sw { display: block; width: 28px; height: 0; }
 .sw--passive { border-top: 1.5px dashed var(--passive); }
-.sw--engaged { height: 8px; background: linear-gradient(var(--axis-y) 0 0) top / 100% 2px no-repeat, linear-gradient(var(--active) 0 0) bottom / 100% 2px no-repeat; }
+.sw--engaged { height: 2px; background: var(--active); }
 .sw--label { width: 24px; height: 18px; border-radius: 9px; background: var(--axis-y); color: var(--bg); font: 400 11px/18px var(--mono); text-align: center; }
 .sw--dot { width: 8px; height: 8px; margin-left: 10px; border-radius: 50%; background: var(--fg); }
 .sw--landing { width: 22px; height: 14px; border: 1.5px dashed var(--fg); border-radius: 2px; }
@@ -348,7 +348,11 @@ kbd {
 }
 @keyframes engage { 0% { opacity: 1; } 15%, 70% { opacity: 0; } 85%, 100% { opacity: 1; } }
 
-.spec--note { align-content: start; grid-template-rows: auto; gap: 12px; }
+.spec--note { align-content: start; grid-template-rows: auto; gap: 12px; grid-column: 1 / -1; }
+.spec--note p { max-width: 80ch; }
+/* Off-by-default types: same plate, quieter drawing. */
+.spec--off svg { opacity: .6; }
+.spec p em { font-style: normal; color: var(--muted); }
 
 @media (max-width: 900px) { .specimens { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .specimens { grid-template-columns: 1fr; } .spec { padding-inline: 0; } }
@@ -375,7 +379,7 @@ kbd {
 .track-wrap { display: grid; gap: 12px; }
 .track__stage { border-radius: var(--r-panel); background: var(--surface); overflow: hidden; }
 .track { display: block; width: 100%; height: auto; overflow: visible; }
-.track__guide { stroke: var(--axis-y); stroke-width: 1.5; transition: opacity .2s ease; }
+.track__guide { stroke: var(--active); stroke-width: 1.5; transition: opacity .2s ease; }
 .track__cursor-path { fill: none; stroke: var(--line-2); stroke-width: 1; stroke-dasharray: 3 5; }
 .track__block rect { fill: var(--fg); }
 .track__caption { font-size: var(--fs-ui); color: var(--muted); }
@@ -417,7 +421,7 @@ kbd {
 .tband { transform-box: fill-box; transform-origin: center; transition: transform .3s var(--ease-out); }
 .band-range { fill: var(--fg); fill-opacity: .035; }
 .band-break { fill: var(--fg); fill-opacity: .06; }
-.band-snap { fill: var(--axis-y); fill-opacity: .16; }
+.band-snap { fill: var(--active); fill-opacity: .16; }
 .band__label { font: 400 12px var(--mono); fill: var(--muted); transition: transform .3s var(--ease-out); }
 @media (max-width: 900px) { .tol { grid-template-columns: 1fr; } }
 

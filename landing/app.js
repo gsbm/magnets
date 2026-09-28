@@ -94,11 +94,11 @@
     // Each example: reference objects, the selection's path, and the guide it engages.
     const SCENES = [
       {
-        title: "Alignment", text: "The selection lands on the same X coordinate as Cube.",
+        title: "Alignment", text: "The selection's left face lines up with Cube's.",
         refs: [{ x: 80, y: 50, w: 90, h: 90, name: "Cube" }],
-        sel: { w: 70, h: 70, from: [260, 250], to: [90, 230] },
-        guide: "M125 0V360", color: "--axis-x", tag: { x: 125, y: 190, t: "X" },
-        dots: [[125, 140], [125, 230]],
+        sel: { w: 70, h: 70, from: [260, 250], to: [80, 230] },
+        guide: "M80 140V230", color: "--axis-x", tag: { x: 80, y: 185, t: "X" },
+        dots: [[80, 140], [80, 230]],
       },
       {
         title: "Equal Spacing", text: "The selection repeats the gap between Cube and Cube.001.",
@@ -108,11 +108,11 @@
         color: "--active", tag: { x: 270, y: 282, t: "⇔ 2 m" },
       },
       {
-        title: "Midpoint", text: "The selection lands halfway between Cube and Cube.001.",
+        title: "Equal Spacing", text: "The selection lands centered between Cube and Cube.001: equal gaps on both sides.",
         refs: [{ x: 50, y: 150, w: 60, h: 60, name: "Cube" }, { x: 370, y: 150, w: 60, h: 60, name: "Cube.001" }],
         sel: { w: 40, h: 40, from: [290, 290], to: [220, 160] },
-        guide: "M110 180H370", color: "--active", tag: { x: 240, y: 128, t: "◇" },
-        dots: [[240, 180]],
+        guide: "M110 250H220M260 250H370M110 244v12M220 244v12M260 244v12M370 244v12",
+        color: "--active", tag: { x: 240, y: 282, t: "⇔ 1.1 m" },
       },
     ];
     const T = { drag: [400, 1900], release: 2400, snap: 200, fade: 3300, end: 3800 };
@@ -153,7 +153,8 @@
       });
       const c = color(s.color);
       const passive = el("path", { class: "passive", d: s.guide }, scene);
-      const engaged = el("path", { class: "engaged", d: s.guide, stroke: c }, scene);
+      // Engaged lines use the Active Color; the axis color is on the label only.
+      const engaged = el("path", { class: "engaged", d: s.guide, stroke: color("--active") }, scene);
       const landing = el("rect", { class: "landing", x: s.sel.to[0], y: s.sel.to[1], width: s.sel.w, height: s.sel.h }, scene);
       const anchors = el("g", {}, scene);
       (s.dots || []).forEach(([x, y]) => el("circle", { class: "dot", cx: x, cy: y, r: 3.5 }, anchors));
@@ -473,15 +474,14 @@
     // [name, description, default or type, extra search words]
     const D = [
       { g: "Viewport labels", w: "labels", glyph: true, items: [
-        ["X  Y  Z", "Alignment on that axis. A length after it (X · 0.02 m) is the distance still to close.", "Alignment", "axis alignment"],
+        ["X  Y  Z", "Alignment on that axis, in the axis color. A length after it (X · 0.02 m) is the distance still to close.", "Alignment", "axis alignment face flush"],
         ["⇔ 2 m", "Equal Spacing: the repeated gap between objects.", "Equal Spacing", "gap distribute distribution spacing"],
-        ["= · 2 m", "Equal Spacing measured across one object's own span.", "Equal Spacing", "span spacing"],
+        ["= · 2 m", "Repeat Size: the gap equals that object's own size. Off by default.", "Repeat Size", "span repeat size"],
         ["▭ X · 2 m", "Equal Size: the matched size along that axis.", "Equal Size", "size scale"],
-        ["◇", "Midpoint between two points.", "Midpoint", "middle half"],
-        ["◎", "Tangency (a contact point between curves) or Concentric (a shared center). The guide shape tells them apart.", "Tangency / Concentric", "circle tangent contact center concentric"],
-        ["↔ surf", "Tangency at a surface offset.", "Tangency", "surface offset contact"],
-        ["∥", "Parallel edges or directions.", "Parallel", "parallel"],
-        ["⊥", "Perpendicular edges or directions.", "Perpendicular", "right angle 90 perpendicular"],
+        ["◇", "Midpoint between two points of one object.", "Midpoint", "middle half"],
+        ["◎", "Sphere Tangency (bounding spheres touching) or Concentric (a shared center). Both are off by default.", "Sphere Tangency / Concentric", "circle tangent sphere contact center concentric"],
+        ["↔ surf", "Surface Contact: a point on a surface, or at an offset from it.", "Surface Contact", "surface offset contact tangency floor"],
+        ["∥", "Parallel: an edge moved onto the line of another object's edge.", "Parallel", "parallel edge line"],
         ["-", "Collinear: the point lies on an edge's line.", "Collinear", "line collinear"],
         ["▭", "Coplanar: the point lies on a face's plane. With an axis and a length, it is Equal Size instead.", "Coplanar", "plane face coplanar"],
         ["⇔ YZ", "Symmetry across the XY, XZ or YZ plane.", "Symmetry", "mirror symmetry plane xy xz"],
@@ -500,16 +500,18 @@
         ["Re-engage Gap", "Distance the pointer must leave the snap zone before a guide can engage again.", "12 px"],
         ["Angle Snap", "Rotation snaps to this increment in degrees. 0 turns it off.", "15°"],
         ["Even Spacing", "Which gap equal-spacing guides equalize: Centers, Edges or Both.", "Both"],
+        ["Depth Axis Cutoff", "Ignore guides and snaps along directions within this angle of the view direction, where a move into the screen is hard to see. Applies in every view.", "30°"],
+        ["Prioritize Nearby Objects", "Ignore objects outside the view; distant ones only offer alignment, near snapping. Faster in large scenes.", "On"],
         ["Yield to Blender Snapping", "Skip the Magnets snap whenever Blender's own snapping is active.", "On"],
       ]},
       { g: "Guides", w: "panel", items: [
         ["Range", "Screen distance within which guides appear.", "72 px"],
-        ["Maximum Guides", "Largest number of guides shown at once.", "5"],
+        ["Maximum Guides", "Largest number of guides shown at once. Beyond the engaged ones, at most one per free direction.", "5"],
         ["Spacing", "Minimum screen distance between shown guides.", "24 px"],
         ["Passive Guides", "Show guides before they engage.", "On"],
         ["Feature Hints", "Show the reference feature next to each guide: origin, center, face, corner…", "On"],
         ["Ticks", "Tick marks at guide reference points.", "On"],
-        ["Extend to Viewport", "Draw guide lines across the whole 3D viewport.", "On"],
+        ["Extend to Viewport", "Stretch edge guide lines across the 3D viewport. Alignment guides always join the two objects.", "On"],
       ]},
       { g: "Alignment", w: "panel", items: [
         ["Alignment Frame", "Axes to align in: World, Local, View, Parent, Collection or a Custom object.", "World"],
@@ -518,12 +520,13 @@
         ["Reference points", "Which points count: Origin, Pivot, Centroid, Face Centers, Bounding Box Corners.", "All"],
       ]},
       { g: "Guide Types", w: "panel", items: [
-        ["Relationship types", "Turn each on or off: Alignment, Equal Spacing, Equal Size, Midpoint, Tangency, Parallel, Perpendicular, Collinear, Coplanar, Concentric, Symmetry.", "All on"],
+        ["Relationship types", "Turn each on or off. On by default: Alignment, Equal Spacing, Equal Size, Midpoint, Surface Contact, Parallel, Coplanar. Off by default: Repeat Size, Sphere Tangency, Collinear, Concentric, Symmetry.", "7 of 12 on"],
+        ["Diagonal Guides", "Also offer Midpoint and Repeat Size guides between points lying diagonally on an object, not only along the alignment axes.", "Off"],
       ]},
       { g: "Colors and lines", w: "prefs", items: [
         ["Passive Color", "Guide color while approaching the snap zone.", "Pale grey"],
-        ["Active Color", "Color of engaged guides that have no axis color.", "Magenta"],
-        ["Engaged Colors", "Axis Colors: alignment uses X red, Y green, Z blue, other types use the Active Color. Active Color: every engaged guide uses it.", "Axis Colors"],
+        ["Active Color", "Color of engaged guide lines.", "Magenta"],
+        ["Engaged Colors", "Axis Colors: alignment labels use X red, Y green, Z blue; lines use the Active Color. Active Color: labels use it too.", "Axis Colors"],
         ["Line Width", "Guide line width in pixels.", "1.0 px"],
         ["Solid Lines", "Solid guide lines, otherwise dashed. Dashes follow the viewport zoom.", "On"],
       ]},
