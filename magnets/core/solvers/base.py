@@ -12,6 +12,7 @@ from ..frames import Frame
 from ..labels import LengthFormat, format_length
 from ..relationship import Relationship
 from ..transform import TransformMode
+from ..view_filter import guide_direction_visible
 
 
 @dataclass
@@ -31,6 +32,15 @@ class SolveContext:
     # Scene-aware length formatter for labels (e.g. "12.3 cm"); None falls back
     # to a plain number scaled by ``unit_scale``.
     length_format: LengthFormat | None = None
+    # World view direction of an orthographic view (None in perspective).
+    # Solvers may skip what ``view_filter`` would hide in this view anyway.
+    view_normal: Vector | None = None
+
+    def direction_hidden(self, direction: Vector) -> bool:
+        """True when the view filter hides a snap/guide along ``direction``."""
+        if self.view_normal is None:
+            return False
+        return not guide_direction_visible(direction, self.view_normal)
 
     def format_length(self, value: float) -> str:
         """Format a world-space length for a guide label."""

@@ -206,6 +206,96 @@ for label, n, budget_ms, max_points in (
 
 ov._session = None
 bpy.ops.object.mode_set(mode="OBJECT")
+
+# ── Inference on a dense mixed scene ─────────────────────────────────────────
+# 32 rotated cubes, cylinders, spheres and empties within ±8 m at mixed
+# heights; a 1 m cube is moved to fixed poses. Work is counted at the two
+# expensive stages: relationships out of the solvers, and in-range items
+# that reach ranking.
+import random
+
+sys.path.insert(0, r"{REPO_ROOT / 'tests' / 'integration'!s}")
+from fake_view import PERSP, TOP
+from magnets.core import scoring
+from magnets.ops import pipeline
+
+bpy.ops.object.select_all(action="SELECT")
+bpy.ops.object.delete()
+rng = random.Random(1)
+for k in range(32):
+    loc = (rng.uniform(-8, 8), rng.uniform(-8, 8), rng.uniform(-1.5, 1.5))
+    kind = k % 4
+    if kind == 0:
+        bpy.ops.mesh.primitive_cube_add(
+            size=rng.uniform(0.5, 2.0), location=loc, rotation=(0, 0, rng.uniform(0, 1))
+        )
+    elif kind == 1:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=1.0, location=loc)
+    elif kind == 2:
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.6, location=loc)
+    else:
+        bpy.ops.object.empty_add(location=loc)
+bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-9.0, -9.0, 0.0))
+mover = ctx.active_object
+bpy.ops.object.select_all(action="DESELECT")
+mover.select_set(True)
+ctx.view_layer.objects.active = mover
+ctx.view_layer.update()
+
+work = {{"rels": 0, "items": 0}}
+_dispatch, _rank = pipeline.dispatch, scoring.rank
+
+
+def counting_dispatch(*args, **kwargs):
+    rels = _dispatch(*args, **kwargs)
+    work["rels"] += len(rels)
+    return rels
+
+
+def counting_rank(items, *args, **kwargs):
+    work["items"] += len(items)
+    return _rank(items, *args, **kwargs)
+
+
+pipeline.dispatch, scoring.rank = counting_dispatch, counting_rank
+POSES = ((0.3, 0.2, 0.1), (-2.7, 3.1, 0.4), (4.2, -1.6, -0.3))
+# Per view, summed over POSES. Before the solver/ranking work:
+#   top   rels 42757 items 21139   (~70 ms/tick over a drag)
+#   persp rels 89014 items 89014   (~160 ms/tick)
+# After: top 21519 / 5367, persp 69143 / 49602. Bounds leave ~5% headroom.
+for name, view, max_rels, max_items in (
+    ("top", TOP, 22_600, 5_650),
+    ("persp", PERSP, 72_600, 52_100),
+):
+    ov._end_session()
+    mover.location = (-9.0, -9.0, 0.0)
+    ctx.view_layer.update()
+    ov._begin_session(ctx, "TRANSFORM_OT_translate", view=view)
+    work["rels"] = work["items"] = 0
+    total_ms = 0.0
+    for pose in POSES:
+        mover.location = pose
+        ctx.view_layer.update()
+        _obj, moving, anchor, _edit, _bm = ov._moving_target(ctx)
+        ms, _result = timed(lambda: ov.run_inference(
+            ctx, region=view[0], rv3d=view[1], snapshot=ov._session.snapshot,
+            moving=moving, anchor_world=anchor, snap=ov._session.snap,
+            frozen_world_tol=ov._session.world_tol,
+        ))
+        total_ms += ms
+    tick_ms = total_ms / len(POSES)
+    print(
+        f"PERF dense {{name}}: {{tick_ms:.1f}} ms/tick "
+        f"rels={{work['rels']}} ranked_items={{work['items']}}"
+    )
+    check(work["rels"] <= max_rels, f"{{name}}: {{work['rels']}} relationships > {{max_rels}}")
+    check(work["items"] <= max_items, f"{{name}}: {{work['items']}} ranked items > {{max_items}}")
+    check(work["items"] < work["rels"], f"{{name}}: out-of-range and duplicate items dropped")
+    # Reference: top ~30 ms/tick, persp ~85 ms/tick.
+    check(tick_ms < 600.0, f"{{name}}: dense inference too slow: {{tick_ms:.1f}} ms")
+pipeline.dispatch, scoring.rank = _dispatch, _rank
+ov._end_session()
+
 magnets.unregister()
 print("MAGNETS_PERF_OK")
 """

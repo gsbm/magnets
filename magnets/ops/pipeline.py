@@ -10,7 +10,7 @@ from mathutils import Vector
 from ..adapters.frames import frame_axes
 from ..adapters.surface import append_surfaces, surface_features_for_point
 from ..adapters.units import length_formatter, scene_unit_info
-from ..adapters.view import filter_for_view, ui_scale
+from ..adapters.view import filter_for_view, ui_scale, view_normal_world
 from ..core import scoring
 from ..core import solvers as _solvers  # noqa: F401 - register solver table
 from ..core.features import Feature, FeaturePool, feature_anchor
@@ -102,6 +102,67 @@ def screen_metrics(region, rv3d, rel: Relationship):
     return (a - b).length, anchor
 
 
+def _rank_items(
+    rels: list[Relationship],
+    region,
+    rv3d,
+    passive_px: float,
+    passive_world: float,
+) -> list[scoring.RankItem]:
+    """Score ``rels`` into RankItems, keeping those within ``passive_px``.
+
+    Same keys, scores and distances as ``rank_key`` + ``relationship_score``
+    + ``screen_metrics`` per relationship, but only in-range items are ever
+    ranked, held or drawn (``scoring.rank`` drops the rest), so the distance
+    is measured first and keys and scores are built for those alone. Each
+    moving feature is projected once, not once per relationship. The screen
+    anchor is left unset: ranking suppresses one guide per slot and never
+    reads it.
+    """
+    project = view3d_utils.location_3d_to_region_2d
+    moving_2d: dict[int, object] = {}
+    kinds: dict[int, str] = {}
+
+    def kind_of(feature) -> str:
+        fid = id(feature)
+        kind = kinds.get(fid)
+        if kind is None:
+            kind = kinds[fid] = feature_kind(feature)
+        return kind
+
+    items: list[scoring.RankItem] = []
+    # Items equal in (key, score, distance) sort next to each other and every
+    # consumer takes the first of them, so later ones never matter.
+    seen: set[tuple] = set()
+    for rel in rels:
+        moving = rel.moving
+        moving_co = feature_anchor(moving)
+        mid = id(moving)
+        if mid in moving_2d:
+            a = moving_2d[mid]
+        else:
+            a = moving_2d[mid] = project(region, rv3d, moving_co)
+        if a is None:
+            continue
+        snapped = moving_co + rel.delta.translation
+        b = project(region, rv3d, snapped)
+        if b is None:
+            continue
+        sd = (a - b).length
+        if sd > passive_px:
+            continue
+        target = rel.targets[0]
+        key = (rel.family, rel.axis, target.entity, kind_of(moving), kind_of(target))
+        score = scoring.relationship_score(rel, sd, passive_px, passive_world)
+        if (key, score, sd) in seen:
+            continue
+        seen.add((key, score, sd))
+        items.append(
+            scoring.RankItem(key=key, score=score, screen_dist=sd, payload=rel)
+        )
+    return items
+
+
 def run_inference(
     context,
     *,
@@ -175,25 +236,13 @@ def run_inference(
         transform_mode=transform_mode,
         spacing_metric=options.spacing_metric,
         length_format=length_formatter(context),
+        view_normal=view_normal_world(rv3d),
     )
     rels = dispatch(moving, candidate_pool, ctx, enabled_families(options))
     rels = filter_for_view(rels, rv3d)
     rels = restrict_snap_axes(rels, enabled_snap_axes(options))
 
-    items: list[scoring.RankItem] = []
-    for rel in rels:
-        sd, anchor = screen_metrics(region, rv3d, rel)
-        if sd is None:
-            continue
-        items.append(
-            scoring.RankItem(
-                key=rank_key(rel),
-                score=scoring.relationship_score(rel, sd, passive_px, passive_world),
-                screen_dist=sd,
-                payload=rel,
-                screen_anchor=anchor,
-            )
-        )
+    items = _rank_items(rels, region, rv3d, passive_px, passive_world)
     ranked, visible = scoring.rank(
         items,
         passive_px,

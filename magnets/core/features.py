@@ -75,6 +75,12 @@ class PointFeature:
     co: Vector
     kind: PointKind
     entity_ref: EntityRef
+    # POINT_PRIORITY[kind], looked up once: it is read for every relationship
+    # and hashing an Enum member runs Python code.
+    _priority: int = field(default=0, init=False, repr=False, compare=False)
+
+    def __post_init__(self):
+        object.__setattr__(self, "_priority", POINT_PRIORITY[self.kind])
 
     @classmethod
     def from_name(cls, co: Vector, kind: PointKind, name: str) -> PointFeature:
@@ -89,7 +95,7 @@ class PointFeature:
     @property
     def priority(self) -> int:
         """Ranking priority for this feature kind."""
-        return POINT_PRIORITY[self.kind]
+        return self._priority
 
     @property
     def anchor(self) -> Vector:

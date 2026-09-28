@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ..features import FeatureType, PointFeature
-from ..geometry import reflect_point
+from ..geometry import normalize, reflect_point
 from ..relationship import ConstraintDelta, GuidePlane, Relationship
 from .base import SolveContext, Solver
 
@@ -26,13 +26,29 @@ class SymmetrySolver(Solver):
         """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
+        # A plane facing an orthographic view is hidden by the view filter.
+        planes = [
+            (plane_name, ctx.axes[axis_key], normalize(ctx.axes[axis_key]))
+            for plane_name, axis_key in _SYMMETRY_PLANES
+            if not ctx.direction_hidden(ctx.axes[axis_key])
+        ]
+        # The residual is the part of (m - c) off the plane normal. This
+        # prefilter only skips pairs clearly beyond ``tol`` (margin for
+        # single-precision rounding); the exact test below is unchanged.
+        reject2 = (tol * (1.0 + 1e-3) + 1e-6) ** 2
         for m in moving:
             for c in candidates:
                 if c.entity_ref.name == m.entity_ref.name:
                     continue
-                mid = (m.co + c.co) * 0.5
-                for plane_name, axis_key in _SYMMETRY_PLANES:
-                    normal = ctx.axes[axis_key]
+                w = m.co - c.co
+                ww = w.dot(w)
+                mid = None
+                for plane_name, normal, unit in planes:
+                    along = w.dot(unit)
+                    if ww - along * along > reject2:
+                        continue
+                    if mid is None:
+                        mid = (m.co + c.co) * 0.5
                     reflected = reflect_point(m.co, mid, normal)
                     residual = (reflected - c.co).length
                     if residual > tol:

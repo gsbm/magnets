@@ -25,34 +25,39 @@ class MidpointSolver(Solver):
         """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
+        # Same-kind pairs per entity and their midpoints do not depend on the
+        # moving point: build them once, in the original visiting order.
+        by_entity: dict[str, list[PointFeature]] = {}
+        for c in candidates:
+            by_entity.setdefault(c.entity_ref.name, []).append(c)
+        pairs_by_entity: list[tuple[str, list]] = []
+        for name, pts in by_entity.items():
+            pairs = []
+            for i in range(len(pts)):
+                for j in range(i + 1, len(pts)):
+                    a, b = pts[i], pts[j]
+                    if a.kind == b.kind:
+                        pairs.append((a, b, (a.co + b.co) * 0.5))
+            if pairs:
+                pairs_by_entity.append((name, pairs))
         for m in moving:
-            by_entity: dict[str, list[PointFeature]] = {}
-            for c in candidates:
-                if c.entity_ref.name == m.entity_ref.name:
+            for name, pairs in pairs_by_entity:
+                if name == m.entity_ref.name:
                     continue
-                by_entity.setdefault(c.entity_ref.name, []).append(c)
-            for pts in by_entity.values():
-                if len(pts) < 2:
-                    continue
-                for i in range(len(pts)):
-                    for j in range(i + 1, len(pts)):
-                        a, b = pts[i], pts[j]
-                        if a.kind != b.kind:
-                            continue
-                        mid = (a.co + b.co) * 0.5
-                        residual = (m.co - mid).length
-                        if residual > tol:
-                            continue
-                        out.append(
-                            Relationship(
-                                family=self.family,
-                                axis=f"mid_{a.entity}_{b.entity}",
-                                label="◇",
-                                moving=m,
-                                targets=(a, b),
-                                residual=residual,
-                                delta=ConstraintDelta.from_vector(mid - m.co),
-                                guide=GuideSegment(a=a.co.copy(), b=b.co.copy()),
-                            )
+                for a, b, mid in pairs:
+                    residual = (m.co - mid).length
+                    if residual > tol:
+                        continue
+                    out.append(
+                        Relationship(
+                            family=self.family,
+                            axis=f"mid_{a.entity}_{b.entity}",
+                            label="◇",
+                            moving=m,
+                            targets=(a, b),
+                            residual=residual,
+                            delta=ConstraintDelta.from_vector(mid - m.co),
+                            guide=GuideSegment(a=a.co.copy(), b=b.co.copy()),
                         )
+                    )
         return out

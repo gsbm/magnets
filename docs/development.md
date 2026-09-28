@@ -29,8 +29,9 @@ Unit and integration suites are separated:
    ```
 
    `tests/integration/test_perf_headless.py` is the speed suite. It covers
-   drag start on a 400-object scene (scene cache) and Edit Mode ticks on a
-   250k-vertex mesh. Each check pairs a generous time budget with a
+   drag start on a 400-object scene (scene cache), Edit Mode ticks on a
+   250k-vertex mesh, and inference on a dense mixed scene (relationships out
+   of the solvers and items reaching ranking, in top and perspective views). Each check pairs a generous time budget with a
    deterministic work count (cache hits, BVH builds, feature counts), so
    regressions are caught without flaky timings. Run it with `-s` to see the
    measured numbers.

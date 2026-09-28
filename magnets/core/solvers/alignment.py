@@ -12,6 +12,7 @@ from ..features import FeatureType, LineFeature, PointFeature
 from ..geometry import lines_parallel, normalize
 from ..labels import alignment_label
 from ..relationship import ConstraintDelta, GuideLine, Relationship
+from ..spatial import SortedProjection
 from .base import SolveContext, Solver
 
 
@@ -34,39 +35,64 @@ class AlignmentSolver(Solver):
         """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
+        # An axis snapping along the depth of an orthographic view is hidden
+        # by the view filter: skip it. Per remaining axis, candidates sorted by
+        # coordinate so each moving point only visits those within ``tol``.
+        axes = [
+            (name, direction)
+            for name, direction in ctx.axes.items()
+            if not ctx.direction_hidden(direction.normalized())
+        ]
+        indexes = [SortedProjection([c.co for c in candidates], d) for _n, d in axes]
         for m in moving:
-            for c in candidates:
+            # Same (candidate, axis) visiting order as a full nested scan.
+            hits = sorted(
+                (ci, ai)
+                for ai, (_name, direction) in enumerate(axes)
+                for ci in indexes[ai].near(m.co.dot(direction), tol)
+            )
+            # Candidates of one entity and kind at the same offset give the same
+            # key, residual, correction and score; only their guide's anchor
+            # differs, and ranking always keeps the first. Skip the rest (in
+            # orthographic views, only among guides the filter treats alike).
+            seen: set[tuple] = set()
+            for ci, ai in hits:
+                c = candidates[ci]
                 if c.entity_ref.name == m.entity_ref.name:
                     continue
                 w = m.co - c.co
-                for axis_name, direction in ctx.axes.items():
-                    along = w.dot(direction)
-                    residual = abs(along)
-                    if residual > tol:
-                        continue
-                    # Correction: slide the moving point along this axis until
-                    # its coordinate matches the candidate's. Other axes untouched.
-                    correction = -along * direction
-                    # Guide line lies in the shared-coordinate plane, running from
-                    # the target through the (aligned) moving point: a vertical
-                    # guide for an X match, horizontal for Y, etc.
-                    perp = w - along * direction
-                    guide_dir = perp.normalized() if perp.length > 1e-6 else _fallback_perp(direction)
-                    out.append(
-                        Relationship(
-                            family=self.family,
-                            axis=axis_name,
-                            label=alignment_label(
-                                axis_name, c.kind, residual, ctx.unit_scale, ctx.length_format
-                            ),
-                            moving=m,
-                            targets=(c,),
-                            residual=residual,
-                            delta=ConstraintDelta.from_vector(correction),
-                            guide=GuideLine(point=c.co.copy(), direction=guide_dir),
-                            constraint_dir=direction.normalized(),
-                        )
+                axis_name, direction = axes[ai]
+                along = w.dot(direction)
+                residual = abs(along)
+                if residual > tol:
+                    continue
+                # Guide line lies in the shared-coordinate plane, running from
+                # the target through the (aligned) moving point: a vertical
+                # guide for an X match, horizontal for Y, etc.
+                perp = w - along * direction
+                guide_dir = perp.normalized() if perp.length > 1e-6 else _fallback_perp(direction)
+                dup_key = (ai, c.entity_ref.name, c.kind, along, ctx.direction_hidden(guide_dir))
+                if dup_key in seen:
+                    continue
+                seen.add(dup_key)
+                # Correction: slide the moving point along this axis until
+                # its coordinate matches the candidate's. Other axes untouched.
+                correction = -along * direction
+                out.append(
+                    Relationship(
+                        family=self.family,
+                        axis=axis_name,
+                        label=alignment_label(
+                            axis_name, c.kind, residual, ctx.unit_scale, ctx.length_format
+                        ),
+                        moving=m,
+                        targets=(c,),
+                        residual=residual,
+                        delta=ConstraintDelta.from_vector(correction),
+                        guide=GuideLine(point=c.co.copy(), direction=guide_dir),
+                        constraint_dir=direction.normalized(),
                     )
+                )
         return out
 
 

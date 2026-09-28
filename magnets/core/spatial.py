@@ -7,6 +7,7 @@ query interface, so strategies are swappable.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from bisect import bisect_left, bisect_right
 
 from mathutils import Vector
 
@@ -132,6 +133,30 @@ class BVHIndex(SpatialIndex):
             return []
         ordered = sorted(self._items, key=lambda it: (it[0] - center).length_squared)
         return [p for (_co, p) in ordered[:n]]
+
+
+class SortedProjection:
+    """Points sorted by their coordinate along one direction.
+
+    ``near(value, tol)`` returns the indices (into the original list) of the
+    points whose coordinate lies within ``tol`` of ``value``, widened by a
+    rounding margin: a superset of what an exact per-pair test keeps, so
+    callers still run that test and get identical results, just on fewer pairs.
+    """
+
+    def __init__(self, points: list[Vector], direction: Vector):
+        coords = [p.dot(direction) for p in points]
+        self._order = sorted(range(len(coords)), key=coords.__getitem__)
+        self._values = [coords[i] for i in self._order]
+
+    def near(self, value: float, tol: float) -> list[int]:
+        """Indices whose coordinate is within ``tol`` (+ margin) of ``value``."""
+        # mathutils stores single-precision floats, so (m - c).dot(d) and
+        # m.dot(d) - c.dot(d) can differ by ~1e-7 relative.
+        margin = 1e-4 * (1.0 + abs(value) + tol)
+        lo = bisect_left(self._values, value - tol - margin)
+        hi = bisect_right(self._values, value + tol + margin)
+        return self._order[lo:hi]
 
 
 def build_point_index(
