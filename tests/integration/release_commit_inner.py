@@ -187,7 +187,7 @@ check(close(loc(ob("Mover")), (2.4, 5.0, 0.0)),
 
 # The snapped coordinate is the target's exact stored value, not a near miss
 # (aligning to X 2.336 lands on 2.336, never 2.3359999).
-for odd_x in (2.336, -7.1234, 137.41):
+for odd_x in (2.336, -4.4321, 137.41):  # no other feature within snap range
     reset()
     ob("Target").location.x = odd_x
     bpy.context.view_layer.update()
@@ -199,6 +199,21 @@ for odd_x in (2.336, -7.1234, 137.41):
     release(view=view)
     check(ob("Mover").location.x == ob("Target").location.x,
           f"snap lands exactly on X {odd_x}: {ob('Mover').location.x!r} vs {ob('Target').location.x!r}")
+
+# Aligning a face beats a farther origin match: a 0.6 m mover dropped with its
+# +X face 0.5 px from Target's +X face plane (x = 1) lines that face up,
+# although its origin is also inside the snap zone (14.5 px from that plane).
+for view_name, view in (("top", TOP), ("persp", PERSP)):
+    reset()
+    ob("Mover").scale = (0.3, 0.3, 0.3)
+    bpy.context.view_layer.update()
+    push("shrink mover")
+    begin(view=view)
+    move(ob("Mover"), by=(0.71 - 4.0, 1.5, 0.0))
+    release(view=view)
+    # X only: in perspective Y may also snap (equal spacing with Mover2).
+    check(abs(loc(ob("Mover")).x - 0.7) < 1e-4,
+          f"{view_name}: face alignment wins over the origin: {tuple(loc(ob('Mover')))}")
 
 # ── Translate: which axes may snap ───────────────────────────────────────────
 # Native Y lock (G Y): the X correction is masked away.
@@ -357,6 +372,8 @@ size = scaled(1.0)
 check(abs(size - 2.0) < 1e-6 and not ov._session.committed, "cancelled scale does nothing")
 size = scaled(2.0)  # 4 m: 2 m from Target and Big, out of range
 check(abs(size - 4.0) < 1e-4, f"no neighbour of that size, got {size:.4f}")
+size = scaled(2.5)  # 5 m: 1 m (50 px) from Big's 6 m, beyond the 16 px snap zone
+check(abs(size - 5.0) < 1e-4, f"a clearly different size is kept, got {size:.4f}")
 
 # Rotate/scale in edit mode are left to Blender.
 for op in ("TRANSFORM_OT_rotate", "TRANSFORM_OT_resize"):

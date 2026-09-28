@@ -211,7 +211,7 @@ def test_snap_hysteresis_holds_latch_when_not_in_top_k():
         payload="other",
     )
     visible = [other, latched]
-    snap.pick_active([latched], snap_px=12.0, hysteresis_px=4.0, visible=visible)
+    snap.pick_active([latched], snap_px=12.0, hysteresis_px=4.0)
     active, snapped = snap.pick_active(
         [other], snap_px=12.0, hysteresis_px=4.0, visible=visible
     )

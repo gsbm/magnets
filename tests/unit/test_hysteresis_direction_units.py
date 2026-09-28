@@ -209,11 +209,15 @@ def test_hysteresis_band_hold_yields_to_guide_in_zone():
     _pick(snap, [_item(A, 6.0)])
     active, snapped = _pick(snap, [_item(A, 14.0), _item(B, 3.5)])
     assert snapped and active.key == B, "the in-zone guide takes over"
-    # Inside the snap zone the latch keeps its guide (no flicker between two).
+    # Inside the snap zone the latch keeps its guide against a rival that is
+    # only slightly closer (no flicker between two)...
     snap = SnapHysteresis()
     _pick(snap, [_item(A, 6.0)])
-    active, _ = _pick(snap, [_item(A, 10.0), _item(B, 3.5)])
+    active, _ = _pick(snap, [_item(A, 8.0), _item(B, 3.5)])
     assert active.key == A
+    # ...and yields to one clearly closer (by more than the switch margin).
+    active, _ = _pick(snap, [_item(A, 10.0), _item(B, 3.5)])
+    assert active.key == B
     # No rival: the band keeps holding.
     snap = SnapHysteresis()
     _pick(snap, [_item(A, 6.0)])

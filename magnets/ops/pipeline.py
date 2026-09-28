@@ -176,25 +176,31 @@ def _rank_items(
     # Items equal in (key, score, distance) sort next to each other and every
     # consumer takes the first of them, so later ones never matter.
     seen: set[tuple] = set()
+    # A scale snap does not move anything on screen: its distance is the size
+    # difference in pixels, so it engages within the snap zone like the rest.
+    px_per_world = passive_px / max(passive_world, 1e-12)
     for rel in rels:
-        moving = rel.moving
-        moving_co = feature_anchor(moving)
-        mid = id(moving)
-        if mid in moving_2d:
-            a = moving_2d[mid]
+        if abs(rel.delta.scale_factor - 1.0) > 1e-9:
+            sd = rel.residual * px_per_world
         else:
-            a = moving_2d[mid] = project(region, rv3d, moving_co)
-        if a is None:
-            continue
-        snapped = moving_co + rel.delta.translation
-        b = project(region, rv3d, snapped)
-        if b is None:
-            continue
-        sd = (a - b).length
+            moving = rel.moving
+            moving_co = feature_anchor(moving)
+            mid = id(moving)
+            if mid in moving_2d:
+                a = moving_2d[mid]
+            else:
+                a = moving_2d[mid] = project(region, rv3d, moving_co)
+            if a is None:
+                continue
+            snapped = moving_co + rel.delta.translation
+            b = project(region, rv3d, snapped)
+            if b is None:
+                continue
+            sd = (a - b).length
         if sd > passive_px:
             continue
         target = rel.targets[0]
-        key = (rel.family, rel.axis, target.entity, kind_of(moving), kind_of(target))
+        key = (rel.family, rel.axis, target.entity, kind_of(rel.moving), kind_of(target))
         score = scoring.relationship_score(rel, sd, passive_px, passive_world)
         if (key, score, sd) in seen:
             continue
@@ -241,6 +247,11 @@ def run_inference(
     passive_px = options.passive_range_px * px
     snap_px = options.snap_tolerance_px * px
     hysteresis_px = options.snap_release_hysteresis_px * px
+    if transform_mode == TransformMode.SCALE:
+        # The scale release snaps only within the snap tolerance (it matches
+        # sizes directly, without the latch), so an equal-size guide shown as
+        # engaged must not be held any further than that.
+        hysteresis_px = 0.0
     reengage_px = options.snap_reengage_margin_px * px
 
     wpp = world_per_pixel(region, rv3d, anchor_world)
@@ -335,6 +346,8 @@ def run_inference(
         hysteresis_px,
         visible=visible,
         reengage_margin_px=reengage_px,
+        tie_px=scoring.TIE_PX * px,
+        switch_px=scoring.SWITCH_PX * px,
     )
 
     active_set: list[Relationship] = []
@@ -351,6 +364,7 @@ def run_inference(
             max_constraints=options.max_guides,
             visible=visible,
             sticky_keys=snap.sticky_keys,
+            tie_px=scoring.TIE_PX * px,
         )
         active_keys = {rank_key(r) for r in active_set}
         snap.remember_active_keys(active_keys)

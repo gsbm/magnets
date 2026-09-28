@@ -25,6 +25,36 @@ FAMILY_PRIORITY = {
     "symmetry": 84,
 }
 
+# Snap choice (Illustrator's rule): the closest guide in the snap zone wins.
+# Family, feature and like-to-like preference only break near-ties (within
+# ``TIE_PX``). An engaged guide yields to a rival closer by ``SWITCH_PX``.
+# Both are authored at 1x UI scale.
+TIE_PX = 2.0
+SWITCH_PX = 6.0
+
+# Snap tiers: a secondary-tier guide (niche 3D relationships) only snaps
+# when no primary one is in the snap zone, never displaces an engaged primary
+# guide and never engages alongside another guide as a secondary.
+SECONDARY_FAMILIES = frozenset(("tangency", "symmetry", "concentric", "collinear"))
+
+
+def snap_tier(key: tuple) -> int:
+    """0 for primary families (alignment, spacing, ...), 1 for secondary ones."""
+    return 1 if key and key[0] in SECONDARY_FAMILIES else 0
+
+
+# Feature kinds that match "like to like" (face to face, origin to origin).
+_KIND_CLASS = {
+    "origin": "origin",
+    "pivot": "origin",
+    "centroid": "center",
+    "bbox_face_center": "bounds",
+    "bbox_corner": "bounds",
+    "bbox_edge": "bounds",
+    "bbox_face": "bounds",
+    "bbox_sphere": "bounds",
+}
+
 _TYPE_WEIGHT = 1000
 _FEATURE_WEIGHT = 10
 _SCREEN_WEIGHT = 100
@@ -168,3 +198,34 @@ def best_per_key(items: list[RankItem]) -> list[RankItem]:
         if j is None or (-it.score, it.screen_dist) < (-items[j].score, items[j].screen_dist):
             best[it.key] = i
     return [items[i] for i in sorted(best.values())]
+
+
+def like_to_like(key: tuple) -> bool:
+    """True when a rank key pairs the same kind of feature on both sides."""
+    if len(key) < 5:
+        return False
+    a, b = str(key[3]), str(key[4])
+    return _KIND_CLASS.get(a, a) == _KIND_CLASS.get(b, b)
+
+
+def closest_in_zone(
+    items: list[RankItem],
+    zone_px: float,
+    *,
+    exclude: tuple = (),
+    tie_px: float = TIE_PX,
+) -> RankItem | None:
+    """The guide a snap should take within ``zone_px``, or None.
+
+    Primary-tier guides first (``snap_tier``); among them the closest wins,
+    and among those within ``tie_px`` of it, like-to-like first, then the
+    higher score.
+    """
+    cands = [it for it in items if it.screen_dist <= zone_px and it.key not in exclude]
+    if not cands:
+        return None
+    tier = min(snap_tier(it.key) for it in cands)
+    cands = [it for it in cands if snap_tier(it.key) == tier]
+    best = min(it.screen_dist for it in cands)
+    near = [it for it in cands if it.screen_dist <= best + tie_px]
+    return max(near, key=lambda it: (like_to_like(it.key), it.score, -it.screen_dist))

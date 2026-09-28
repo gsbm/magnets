@@ -616,8 +616,13 @@ def _scale_snap(context, obj, edit_mode: bool):
     start_m = _session.start_matrices.get(obj.name)
     if start_m is None:
         return None
-    tol = _session.world_tol
-    if not tol or tol <= 0.0:
+    # Snap only within the snap tolerance, not the (wider) passive range the
+    # session tolerance is measured in; the equal-size guide engages the same.
+    options = get_options(context)
+    tol = (_session.world_tol or 0.0) * options.snap_tolerance_px / max(
+        options.passive_range_px, 1
+    )
+    if tol <= 0.0:
         return None
 
     # A cancelled scale restores the start size exactly: nothing to snap.

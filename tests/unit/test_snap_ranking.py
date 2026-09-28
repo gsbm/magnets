@@ -94,3 +94,80 @@ def test_with_engaged_draws_latched_guide_outside_top_k():
     many = [item(("alignment", ax, "A", "o", "o"), 1.0) for ax in "XYZ"]
     keys = {it.key for it in many}
     assert len(with_engaged([], many, keys, top_k=2)) == 3, "engaged guides are never cut"
+
+
+# ── Snap choice: closest first, near-ties by like-to-like then score ─────────
+
+
+def _ri(key, dist, score=1.0):
+    from core.scoring import RankItem
+
+    return RankItem(key=key, score=score, screen_dist=dist, payload=key)
+
+
+def test_closest_guide_wins_over_higher_score():
+    from core.scoring import closest_in_zone
+
+    origin = _ri(("alignment", "X", "T", "origin", "bbox_corner"), 14.0, score=1000.0)
+    face = _ri(("alignment", "X", "T", "bbox_face_center", "bbox_face_center"), 0.5)
+    assert closest_in_zone([origin, face], 16.0) is face
+
+
+def test_near_tie_prefers_like_to_like_then_score():
+    from core.scoring import closest_in_zone, like_to_like
+
+    unlike = _ri(("alignment", "X", "T", "origin", "bbox_corner"), 1.0, score=900.0)
+    like = _ri(("alignment", "X", "T", "bbox_corner", "bbox_face_center"), 2.5, score=10.0)
+    assert like_to_like(like.key) and not like_to_like(unlike.key)
+    assert closest_in_zone([unlike, like], 16.0, tie_px=2.0) is like
+    # Beyond the tie window, distance decides.
+    assert closest_in_zone([unlike, like], 16.0, tie_px=1.0) is unlike
+
+
+def test_nothing_in_zone_or_excluded():
+    from core.scoring import closest_in_zone
+
+    a = _ri(("alignment", "X", "T", "origin", "origin"), 20.0)
+    assert closest_in_zone([a], 16.0) is None
+    b = _ri(("alignment", "Y", "T", "origin", "origin"), 3.0)
+    assert closest_in_zone([a, b], 16.0, exclude=(b.key,)) is None
+
+
+# ── Engaged set: one guide per direction, coincident spacing may confirm ─────
+
+
+def _pull_rel(family, axis, delta, cdir=None):
+    from core.features import PointFeature, PointKind
+    from core.relationship import ConstraintDelta, GuideLine, Relationship
+    from mathutils import Vector
+
+    p = PointFeature.from_name(Vector((0, 0, 0)), PointKind.ORIGIN, "M")
+    return Relationship(
+        family=family, axis=axis, label="", moving=p, targets=(p,), residual=0.0,
+        delta=ConstraintDelta.from_vector(Vector(delta)),
+        guide=GuideLine(point=Vector((0, 0, 0)), direction=Vector((0, 1, 0))),
+        constraint_dir=Vector(cdir) if cdir else None,
+    )
+
+
+def test_guide_covering_an_engaged_direction_does_not_engage():
+    from core.graph import adds_direction
+
+    x = _pull_rel("alignment", "X", (0.1, 0, 0), (1, 0, 0))
+    y = _pull_rel("alignment", "Y", (0, 0.2, 0), (0, 1, 0))
+    # Another pull along X (other spot) and a diagonal plane in the XY span.
+    assert not adds_direction(_pull_rel("coplanar", "cop_A", (0.3, 0, 0), (1, 0, 0)), [x])
+    assert not adds_direction(_pull_rel("coplanar", "cop_B", (0.1, 0.1, 0), (0.7071, 0.7071, 0)), [x, y])
+    # A new direction is fine.
+    assert adds_direction(y, [x])
+    assert adds_direction(_pull_rel("coplanar", "cop_C", (0, 0, 0.1), (0, 0, 1)), [x, y])
+
+
+def test_coincident_spacing_confirms_an_engaged_alignment():
+    from core.graph import adds_direction
+
+    x = _pull_rel("alignment", "X", (0.1, 0, 0), (1, 0, 0))
+    same_spot = _pull_rel("spacing", "X", (0.1, 0, 0))
+    other_spot = _pull_rel("spacing", "X", (0.4, 0, 0))
+    assert adds_direction(same_spot, [x])
+    assert not adds_direction(other_spot, [x])

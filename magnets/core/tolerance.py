@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .scoring import RankItem
+from .scoring import SWITCH_PX, TIE_PX, RankItem, closest_in_zone, snap_tier
 
 
 @dataclass
@@ -58,15 +58,26 @@ class SnapHysteresis:
         *,
         visible: list[RankItem] | None = None,
         reengage_margin_px: float = 4.0,
+        tie_px: float = TIE_PX,
+        switch_px: float = SWITCH_PX,
     ) -> tuple[RankItem | None, bool]:
         """Return ``(active_item, is_snapped)`` for this frame.
 
-        ``ranked`` is the decluttered top-K used for new engagements.
-        ``visible`` is the full in-range set used to hold an existing latch
-        (so a guide does not drop when it falls out of top-K for one frame).
+        ``ranked`` is the decluttered top-K drawn as guides. ``visible`` is the
+        full in-range set: it holds an existing latch (so a guide does not drop
+        when it falls out of top-K for one frame) and is where new snaps are
+        picked from, closest first (``closest_in_zone``), so a close guide that
+        lost its display slot can still win. An engaged guide yields to a
+        rival closer by ``switch_px``.
         """
         release_px = snap_px + hysteresis_px
         lookup = visible if visible is not None else ranked
+
+        def closest(zone_px: float, *skip) -> RankItem | None:
+            blocked = self._broken_key if self.broken else None
+            return closest_in_zone(
+                lookup, zone_px, exclude=(*skip, blocked), tie_px=tie_px
+            )
 
         if not ranked and not lookup:
             self.reset()
@@ -97,15 +108,7 @@ class SnapHysteresis:
                 # The latched guide vanished. A different guide already in the
                 # snap zone takes over (the selection jumped: typed input or a
                 # fast flick); holding the stale latch would block it.
-                blocked = self._broken_key if self.broken else None
-                fresh = next(
-                    (
-                        it
-                        for it in ranked
-                        if it.screen_dist <= snap_px and it.key != blocked
-                    ),
-                    None,
-                )
+                fresh = closest(snap_px)
                 if fresh is not None:
                     self.active_key = fresh.key
                     self._latched = fresh
@@ -122,35 +125,28 @@ class SnapHysteresis:
                 # Held only by the hysteresis band: a different guide inside
                 # the snap zone is what the selection is actually on, so it
                 # takes over rather than losing to a far, sticky one.
-                blocked = self._broken_key if self.broken else None
-                rival = next(
-                    (
-                        it
-                        for it in ranked
-                        if it.screen_dist <= snap_px
-                        and it.key not in (self.active_key, blocked)
-                    ),
-                    None,
-                )
-                if rival is not None:
+                rival = closest(snap_px, self.active_key)
+                if rival is not None and snap_tier(rival.key) <= snap_tier(current.key):
                     self.active_key = rival.key
                     self._latched = rival
                     return rival, True
             if current.screen_dist <= release_px:
+                # A clearly closer guide is what the selection is on now.
+                rival = closest(current.screen_dist - switch_px, self.active_key)
+                if (
+                    rival is not None
+                    and rival.screen_dist <= snap_px
+                    and snap_tier(rival.key) <= snap_tier(current.key)
+                ):
+                    self.active_key = rival.key
+                    self._latched = rival
+                    return rival, True
                 return current, True
             self._break()
             return None, False
 
         # Engage the closest in-zone guide, skipping one still breaking away.
-        blocked = self._broken_key if self.broken else None
-        pick = next(
-            (
-                it
-                for it in ranked
-                if it.screen_dist <= snap_px and it.key != blocked
-            ),
-            None,
-        )
+        pick = closest(snap_px)
         if pick is not None:
             self.active_key = pick.key
             self._latched = pick
