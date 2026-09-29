@@ -203,6 +203,7 @@ kbd {
 .demo .dot { fill: var(--fg); }
 .demo .tag rect { rx: 11; }
 .demo .tag text { font: 400 12.5px var(--mono); fill: var(--bg); text-anchor: middle; dominant-baseline: central; }
+.demo .tag use { color: var(--bg); }
 .demo__cap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .demo__cap p { font-size: var(--fs-ui); color: var(--muted); min-height: 3em; }
 .demo__cap b { font-weight: 500; color: var(--fg); margin-right: 4px; }
@@ -324,7 +325,7 @@ kbd {
   outline-offset: -2px;
 }
 .spec:focus-visible { background: var(--surface); }
-.spec svg { display: block; width: 100%; height: 150px; margin-bottom: 10px; overflow: visible; }
+.spec > svg { display: block; width: 100%; height: 150px; margin-bottom: 10px; overflow: visible; }
 .spec__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .spec h3 { font-size: 16px; }
 .lbl {
@@ -335,6 +336,9 @@ kbd {
 }
 .lbl:active { transform: scale(.97); }
 .lbl--axis { background: rgb(139 209 58 / .12); color: var(--axis-y); }
+/* Guide icons (icons.svg, generated from magnets/core/icons.py): 16-grid artwork in the text color. */
+.ico { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.22em; color: inherit; }
+.lbl .ico { width: 16px; height: 16px; vertical-align: -3px; }
 .spec p { font-size: var(--fs-ui); color: var(--fg-2); max-width: 40ch; }
 .spec__mover { transform-box: fill-box; transform-origin: center; }
 .spec__guide { opacity: 1; }
@@ -351,7 +355,7 @@ kbd {
 .spec--note { align-content: start; grid-template-rows: auto; gap: 12px; grid-column: 1 / -1; }
 .spec--note p { max-width: 80ch; }
 /* Off-by-default types: same plate, quieter drawing. */
-.spec--off svg { opacity: .6; }
+.spec--off > svg { opacity: .6; }
 .spec p em { font-style: normal; color: var(--muted); }
 
 @media (max-width: 900px) { .specimens { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

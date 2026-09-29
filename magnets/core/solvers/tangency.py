@@ -46,9 +46,7 @@ class TangencySolver(Solver):
                         Relationship(
                             family=self.family,
                             axis=f"tan_{c.entity}",
-                            # A large and a small circle side by side ("touching");
-                            # ◎ is Concentric.
-                            label="○◦",
+                            label="",  # the icon says it
                             moving=m,
                             targets=(c,),
                             residual=residual,
@@ -99,7 +97,7 @@ class SurfaceTangencySolver(Solver):
                     Relationship(
                         family=self.family,
                         axis=f"surf_{s.entity}",
-                        label="⊥",  # resting on a surface
+                        label="",  # the icon says it
                         moving=m,
                         targets=(s,),
                         residual=residual,

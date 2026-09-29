@@ -111,7 +111,7 @@
         <ul class="legend" aria-label="What each mark means">
           <li data-legend="passive"><span class="sw sw--passive"></span><b>Passive guide</b><span>A nearby relationship, at most one per free direction. Neutral color, fades with distance.</span></li>
           <li data-legend="engaged"><span class="sw sw--engaged"></span><b>Engaged guide</b><span>Will snap. Drawn in the Active Color, magenta by default. Alignment guides run along the axes, one segment or an L.</span></li>
-          <li data-legend="label"><span class="sw sw--label">Y</span><b>Label</b><span>Names the relationship: an axis in its color (X red, Y green, Z blue), a symbol such as <code>∥</code> or <code>◇</code>, or a length. Search any symbol in the <a href="#reference">Reference</a>.</span></li>
+          <li data-legend="label"><span class="sw sw--label">Y</span><b>Label</b><span>Names the relationship: an axis letter in its color (X red, Y green, Z blue) or an icon such as <svg class="ico" aria-hidden="true"><use href="icons.svg#i-midpoint"/></svg> or <svg class="ico" aria-hidden="true"><use href="icons.svg#i-parallel"/></svg>, then a length when there is one. Every icon is listed in the <a href="#reference">Reference</a>.</span></li>
           <li data-legend="dot"><span class="sw sw--dot"></span><b>Snap anchor dot</b><span>The two points being matched.</span></li>
           <li data-legend="landing"><span class="sw sw--landing"></span><b>Landing outline</b><span>Where the selection goes on release.</span></li>
         </ul>
@@ -122,7 +122,7 @@
     <section class="section" id="guides" aria-labelledby="guides-title">
       <div class="section__head">
         <h2 id="guides-title">Guide types</h2>
-        <p>Magnets detects twelve kinds of relationships. Seven are on by default; the five marked <em>Off by default</em> are rarer and can be turned on in <span class="path">Sidebar ▸ Magnets ▸ Guide Types</span>. The label is the text shown next to the guide in the viewport.</p>
+        <p>Magnets detects twelve kinds of relationships. Seven are on by default; the five marked <em>Off by default</em> are rarer and can be turned on in <span class="path">Sidebar ▸ Magnets ▸ Guide Types</span>. The label is the icon and text shown next to the guide in the viewport.</p>
       </div>
 
       <div class="specimens">
@@ -142,7 +142,7 @@
             <g class="spec__guide"><path class="g-engaged g-a" d="M60 115h35M135 115h35M60 110v10M95 110v10M135 110v10M170 110v10"/></g>
             <g class="spec__mover" style="--dx:32px"><rect class="cube cube--sel" x="170" y="55" width="40" height="40"/></g>
           </svg>
-          <div class="spec__head"><h3>Equal Spacing</h3><span class="lbl">↔ · 2 m</span></div>
+          <div class="spec__head"><h3>Equal Spacing</h3><span class="lbl" data-term="Equal Spacing"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-spacing"/></svg> 2 m</span></div>
           <p>Repeats a gap to extend an even row, or centers an object between two neighbors. Measures centers, edges or both (Even Spacing setting).</p>
         </article>
         <article class="spec" tabindex="0" id="type-equal-size">
@@ -151,7 +151,7 @@
             <g class="spec__mover" style="--s:.62"><rect class="cube cube--sel" x="140" y="45" width="70" height="60"/></g>
             <g class="spec__guide"><path class="g-engaged g-a" d="M30 122h70M140 122h70M30 117v10M100 117v10M140 117v10M210 117v10"/></g>
           </svg>
-          <div class="spec__head"><h3>Equal Size</h3><span class="lbl">▭ X · 2 m</span></div>
+          <div class="spec__head"><h3>Equal Size</h3><span class="lbl" data-term="Equal Size"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-equal_size"/></svg> X · 2 m</span></div>
           <p>While scaling, matches the size of a nearby object along one axis, within Snap Tolerance.</p>
         </article>
         <article class="spec" tabindex="0" id="type-midpoint">
@@ -161,7 +161,7 @@
             <g class="spec__guide"><path class="g-engaged g-a" d="M120 58l12 12-12 12-12-12z"/></g>
             <g class="spec__mover" style="--dy:-36px;--dx:28px"><circle class="cube cube--sel" cx="120" cy="70" r="7"/></g>
           </svg>
-          <div class="spec__head"><h3>Midpoint</h3><span class="lbl">◇</span></div>
+          <div class="spec__head"><h3>Midpoint</h3><span class="lbl" data-term="Midpoint"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-midpoint"/></svg></span></div>
           <p>Places a point halfway between two points of one object, such as the middle of an edge. Only pairs along the alignment axes, unless Diagonal Guides is on. Centering between two objects is Equal Spacing.</p>
         </article>
         <article class="spec" tabindex="0" id="type-surface">
@@ -170,7 +170,7 @@
             <g class="spec__guide"><line class="g-engaged g-a" x1="70" y1="80" x2="170" y2="80"/><circle class="g-dot" cx="120" cy="80" r="3.5"/></g>
             <g class="spec__mover" style="--dy:-36px"><circle class="cube cube--sel" cx="120" cy="80" r="7"/></g>
           </svg>
-          <div class="spec__head"><h3>Surface Contact</h3><span class="lbl">⊥</span></div>
+          <div class="spec__head"><h3>Surface Contact</h3><span class="lbl" data-term="Surface Contact"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-tangency"/></svg></span></div>
           <p>Brings a point onto another object's surface, for example to rest an object on the floor.</p>
         </article>
         <article class="spec" tabindex="0" id="type-parallel">
@@ -179,7 +179,7 @@
             <g class="spec__guide"><line class="g-engaged g-a" x1="100" y1="75" x2="230" y2="75"/></g>
             <g class="spec__mover" style="--dy:-34px"><line class="cube-line cube-line--sel" x1="140" y1="75" x2="215" y2="75"/></g>
           </svg>
-          <div class="spec__head"><h3>Parallel</h3><span class="lbl">∥</span></div>
+          <div class="spec__head"><h3>Parallel</h3><span class="lbl" data-term="Parallel"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-parallel"/></svg></span></div>
           <p>Slides an edge onto the line of another object's parallel edge, so the two continue each other.</p>
         </article>
         <article class="spec" tabindex="0" id="type-coplanar">
@@ -188,7 +188,7 @@
             <g class="spec__guide"><path class="g-engaged g-a" d="M20 100l80-40h120l-80 40z"/></g>
             <g class="spec__mover" style="--dy:-44px"><circle class="cube cube--sel" cx="120" cy="80" r="7"/></g>
           </svg>
-          <div class="spec__head"><h3>Coplanar</h3><span class="lbl">▱</span></div>
+          <div class="spec__head"><h3>Coplanar</h3><span class="lbl" data-term="Coplanar"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-coplanar"/></svg></span></div>
           <p>Places a point on the plane of a face, including faces of rotated objects.</p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-repeat-size">
@@ -197,7 +197,7 @@
             <g class="spec__guide"><path class="g-engaged g-a" d="M90 115h60M90 110v10M150 110v10"/></g>
             <g class="spec__mover" style="--dx:30px"><rect class="cube cube--sel" x="150" y="55" width="40" height="40"/></g>
           </svg>
-          <div class="spec__head"><h3>Repeat Size</h3><span class="lbl">⧉ · 2 m</span></div>
+          <div class="spec__head"><h3>Repeat Size</h3><span class="lbl" data-term="Repeat Size"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-repeat_size"/></svg> 2 m</span></div>
           <p>Places the selection one object's length away from it: the gap equals that object's own size. <em>Off by default.</em></p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-sphere-tangency">
@@ -206,7 +206,7 @@
             <g class="spec__guide"><circle class="g-engaged g-a" cx="85" cy="75" r="40"/><circle class="g-dot" cx="125" cy="75" r="3.5"/></g>
             <g class="spec__mover" style="--dx:30px"><circle class="cube cube--sel" cx="152" cy="75" r="27"/></g>
           </svg>
-          <div class="spec__head"><h3>Sphere Tangency</h3><span class="lbl">○◦</span></div>
+          <div class="spec__head"><h3>Sphere Tangency</h3><span class="lbl" data-term="Sphere Tangency"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-sphere_tangency"/></svg></span></div>
           <p>Brings two objects' bounding spheres into contact. For boxes the sphere is not a shape you see, so it is <em>off by default</em>.</p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-collinear">
@@ -215,7 +215,7 @@
             <g class="spec__guide"><line class="g-engaged g-a" x1="110" y1="65" x2="222" y2="-5"/></g>
             <g class="spec__mover" style="--dy:34px;--dx:10px"><circle class="cube cube--sel" cx="174" cy="25" r="7"/></g>
           </svg>
-          <div class="spec__head"><h3>Collinear</h3><span class="lbl">⋯</span></div>
+          <div class="spec__head"><h3>Collinear</h3><span class="lbl" data-term="Collinear"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-collinear"/></svg></span></div>
           <p>Places a point on the line that continues an edge. <em>Off by default.</em></p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-concentric">
@@ -224,7 +224,7 @@
             <g class="spec__guide"><path class="g-engaged g-a" d="M108 75h24M120 63v24"/></g>
             <g class="spec__mover" style="--dx:36px;--dy:-18px"><circle class="cube cube--sel" cx="120" cy="75" r="24"/></g>
           </svg>
-          <div class="spec__head"><h3>Concentric</h3><span class="lbl">◎</span></div>
+          <div class="spec__head"><h3>Concentric</h3><span class="lbl" data-term="Concentric"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-concentric"/></svg></span></div>
           <p>Gives a circle or ring the same center as another. <em>Off by default.</em></p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-symmetry">
@@ -234,12 +234,12 @@
             <g class="spec__guide"><line class="g-engaged g-a" x1="120" y1="10" x2="120" y2="140"/></g>
             <g class="spec__mover" style="--dx:28px;--dy:16px"><rect class="cube cube--sel" x="156" y="50" width="44" height="44"/></g>
           </svg>
-          <div class="spec__head"><h3>Symmetry</h3><span class="lbl">⇹ YZ</span></div>
+          <div class="spec__head"><h3>Symmetry</h3><span class="lbl" data-term="Symmetry"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-symmetry"/></svg> YZ</span></div>
           <p>Mirrors a point across a world plane (XY, XZ or YZ) through its midpoint with another point. <em>Off by default.</em></p>
         </article>
         <aside class="spec spec--note" aria-labelledby="rot-title">
           <h3 id="rot-title">Rotation and scale</h3>
-          <p>Rotation snaps to the nearest <b>Angle Snap</b> increment (15° by default) when you release close to one; no guides are drawn while rotating. Scale matches a nearby object's size within Snap Tolerance, shown by the Equal Size guide. Both preview the result and print a note at the pivot, for example <code>↻ 45°</code> or <code>▭ Cube.002 · 2 m</code>. No note means no snap.</p>
+          <p>Rotation snaps to the nearest <b>Angle Snap</b> increment (15° by default) when you release close to one; no guides are drawn while rotating. Scale matches a nearby object's size within Snap Tolerance, shown by the Equal Size guide. Both preview the result and print a note at the pivot, for example <code><svg class="ico" aria-hidden="true"><use href="icons.svg#i-rotate"/></svg> 45°</code> or <code><svg class="ico" aria-hidden="true"><use href="icons.svg#i-equal_size"/></svg> Cube.002 · 2 m</code>. No note means no snap.</p>
         </aside>
       </div>
     </section>
@@ -306,7 +306,7 @@
     <section class="section" id="reference" aria-labelledby="ref-title">
       <div class="section__head">
         <h2 id="ref-title">Reference</h2>
-        <p>Scene options are in <span class="path">3D Viewport ▸ Sidebar (<kbd>N</kbd>) ▸ Magnets</span>. Colors, indicators and the shortcut are in <span class="path">Edit ▸ Preferences ▸ Add-ons ▸ Magnets</span>. The filter also covers viewport labels, so you can search for a symbol such as <code>◎</code>.</p>
+        <p>Scene options are in <span class="path">3D Viewport ▸ Sidebar (<kbd>N</kbd>) ▸ Magnets</span>. Colors, indicators and the shortcut are in <span class="path">Edit ▸ Preferences ▸ Add-ons ▸ Magnets</span>. The filter also covers viewport labels, so you can search for a guide such as <code>midpoint</code>.</p>
       </div>
 
       <div class="tol" id="tolerance" data-tol>
@@ -353,7 +353,7 @@
           <div class="search">
             <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             <label class="sr" for="q">Filter settings and labels</label>
-            <input id="q" type="search" placeholder="Filter: tolerance, color, ◎, axis…" autocomplete="off" spellcheck="false" data-q>
+            <input id="q" type="search" placeholder="Filter: tolerance, color, midpoint, axis…" autocomplete="off" spellcheck="false" data-q>
             <kbd class="search__key" aria-hidden="true">/</kbd>
           </div>
           <p class="settings__count" aria-live="polite" data-count></p>

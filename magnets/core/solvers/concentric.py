@@ -38,7 +38,7 @@ class ConcentricSolver(Solver):
                     Relationship(
                         family=self.family,
                         axis=f"con_{c.entity}",
-                        label="◎",
+                        label="",  # the icon says it
                         moving=m,
                         targets=(c,),
                         residual=residual,

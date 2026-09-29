@@ -108,7 +108,7 @@ class MidpointSolver(Solver):
         return Relationship(
             family=self.family,
             axis=f"mid_{a.entity}_{b.entity}",
-            label="◇",
+            label="",  # the icon says it
             moving=m,
             targets=(a, b),
             residual=residual,

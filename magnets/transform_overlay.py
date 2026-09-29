@@ -580,14 +580,14 @@ def _tick(context, view=None):
         if rot is not None:
             axis, angle, pivot = rot
             ghost_poses = _rotate_poses(context, axis, angle, pivot)
-            preview_labels.append((pivot, rotation_snap_label(angle)))
+            preview_labels.append((pivot, rotation_snap_label(angle), "rotate"))
     elif options.soft_snap and transform_mode == TransformMode.SCALE:
         match = _scale_snap(context, obj, edit_mode)
         if match is not None:
             factor, name, size, pivot = match
             ghost_poses = _scale_poses(context, factor, pivot)
             size_text = format_length(size, fmt=length_formatter(context))
-            preview_labels.append((pivot, size_match_label(name, size_text)))
+            preview_labels.append((pivot, size_match_label(name, size_text), "equal_size"))
 
     push_guides(
         context,

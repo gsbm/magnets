@@ -26,6 +26,7 @@ from ..core.guide_draw import (
     guide_to_drawables,
     segment_key,
 )
+from ..core.icons import icon_for_family
 from ..core.labels import feature_hint
 from ..core.registry import dispatch
 from ..core.relationship import GuideLine, GuideSegment, Relationship
@@ -542,12 +543,12 @@ def push_guides(
     depth_co: Vector,
     ghost_co: Vector | None = None,
     ghost_edges: list[tuple[Vector, Vector]] | None = None,
-    preview_labels: list[tuple[Vector, str]] | None = None,
+    preview_labels: list[tuple[Vector, str, str | None]] | None = None,
 ):
     """Push ranked guides and the landing preview into the draw handler.
 
     ``depth_co`` sizes screen-relative geometry; ``ghost_co`` and ``ghost_edges``
-    show the snapped landing; ``preview_labels`` are ``(world_pos, text)`` notes.
+    show the snapped landing; ``preview_labels`` are ``(world_pos, text, icon)`` notes.
     """
     options = get_options(context)
     prefs = get_prefs(context)
@@ -675,7 +676,9 @@ def push_guides(
         if is_active:
             hint = feature_hint(rel.target) if options.show_feature_hints else ""
             anchor_co = feature_anchor(rel.target)
-            labels.append(((anchor_co + moving_co) * 0.5, rel.label, hint, label_color))
+            labels.append(
+                ((anchor_co + moving_co) * 0.5, icon_for_family(rel.family), rel.label, hint, label_color)
+            )
 
     if prefs.show_intersection_dot and len(active_segments) >= 2:
         tol = wpp * _INTERSECT_PX * px
@@ -687,8 +690,8 @@ def push_guides(
                 if pt is not None and all((pt - q).length > tol for q in intersection_dots):
                     intersection_dots.append(pt)
 
-    for world_pos, text in preview_labels:
-        labels.append((world_pos, text, "", active_color))
+    for world_pos, text, icon in preview_labels:
+        labels.append((world_pos, icon, text, "", active_color))
 
     ghost_points = [ghost_co] if ghost_co is not None else []
 

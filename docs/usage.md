@@ -23,7 +23,7 @@ replaces the keys unless you turn on Precision Mode.
 - **Rotate** snaps to the nearest angle increment (Angle Snap, default 15°) if
   you release close to one. **Scale** matches a nearby object's size if you
   release close to it. Both preview while you drag: a dashed outline of the
-  final pose plus a note at the pivot (`↻ 45°`, `▭ Cube.002 · 2 m`). No note
+  final pose plus a note at the pivot (the rotate icon and `45°`, or the equal-size icon and `Cube.002 · 2 m`). No note
   means no snap will happen.
 - **Cancel** (`Esc` or right-click) never snaps.
 - **Axis locks** (`G X`, `G Shift+Z`) are respected: the snap only moves along

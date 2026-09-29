@@ -37,7 +37,7 @@ class ParallelSolver(Solver):
                     Relationship(
                         family=self.family,
                         axis=f"par_{c.entity}",
-                        label="∥",
+                        label="",  # the icon says it
                         moving=m,
                         targets=(c,),
                         residual=residual,
@@ -78,7 +78,7 @@ class DirectionParallelSolver(Solver):
                     Relationship(
                         family=self.family,
                         axis=f"dpar_{c.entity}",
-                        label="∥",
+                        label="",  # the icon says it
                         moving=m,
                         targets=(c,),
                         residual=residual,

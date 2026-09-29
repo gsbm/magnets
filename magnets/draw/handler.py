@@ -12,6 +12,8 @@ from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 
 from ..adapters.view import pixel_size, ui_scale
+from ..core.icons import SECONDARY_ALPHA
+from ..core.icons import geometry as icon_geometry
 from ..core.labels import spread_labels
 from ..core.style import (
     ACTIVE_WIDTH_SCALE,
@@ -54,7 +56,7 @@ class _State:
     snap_dots: list[tuple[Vector, Color]] = field(default_factory=list)  # circles
     intersection_dots: list[Vector] = field(default_factory=list)  # squares
     ghost_points: list[Vector] = field(default_factory=list)  # landing ring
-    labels: list[tuple[Vector, str, str, Color]] = field(default_factory=list)
+    labels: list[tuple[Vector, str | None, str, str, Color]] = field(default_factory=list)
 
     # Preferences snapshot (set each frame via set_state)
     active_color: Color = (1.0, 0.2, 0.75, 1.0)
@@ -125,7 +127,7 @@ def set_state(
     tick_items: list[GuideDrawItem],
     snap_dots: list[tuple[Vector, Color]],
     intersection_dots: list[Vector],
-    labels: list[tuple[Vector, str, str, Color]],
+    labels: list[tuple[Vector, str | None, str, str, Color]],
     *,
     active: bool,
     active_color: Color,
@@ -380,44 +382,95 @@ def _draw_px():
     _draw_labels(region, rv3d, scale)
 
 
+# Label icons: Blender's UI icon size at 1x, and the gap before the text.
+_ICON_PX = 16.0
+_ICON_GAP_PX = 3.0
+
+
+def _draw_icon(icon_id: str, x: float, y: float, size: float, color: Color, scale: float):
+    """Draw a guide icon (``core.icons``) in a ``size`` px box at (x, y), bottom-left.
+
+    Lines use the polyline shader at one grid cell wide; dots are filled
+    triangles. A dark offset copy first, like the text's drop shadow.
+    """
+    lines, fills, width = icon_geometry(icon_id, x, y, size)
+    r, g, b, a = color
+    line_shader = _get_shader_3d()
+    fill_shader = _get_shader_2d()
+    vw, vh = _viewport_size()
+    passes = (
+        (scale, -scale, lambda alpha: (0.0, 0.0, 0.0, 0.85 * alpha)),
+        (0.0, 0.0, lambda alpha: (r, g, b, alpha)),
+    )
+    gpu.state.blend_set("ALPHA")
+    for dx, dy, tint in passes:
+        for tone, alpha in (("s", a * SECONDARY_ALPHA), ("p", a)):
+            if lines[tone]:
+                coords = [(px + dx, py + dy, 0.0) for px, py in lines[tone]]
+                line_shader.bind()
+                line_shader.uniform_float("color", tint(alpha))
+                if _shader_uses_polyline:
+                    line_shader.uniform_float("viewportSize", (float(vw), float(vh)))
+                    line_shader.uniform_float("lineWidth", width)
+                batch_for_shader(line_shader, "LINES", {"pos": coords}).draw(line_shader)
+            if fills[tone]:
+                coords = [(px + dx, py + dy) for px, py in fills[tone]]
+                fill_shader.bind()
+                fill_shader.uniform_float("color", tint(alpha))
+                batch_for_shader(fill_shader, "TRIS", {"pos": coords}).draw(fill_shader)
+    gpu.state.blend_set("NONE")
+
+
 def _draw_labels(region, rv3d, scale: float):
-    """Draw guide labels with a drop shadow so they read over any geometry."""
+    """Draw guide labels (icon + text) with a drop shadow so they read over any geometry."""
     s = _state
     r2d = view3d_utils.location_3d_to_region_2d
     font_id = 0
     main_size = 11.0 * scale
     hint_size = 9.0 * scale
     dx = 7.0 * scale
+    icon_px = round(_ICON_PX * scale)  # whole pixels keep the icon grid sharp
+    icon_gap = _ICON_GAP_PX * scale
+    # The icon is centered on the main text line (baseline at +5, x-height ~ 4).
+    icon_lift = 5.0 * scale + main_size * 0.36 - icon_px / 2.0
 
     # Screen boxes first, so labels that would overlap are stacked instead
     # (two engaged guides often label the same corner).
     placed = []
-    for world_pos, primary, hint, color in s.labels:
+    for world_pos, icon, primary, hint, color in s.labels:
         co = r2d(region, rv3d, world_pos)
         if co is None:
             continue
+        lead = icon_px + (icon_gap if primary else 0.0) if icon else 0.0
         blf.size(font_id, main_size)
-        width = blf.dimensions(font_id, primary)[0]
-        bottom = co.y + 3.0 * scale
+        width = lead + (blf.dimensions(font_id, primary)[0] if primary else 0.0)
+        bottom = min(co.y + 3.0 * scale, co.y + icon_lift) if icon else co.y + 3.0 * scale
         if hint:
             blf.size(font_id, hint_size)
             width = max(width, blf.dimensions(font_id, hint)[0])
             bottom = co.y - 11.0 * scale
-        top = co.y + 5.0 * scale + main_size
-        placed.append(((co.x + dx, bottom, width, top - bottom), co.y - bottom, primary, hint, color))
+        top = max(co.y + 5.0 * scale + main_size, co.y + icon_lift + icon_px if icon else 0.0)
+        box = (round(co.x + dx), bottom, width, top - bottom)
+        placed.append((box, co.y - bottom, icon, lead, primary, hint, color))
     positions = spread_labels([p[0] for p in placed], gap=2.0 * scale)
+
+    for (x, bottom), (_box, below, icon, _lead, _primary, _hint, color) in zip(positions, placed):
+        if icon:
+            y = bottom + below
+            _draw_icon(icon, x, round(y + icon_lift), icon_px, color, scale)
 
     blf.enable(font_id, blf.SHADOW)
     blf.shadow(font_id, 3, 0.0, 0.0, 0.0, 0.85)
     blf.shadow_offset(font_id, 1, -1)
     try:
-        for (x, bottom), (_box, below, primary, hint, color) in zip(positions, placed):
+        for (x, bottom), (_box, below, _icon, lead, primary, hint, color) in zip(positions, placed):
             y = bottom + below  # the label's anchor height after stacking
             pr, pg, pb, pa = color
-            blf.size(font_id, main_size)
-            blf.color(font_id, pr, pg, pb, min(pa + 0.1, 1.0))
-            blf.position(font_id, x, y + 5.0 * scale, 0.0)
-            blf.draw(font_id, primary)
+            if primary:
+                blf.size(font_id, main_size)
+                blf.color(font_id, pr, pg, pb, min(pa + 0.1, 1.0))
+                blf.position(font_id, x + lead, y + 5.0 * scale, 0.0)
+                blf.draw(font_id, primary)
             if hint:
                 blf.size(font_id, hint_size)
                 blf.color(font_id, pr, pg, pb, max(pa - 0.05, 0.0))

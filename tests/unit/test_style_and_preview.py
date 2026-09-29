@@ -74,12 +74,12 @@ def test_pulse_brightens_and_widens_then_restores():
 # ── Preview labels ───────────────────────────────────────────────────────────
 
 def test_rotation_label_trims_trailing_zeros():
-    assert rotation_snap_label(math.radians(45.0)) == "↻ 45°"
-    assert rotation_snap_label(math.radians(7.5)) == "↻ 7.5°"
+    assert rotation_snap_label(math.radians(45.0)) == "45°"
+    assert rotation_snap_label(math.radians(7.5)) == "7.5°"
 
 
 def test_size_match_label_names_the_neighbour():
-    assert size_match_label("Cube.002", "2 m") == "▭ Cube.002 · 2 m"
+    assert size_match_label("Cube.002", "2 m") == "Cube.002 · 2 m"
 
 
 # ── Scale target ─────────────────────────────────────────────────────────────

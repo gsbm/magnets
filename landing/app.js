@@ -105,14 +105,14 @@
         refs: [{ x: 40, y: 140, w: 70, h: 70, name: "Cube" }, { x: 170, y: 140, w: 70, h: 70, name: "Cube.001" }],
         sel: { w: 70, h: 70, from: [400, 60], to: [300, 140] },
         guide: "M110 250H170M240 250H300M110 244v12M170 244v12M240 244v12M300 244v12",
-        color: "--active", tag: { x: 270, y: 282, t: "↔ · 2 m" },
+        color: "--active", tag: { x: 270, y: 282, t: "2 m", icon: "spacing" },
       },
       {
         title: "Equal Spacing", text: "The selection lands centered between Cube and Cube.001: equal gaps on both sides.",
         refs: [{ x: 50, y: 150, w: 60, h: 60, name: "Cube" }, { x: 370, y: 150, w: 60, h: 60, name: "Cube.001" }],
         sel: { w: 40, h: 40, from: [290, 290], to: [220, 160] },
         guide: "M110 250H220M260 250H370M110 244v12M220 244v12M260 244v12M370 244v12",
-        color: "--active", tag: { x: 240, y: 282, t: "↔ · 1.1 m" },
+        color: "--active", tag: { x: 240, y: 282, t: "1.1 m", icon: "spacing" },
       },
     ];
     const T = { drag: [400, 1900], release: 2400, snap: 200, fade: 3300, end: 3800 };
@@ -160,9 +160,11 @@
       (s.dots || []).forEach(([x, y]) => el("circle", { class: "dot", cx: x, cy: y, r: 3.5 }, anchors));
       const sel = el("rect", { class: "sel", width: s.sel.w, height: s.sel.h }, scene);
       const tag = el("g", { class: "tag" }, scene);
-      const tw = Math.max(26, s.tag.t.length * 8 + 16);
+      const iw = s.tag.icon ? 18 : 0;  // 14 px icon + gap
+      const tw = Math.max(26, s.tag.t.length * 8 + 16 + iw);
       el("rect", { x: s.tag.x - tw / 2, y: s.tag.y - 11, width: tw, height: 22, fill: c }, tag);
-      el("text", { x: s.tag.x, y: s.tag.y + 1 }, tag).textContent = s.tag.t;
+      if (s.tag.icon) el("use", { href: `icons.svg#i-${s.tag.icon}`, x: s.tag.x - tw / 2 + 8, y: s.tag.y - 7, width: 14, height: 14 }, tag);
+      el("text", { x: s.tag.x + iw / 2, y: s.tag.y + 1 }, tag).textContent = s.tag.t;
       const cursor = el("use", { href: "#cur", width: 28, height: 28 }, scene);
       parts = { passive, engaged, landing, anchors, sel, tag, cursor };
       title.textContent = s.title;
@@ -403,10 +405,9 @@
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = span.className;
-    btn.textContent = span.textContent;
-    const first = span.textContent.split(/\s+/)[0];
-    const term = { X: "alignment" }[first] || first;
-    btn.setAttribute("aria-label", `Look up label ${span.textContent} in the reference`);
+    btn.innerHTML = span.innerHTML;
+    const term = span.dataset.term || { X: "alignment" }[span.textContent.trim().split(/\s+/)[0]] || span.textContent.trim();
+    btn.setAttribute("aria-label", `Look up ${term} in the reference`);
     btn.title = "Look up in the reference";
     btn.addEventListener("click", () => lookup(term));
     span.replaceWith(btn);
@@ -475,19 +476,19 @@
     const D = [
       { g: "Viewport labels", w: "labels", glyph: true, items: [
         ["X  Y  Z", "Alignment on that axis, in the axis color. A length after it (X · 0.02 m) is the distance still to close.", "Alignment", "axis alignment face flush"],
-        ["↔ · 2 m", "Equal Spacing: the repeated or centered gap between objects.", "Equal Spacing", "gap distribute distribution spacing"],
-        ["⧉ · 2 m", "Repeat Size: the gap equals that object's own size. Off by default.", "Repeat Size", "span repeat size"],
-        ["▭ X · 2 m", "Equal Size: the matched size along that axis. The scale preview uses the same symbol.", "Equal Size", "size scale"],
-        ["◇", "Midpoint between two points of one object.", "Midpoint", "middle half"],
-        ["○◦", "Sphere Tangency: two bounding spheres touching. Off by default.", "Sphere Tangency", "circle tangent tangency sphere contact touching"],
-        ["◎", "Concentric: a shared center. Off by default.", "Concentric", "circle center concentric ring"],
-        ["⊥", "Surface Contact: a point resting on another object's surface.", "Surface Contact", "surface contact tangency floor rest"],
-        ["∥", "Parallel: an edge moved onto the line of another object's edge.", "Parallel", "parallel edge line"],
-        ["⋯", "Collinear: the point lies on an edge's line. Off by default.", "Collinear", "line collinear"],
-        ["▱", "Coplanar: the point lies on a face's plane.", "Coplanar", "plane face coplanar"],
-        ["⇹ YZ", "Symmetry across the XY, XZ or YZ plane. Off by default.", "Symmetry", "mirror symmetry plane xy xz"],
-        ["↻ 45°", "Rotation preview: the angle the rotation snaps to on release.", "Rotate", "rotation angle snap degrees"],
-        ["▭ Cube.002 · 2 m", "Scale preview: the object whose size is matched.", "Scale", "scale size match"],
+        ["@spacing 2 m", "Equal Spacing: the repeated or centered gap between objects.", "Equal Spacing", "gap distribute distribution spacing"],
+        ["@repeat_size 2 m", "Repeat Size: the gap equals that object's own size. Off by default.", "Repeat Size", "span repeat size"],
+        ["@equal_size X · 2 m", "Equal Size: the matched size along that axis. The scale preview uses the same icon.", "Equal Size", "size scale"],
+        ["@midpoint", "Midpoint between two points of one object.", "Midpoint", "middle half"],
+        ["@sphere_tangency", "Sphere Tangency: two bounding spheres touching. Off by default.", "Sphere Tangency", "circle tangent tangency sphere contact touching"],
+        ["@concentric", "Concentric: a shared center. Off by default.", "Concentric", "circle center concentric ring"],
+        ["@tangency", "Surface Contact: a point resting on another object's surface.", "Surface Contact", "surface contact tangency floor rest"],
+        ["@parallel", "Parallel: an edge moved onto the line of another object's edge.", "Parallel", "parallel edge line"],
+        ["@collinear", "Collinear: the point lies on an edge's line. Off by default.", "Collinear", "line collinear"],
+        ["@coplanar", "Coplanar: the point lies on a face's plane.", "Coplanar", "plane face coplanar"],
+        ["@symmetry YZ", "Symmetry across the XY, XZ or YZ plane. Off by default.", "Symmetry", "mirror symmetry plane xy xz"],
+        ["@rotate 45°", "Rotation preview: the angle the rotation snaps to on release.", "Rotate", "rotation angle snap degrees"],
+        ["@equal_size Cube.002 · 2 m", "Scale preview: the object whose size is matched.", "Scale", "scale size match"],
       ]},
       { g: "General", w: "panel", items: [
         ["Magnets", "The checkbox in the panel header. Same as the header button and Shift Alt M.", "On"],
@@ -548,6 +549,9 @@
     const list = $("[data-list]"), q = $("[data-q]"), count = $("[data-count]"), empty = $("[data-empty]");
     const rows = [];
     const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    // Viewport label entries start with "@<icon id>": the icon from icons.svg, then the text.
+    const icon = (id) => `<svg class="ico" aria-hidden="true"><use href="icons.svg#i-${id}"/></svg>`;
+    const split = (name) => { const m = /^@(\S+) ?(.*)$/.exec(name); return m ? [m[1], m[2]] : [null, name]; };
     D.forEach((grp) => {
       const sec = document.createElement("section");
       sec.className = "group";
@@ -558,7 +562,8 @@
         row.innerHTML = `<div class="setting__name"></div><div class="setting__desc"></div><div class="setting__def"></div>`;
         if (grp.glyph) row.firstChild.classList.add("is-glyph");
         if (grp.glyph && def === "Alignment") row.firstChild.classList.add("is-axis");
-        rows.push({ row, name, desc, def, hay: `${name} ${desc} ${def} ${grp.g} ${extra}`.toLowerCase(),
+        const [ico, text] = split(name);
+        rows.push({ row, name: text, ico, desc, def, hay: `${text} ${desc} ${def} ${grp.g} ${extra}`.toLowerCase(),
           n: row.children[0], d: row.children[1], v: row.children[2] });
         sec.appendChild(row);
       });
@@ -579,7 +584,8 @@
         const ok = words.every((w) => r.hay.includes(w));
         r.row.hidden = !ok;
         if (ok) n++;
-        r.n.innerHTML = hl(r.name, words[0]); r.d.innerHTML = hl(r.desc, words[0]); r.v.innerHTML = hl(r.def, words[0]);
+        r.n.innerHTML = (r.ico ? icon(r.ico) + (r.name ? " " : "") : "") + hl(r.name, words[0]);
+        r.d.innerHTML = hl(r.desc, words[0]); r.v.innerHTML = hl(r.def, words[0]);
       });
       $$(".group", list).forEach((s) => (s.hidden = !$$(".setting", s).some((r) => !r.hidden)));
       count.textContent = term ? `${n} of ${rows.length} entries` : `${rows.length} entries`;

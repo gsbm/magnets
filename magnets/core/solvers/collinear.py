@@ -103,7 +103,7 @@ class CollinearSolver(Solver):
         return Relationship(
             family=self.family,
             axis=f"col_{c.entity}",
-            label="⋯",  # points in a row
+            label="",  # the icon says it
             moving=m,
             targets=(c,),
             residual=residual,

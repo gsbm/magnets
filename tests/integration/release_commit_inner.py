@@ -469,7 +469,8 @@ ob("Mover").rotation_euler.z = math.radians(44.0)
 bpy.context.view_layer.update()
 ov._tick(bpy.context, view=TOP)
 check(len(state.ghost_edges) == 12, "rotate preview outlines the snapped pose")
-check(any("45" in lab[1] for lab in state.labels), f"rotate preview label: {state.labels}")
+check(any(lab[1] == "rotate" and "45" in lab[2] for lab in state.labels),
+      f"rotate preview label: {state.labels}")
 
 reset()
 begin("TRANSFORM_OT_resize")
@@ -477,7 +478,8 @@ ob("Mover").scale = (2.95, 2.95, 2.95)
 bpy.context.view_layer.update()
 ov._tick(bpy.context, view=TOP)
 check(len(state.ghost_edges) == 12, "scale preview outlines the snapped pose")
-check(any("Big" in lab[1] for lab in state.labels), f"scale preview label: {state.labels}")
+check(any(lab[1] == "equal_size" and "Big" in lab[2] for lab in state.labels),
+      f"scale preview label: {state.labels}")
 
 # ── Timer state machine: begin → tick → release → commit → end ───────────────
 reset()
