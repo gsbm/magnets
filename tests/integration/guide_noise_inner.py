@@ -269,6 +269,30 @@ check(engaged_axes == ["X", "Y"], f"straight drag engages both axes: {engaged_ax
 ov._end_session()
 frames.clear()
 
+# ── Even spacing along a row that is already aligned ─────────────────────────
+# Sliding the third cube along X, the met Y alignment and edge-on-edge guides
+# give nothing to the drag: they step aside so equal spacing engages, and no
+# other Y guide pulls the cube off its row.
+for view in (TOP, PERSP):
+    clear_scene()
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.0))
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(3.0, 0.0, 0.0))
+    mover = add_mover()
+    mover.location = (7.0, 0.0, 0.0)
+    bpy.context.view_layer.update()
+    ov._begin_session(bpy.context, "TRANSFORM_OT_translate", view=view)
+    for step in range(21):
+        mover.location = (7.0 - 0.05 * step, 0.0, 0.0)
+        bpy.context.view_layer.update()
+        ov._tick(bpy.context, view=view)
+        last = frames[-1]
+        pulls_y = [r for r in last.active_set if abs(r.delta.translation.y) > 1e-6]
+        check(not pulls_y, f"row drag pulled off the row at x={mover.location.x:.2f}")
+    active = [(r.family, r.axis) for r in last.active_set] if last.snapped else []
+    check(("spacing", "X") in active, f"equal spacing engages at the end of a row: {active}")
+    ov._end_session()
+    frames.clear()
+
 # ── Release: the overlay clears at once, not after the grace frames ──────────
 mover = grid_scene()
 running = {"op": "TRANSFORM_OT_translate"}

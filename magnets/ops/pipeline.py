@@ -18,7 +18,12 @@ from ..core import solvers as _solvers  # noqa: F401 - register solver table
 from ..core.families import families_for_mode
 from ..core.features import Feature, FeaturePool, feature_anchor
 from ..core.frames import world_axes
-from ..core.graph import build_active_set, coincident_targets, one_guide_per_direction
+from ..core.graph import (
+    build_active_set,
+    coincident_targets,
+    drop_idle_satisfied,
+    one_guide_per_direction,
+)
 from ..core.guide_draw import (
     axis_route,
     endpoint_ticks,
@@ -239,12 +244,15 @@ def run_inference(
     transform_mode: TransformMode = TransformMode.TRANSLATE,
     frozen_world_tol: float | None = None,
     axis_mask: tuple | None = None,
+    motion: Vector | None = None,
 ) -> InferenceResult:
     """Run extract, solve, rank and resolve for one modal event.
 
     ``frozen_world_tol`` overrides the pixel-derived world tolerance.
     ``axis_mask`` (three booleans, global X/Y/Z) is a native axis lock: guides
-    that could not move the selection under it are dropped.
+    that could not move the selection under it are dropped. ``motion`` is the
+    drag so far: guides already met across it are dropped
+    (``drop_idle_satisfied``).
     """
     options = get_options(context)
     if not options.enabled:
@@ -353,6 +361,7 @@ def run_inference(
     rels = restrict_to_axis_mask(rels, axis_mask)
 
     items = _rank_items(rels, region, rv3d, passive_px, passive_world)
+    items = drop_idle_satisfied(items, motion, satisfied=0.5 * px * wpp, snap_px=snap_px)
     ranked, visible = scoring.rank(
         items,
         passive_px,

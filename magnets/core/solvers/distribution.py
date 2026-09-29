@@ -143,7 +143,7 @@ class DistributionSolver(Solver):
             spans_s: tuple[tuple[float, float], ...],
         ) -> None:
             residual = abs(target_s - m_s)
-            if residual > tol or gap <= tol:
+            if residual > tol or gap <= ctx.min_gap:
                 return
             gaps = tuple((world_at(s0), world_at(s1)) for s0, s1 in spans_s)
             out.append(
@@ -183,7 +183,7 @@ class DistributionSolver(Solver):
                 if want_edge:
                     span = b.lo - a.hi
                     half = (span - (m_hi - m_lo)) * 0.5
-                    if half > tol:
+                    if half > ctx.min_gap:
                         left_hi = a.hi + half  # moving object's near edge
                         right_lo = left_hi + (m_hi - m_lo)  # its far edge
                         emit(

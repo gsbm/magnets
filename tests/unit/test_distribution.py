@@ -45,6 +45,17 @@ def test_rhythm_extends_row_by_matching_gap():
     assert abs(rel.delta.translation.y) < 1e-9
 
 
+def test_gap_narrower_than_the_passive_range_still_counts():
+    # Zoomed out, the passive range (world_tol) spans more than the gap
+    # itself; the gap must still be measured.
+    solver = DistributionSolver()
+    cand = [_pt((0.0, 0.0, 0.0), entity="a"), _pt((2.0, 0.0, 0.0), entity="b")]
+    moving = [_pt((4.3, 0.0, 0.0), entity="m")]
+    rel = _best_toward(solver.solve(moving, cand, _ctx(3.0, "center")))
+    assert rel is not None
+    assert abs(rel.delta.translation.x + 0.3) < 1e-6
+
+
 def test_equalize_between_two_objects_snaps_to_midpoint():
     solver = DistributionSolver()
     cand = [_pt((0.0, 0.0, 0.0), entity="a"), _pt((4.0, 0.0, 0.0), entity="b")]

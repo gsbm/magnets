@@ -61,7 +61,7 @@ class SpacingSolver(Solver):
         a_co, b_co = c_co[pa], c_co[pb]
         ab_vec = b_co - a_co
         ab = np.linalg.norm(ab_vec, axis=1)
-        live = ab > tol - margin
+        live = ab > ctx.min_gap - margin
         pa, pb, a_co, b_co, ab_vec, ab = pa[live], pb[live], a_co[live], b_co[live], ab_vec[live], ab[live]
         if len(pa) == 0:
             return []
@@ -110,7 +110,7 @@ class SpacingSolver(Solver):
             m = moving[mi_l[row]]
             a, b = candidates[pa_l[pi_l[row]]], candidates[pb_l[pi_l[row]]]
             ab_len = (b.co - a.co).length
-            if ab_len <= tol or not collinear(a.co, b.co, m.co, tol):
+            if ab_len <= ctx.min_gap or not collinear(a.co, b.co, m.co, tol):
                 return None
             if ctx.direction_hidden(b.co - a.co):
                 return None  # an end-on guide segment is filtered out anyway

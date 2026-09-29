@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .relationship import Relationship
+from .relationship import GuideLine, Relationship
 from .scoring import TIE_PX, RankItem, closest_in_zone, snap_tier
 
 # Orthogonal translation families that generally compose with each other.
@@ -62,6 +62,75 @@ def competes(a: Relationship, b: Relationship) -> bool:
         if abs(pa - pb) <= 1e-4 * (1.0 + abs(pa)):
             return False
     return True
+
+
+# |cos| between a guide's pull and the drag below which the guide is idle.
+_IDLE_COS = 0.2
+# |cos| between a guide line and the drag above which the drag runs along it.
+_ALONG_COS = (1.0 - _IDLE_COS**2) ** 0.5
+
+
+def drop_idle_satisfied(
+    items: list[RankItem],
+    motion,
+    *,
+    satisfied: float,
+    snap_px: float,
+) -> list[RankItem]:
+    """Drop guides already met across the drag, and those that would undo them.
+
+    Sliding along X on a row that is already Y-aligned, the Y alignment has no
+    correction to give and only crowds out the X guides (equal spacing). A
+    guide within ``satisfied`` (world) that the drag keeps met is dropped:
+    its pull is (nearly) perpendicular to ``motion``, or, with no pull, it is
+    a line the drag runs along (edge on edge). What it holds stays held: other
+    guides pulling along a held direction would only drag the selection off
+    its row, so they go too. Alignments stay while an alignment along the
+    drag is in the snap zone, so the corner where the two lines cross still
+    shows. ``motion`` None (no drag yet) keeps all.
+    """
+    if motion is None or motion.length <= 1e-9:
+        return items
+    m = motion.normalized()
+
+    def stays_met(rel: Relationship):
+        """The direction ``rel`` holds as ("pull"|"line", vec), or None."""
+        if rel.residual > satisfied:
+            return None
+        d = _pull_direction(rel)
+        if d is not None:
+            return ("pull", d) if abs(d.dot(m)) <= _IDLE_COS else None
+        if isinstance(rel.guide, GuideLine) and rel.guide.direction.length > 1e-9:
+            line = rel.guide.direction.normalized()
+            return ("line", line) if abs(line.dot(m)) >= _ALONG_COS else None
+        return None
+
+    def undoes(d, held) -> bool:
+        kind, v = held
+        if kind == "pull":
+            return abs(d.dot(v)) > 0.9
+        return abs(d.dot(v)) <= _IDLE_COS  # pulls off the held line
+
+    crossing = any(
+        it.payload.family == "alignment"
+        and it.screen_dist <= snap_px
+        and (d := _pull_direction(it.payload)) is not None
+        and abs(d.dot(m)) > _IDLE_COS
+        for it in items
+    )
+    met = {id(it): stays_met(it.payload) for it in items}
+    held = [h for h in met.values() if h is not None]
+    out = []
+    for it in items:
+        if met[id(it)] is not None:
+            if crossing and it.payload.family == "alignment":
+                out.append(it)
+            continue
+        d = _pull_direction(it.payload)
+        if d is not None and any(undoes(d, h) for h in held):
+            continue
+        out.append(it)
+    return out
 
 
 def adds_direction(rel: Relationship, selected: list[Relationship]) -> bool:

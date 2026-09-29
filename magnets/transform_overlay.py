@@ -449,6 +449,16 @@ def _live_constraint(context, anchor, region, rv3d) -> tuple | None:
     return inferred_axis_mask(_session.start_anchor, anchor, move_eps, view_normal)
 
 
+def _drag_motion(anchor, region, rv3d) -> Vector | None:
+    """The drag so far (world), or None before it has moved a few pixels."""
+    if _session.start_anchor is None:
+        return None
+    motion = anchor - _session.start_anchor
+    if motion.length <= world_per_pixel(region, rv3d, anchor) * 2.0:
+        return None
+    return motion
+
+
 def _read_native_constraint(context) -> tuple | None:
     """Return the global-axis mask of the running transform's lock, or None.
 
@@ -554,6 +564,9 @@ def _tick(context, view=None):
         transform_mode=transform_mode,
         frozen_world_tol=_session.world_tol,
         axis_mask=_session.constraint if transform_mode == TransformMode.TRANSLATE else None,
+        motion=_drag_motion(anchor, region, rv3d)
+        if transform_mode == TransformMode.TRANSLATE
+        else None,
     )
     _session.last_infer_s = time.perf_counter() - _t0
 
@@ -767,6 +780,7 @@ def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm)
         transform_mode=TransformMode.TRANSLATE,
         frozen_world_tol=_session.world_tol,
         axis_mask=native_mask,
+        motion=_drag_motion(anchor, region, rv3d),
     )
     if not result.snapped:
         best = result.ranked[0].screen_dist if result.ranked else -1.0

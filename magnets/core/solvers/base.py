@@ -16,6 +16,9 @@ from ..scoring import score_parts
 from ..transform import TransformMode
 from ..view_filter import guide_direction_visible
 
+# Shortest gap or span (px) a spacing guide measures; below it the bars vanish.
+MIN_GAP_PX = 4.0
+
 
 @dataclass
 class SolveContext:
@@ -59,6 +62,15 @@ class SolveContext:
         if self.max_screen_px is None:
             return self.passive_px
         return min(self.passive_px, self.max_screen_px)
+
+    @property
+    def min_gap(self) -> float:
+        """Shortest world gap worth a spacing guide: a few pixels on screen.
+
+        ``world_tol`` spans the whole passive range, so it cannot bound a gap:
+        zoomed out, every real gap would fall below it.
+        """
+        return self.world_tol * MIN_GAP_PX / max(self.passive_px, 1.0)
 
     def rank_order(self, family: str, moving, residual: float, moving_co, correction):
         """Sort value ``scoring.rank`` gives a relationship (lower sorts first).

@@ -212,7 +212,7 @@ def _spacing_reference(moving, candidates, ctx):
                 for j in range(i + 1, len(pts)):
                     a, b = pts[i], pts[j]
                     ab = (b.co - a.co).length
-                    if ab <= tol or not collinear(a.co, b.co, m.co, tol):
+                    if ab <= ctx.min_gap or not collinear(a.co, b.co, m.co, tol):
                         continue
                     if ctx.direction_hidden(b.co - a.co):
                         continue
