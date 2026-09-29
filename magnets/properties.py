@@ -166,7 +166,12 @@ class MagnetsOptions(bpy.types.PropertyGroup):
     show_passive_guides: BoolProperty(
         name="Passive Guides",
         description="Show guides before they engage",
-        default=True,
+        default=False,
+    )
+    show_guide_labels: BoolProperty(
+        name="Labels",
+        description="Show a text label next to each engaged guide",
+        default=False,
     )
     show_feature_hints: BoolProperty(
         name="Feature Hints",

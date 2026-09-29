@@ -66,7 +66,8 @@ Magnets snap on release, though its guides still show during that drag. Turn off
 - **Snapping**: snap tolerance, break distance, re-engage gap, angle snap,
   even-spacing metric, and whether to yield to Blender snapping.
 - **Guides**: range, maximum guides, spacing between guides, what to show,
-  proximity fade, and viewport-length lines.
+  proximity fade, and viewport-length lines. Passive guides and guide labels
+  are off by default; turn them on under **Show**.
 - **Alignment**: the reference frame (World, Local, View, Parent, Collection,
   or a Custom object), the allowed axes, and which reference points count.
 - **Guide Types**: turn individual relationship families on or off.

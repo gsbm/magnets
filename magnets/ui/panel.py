@@ -152,7 +152,10 @@ class MAGNETS_PT_guides(bpy.types.Panel):
         col = layout.column(heading="Show")
         col.prop(opts, "show_passive_guides", text="Passive Guides")
         col.prop(opts, "show_guide_ticks", text="Ticks")
-        col.prop(opts, "show_feature_hints", text="Feature Hints")
+        col.prop(opts, "show_guide_labels", text="Labels")
+        sub = col.column()
+        sub.active = opts.show_guide_labels
+        sub.prop(opts, "show_feature_hints", text="Feature Hints")
 
         col = layout.column()
         # Proximity fade is a per-user display setting, stored in preferences.

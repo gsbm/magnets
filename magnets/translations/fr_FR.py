@@ -29,6 +29,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Passive Guides"): "Guides passifs",
     ("*", "Feature Hints"): "Indices de géométrie",
     ("*", "Ticks"): "Graduations",
+    ("*", "Labels"): "Libellés",
     ("*", "Extend to Viewport"): "Étendre à la vue",
     ("*", "Proximity Fade"): "Fondu de proximité",
     ("Magnets", "Alignment Frame"): "Repère d’alignement",
@@ -101,6 +102,9 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ),
     ("*", "Show tick marks at guide reference points"): (
         "Afficher des graduations aux points de référence des guides"
+    ),
+    ("*", "Show a text label next to each engaged guide"): (
+        "Afficher un libellé à côté de chaque guide engagé"
     ),
     ("*", "Stretch edge guide lines across the 3D Viewport (alignment guides join the two objects)"): (
         "Étirer les guides d’arêtes à travers la vue 3D (les guides d’alignement relient les deux objets)"

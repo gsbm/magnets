@@ -663,7 +663,7 @@ def push_guides(
 
         # Label only engaged guides: approaching guides stay quiet so the
         # viewport is not buried in text while dragging.
-        if is_active:
+        if is_active and options.show_guide_labels:
             hint = feature_hint(rel.target) if options.show_feature_hints else ""
             anchor_co = feature_anchor(rel.target)
             labels.append(

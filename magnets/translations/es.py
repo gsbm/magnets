@@ -29,6 +29,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Passive Guides"): "Guías pasivas",
     ("*", "Feature Hints"): "Indicaciones de elementos",
     ("*", "Ticks"): "Marcas",
+    ("*", "Labels"): "Etiquetas",
     ("*", "Extend to Viewport"): "Extender a la vista",
     ("*", "Proximity Fade"): "Atenuar por proximidad",
     ("Magnets", "Alignment Frame"): "Sistema de alineación",
@@ -101,6 +102,9 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ),
     ("*", "Show tick marks at guide reference points"): (
         "Mostrar marcas en los puntos de referencia de las guías"
+    ),
+    ("*", "Show a text label next to each engaged guide"): (
+        "Mostrar una etiqueta junto a cada guía activa"
     ),
     ("*", "Stretch edge guide lines across the 3D Viewport (alignment guides join the two objects)"): (
         "Extender las líneas de guía de aristas a lo ancho de la vista 3D (las guías de alineación unen los dos objetos)"
