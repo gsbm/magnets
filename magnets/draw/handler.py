@@ -382,8 +382,9 @@ def _draw_px():
     _draw_labels(region, rv3d, scale)
 
 
-# Label icons: Blender's UI icon size at 1x, and the gap before the text.
-_ICON_PX = 16.0
+# Label icons: Blender's UI icon size at 1x, 15% up so they read next to the
+# text, and the gap before the text.
+_ICON_PX = 16.0 * 1.15
 _ICON_GAP_PX = 3.0
 
 

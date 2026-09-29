@@ -160,10 +160,10 @@
       (s.dots || []).forEach(([x, y]) => el("circle", { class: "dot", cx: x, cy: y, r: 3.5 }, anchors));
       const sel = el("rect", { class: "sel", width: s.sel.w, height: s.sel.h }, scene);
       const tag = el("g", { class: "tag" }, scene);
-      const iw = s.tag.icon ? 18 : 0;  // 14 px icon + gap
+      const iw = s.tag.icon ? 20 : 0;  // 16 px icon + gap
       const tw = Math.max(26, s.tag.t.length * 8 + 16 + iw);
       el("rect", { x: s.tag.x - tw / 2, y: s.tag.y - 11, width: tw, height: 22, fill: c }, tag);
-      if (s.tag.icon) el("use", { href: `icons.svg#i-${s.tag.icon}`, x: s.tag.x - tw / 2 + 8, y: s.tag.y - 7, width: 14, height: 14 }, tag);
+      if (s.tag.icon) el("use", { href: `icons.svg#i-${s.tag.icon}`, x: s.tag.x - tw / 2 + 8, y: s.tag.y - 8, width: 16, height: 16 }, tag);
       el("text", { x: s.tag.x + iw / 2, y: s.tag.y + 1 }, tag).textContent = s.tag.t;
       const cursor = el("use", { href: "#cur", width: 28, height: 28 }, scene);
       parts = { passive, engaged, landing, anchors, sel, tag, cursor };

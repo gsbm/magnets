@@ -337,8 +337,8 @@ kbd {
 .lbl:active { transform: scale(.97); }
 .lbl--axis { background: rgb(139 209 58 / .12); color: var(--axis-y); }
 /* Guide icons (icons.svg, generated from magnets/core/icons.py): 16-grid artwork in the text color. */
-.ico { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.22em; color: inherit; }
-.lbl .ico { width: 16px; height: 16px; vertical-align: -3px; }
+.ico { display: inline-block; width: 1.32em; height: 1.32em; vertical-align: -.3em; color: inherit; }
+.lbl .ico { width: 18px; height: 18px; vertical-align: -4px; }
 .spec p { font-size: var(--fs-ui); color: var(--fg-2); max-width: 40ch; }
 .spec__mover { transform-box: fill-box; transform-origin: center; }
 .spec__guide { opacity: 1; }
