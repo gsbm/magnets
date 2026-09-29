@@ -67,11 +67,9 @@ def competes(a: Relationship, b: Relationship) -> bool:
 def adds_direction(rel: Relationship, selected: list[Relationship]) -> bool:
     """True when ``rel`` constrains a direction ``selected`` does not cover.
 
-    Engaged guides spend the selection's degrees of freedom (three, or two
-    in an orthographic view where depth is filtered). A guide whose pull lies
-    mostly in the span of those already engaged cannot add anything: it is
-    redundant or contradicting. Coincident equal spacing is the exception
-    (see ``competes``). Guides without a translation always pass.
+    A guide pulling mostly within the span of the engaged ones is redundant
+    or contradicting; coincident equal spacing is the exception (see
+    ``competes``). Guides without a translation always pass.
     """
     d = _pull_direction(rel)
     if d is None:
@@ -183,13 +181,10 @@ def one_guide_per_direction(
 ) -> list[RankItem]:
     """The guides to draw: every engaged one, then passive ones by direction.
 
-    A passive guide is drawn only when it adds a direction the drawn guides do
-    not cover (``adds_direction``): at most as many as the selection has free
-    directions, closest first, primary tier before secondary. Other guides on
-    a covered direction would be redundant (same spot) or unreachable at once
-    (another spot). Passive guides with no direction (already satisfied, or a
-    size match) are limited to one. Capped at ``top_k`` unless the engaged
-    ones exceed it.
+    A passive guide is drawn only if it adds an uncovered direction
+    (``adds_direction``), closest first, primary tier before secondary. At
+    most one passive guide without a direction is kept. Capped at ``top_k``
+    unless the engaged guides alone exceed it.
     """
     kept = list(engaged)
     rels = [it.payload for it in kept]

@@ -172,13 +172,9 @@ def _rank_items(
 ) -> list[scoring.RankItem]:
     """Score ``rels`` into RankItems, keeping those within ``passive_px``.
 
-    Same keys, scores and distances as ``rank_key`` + ``relationship_score``
-    + ``screen_metrics`` per relationship, but only in-range items are ever
-    ranked, held or drawn (``scoring.rank`` drops the rest), so the distance
-    is measured first and keys and scores are built for those alone. Each
-    moving feature is projected once, not once per relationship. The screen
-    anchor is left unset: ranking suppresses one guide per slot and never
-    reads it.
+    Matches ``rank_key`` + ``relationship_score`` + ``screen_metrics``, but
+    measures the distance first so keys and scores are built only for
+    in-range items, and projects each moving feature once.
     """
     project = view3d_utils.location_3d_to_region_2d
     moving_2d: dict[int, object] = {}
@@ -408,8 +404,6 @@ def run_inference(
     engaged: list[scoring.RankItem] = []
     coincident: dict = {}
     if snapped and active_keys:
-        # Engaged guides are always drawn, even when latched from outside the
-        # decluttered top-K.
         ranked = scoring.with_engaged(
             ranked, ranked + visible + [active_item], active_keys, options.max_guides
         )
@@ -418,8 +412,6 @@ def run_inference(
             marks = coincident_targets(rel, visible)
             if marks:
                 coincident[rank_key(rel)] = marks
-    # One guide per direction on screen: engaged first, then passive guides
-    # only for directions still free.
     ranked = one_guide_per_direction(engaged, visible, options.max_guides)
 
     rot_axis, rot_angle = resolve_rotation(
@@ -559,7 +551,6 @@ def push_guides(
 
     active_keys = {rank_key(r) for r in result.active_set} if snapped else set()
     if not options.show_passive_guides:
-        # "Show guides before they engage" off: draw engaged guides only.
         ranked = [it for it in ranked if it.key in active_keys]
     if not ranked and not ghost_edges and not preview_labels:
         draw.clear_state()
@@ -617,7 +608,6 @@ def push_guides(
 
         routed = _is_routed_alignment(rel)
         if routed:
-            # Along the frame axes in the shared plane: one segment or an L.
             segs = axis_route(
                 rel.guide.point,
                 moving_co,

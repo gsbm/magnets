@@ -13,7 +13,6 @@ class ConcentricSolver(Solver):
     family = "concentric"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.CIRCLE, FeatureType.CIRCLE)
 
     def solve(
@@ -22,7 +21,6 @@ class ConcentricSolver(Solver):
         candidates: list[CircleFeature],
         ctx: SolveContext,
     ):
-        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         for m in moving:

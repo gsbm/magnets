@@ -30,7 +30,6 @@ class MAGNETS_OT_scale(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        """Return True when the operator can run in ``context``."""
         return (
             context.mode == "OBJECT"
             and context.active_object is not None
@@ -40,7 +39,6 @@ class MAGNETS_OT_scale(bpy.types.Operator):
         )
 
     def invoke(self, context, event):
-        """Start the modal snapping session."""
         self.obj = context.active_object
         self.region = context.region
         self.rv3d = context.region_data
@@ -67,7 +65,6 @@ class MAGNETS_OT_scale(bpy.types.Operator):
         return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
-        """Handle a modal event."""
         if is_nav_event(event):
             return {"PASS_THROUGH"}
 
@@ -155,10 +152,8 @@ class MAGNETS_OT_scale(bpy.types.Operator):
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     bpy.utils.register_class(MAGNETS_OT_scale)
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     bpy.utils.unregister_class(MAGNETS_OT_scale)

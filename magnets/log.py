@@ -25,12 +25,10 @@ def debug_enabled() -> bool:
 
 
 def debug(msg: str) -> None:
-    """Log a debug message."""
     _logger.debug(msg)
 
 
 def warning(msg: str) -> None:
-    """Log a warning message."""
     _logger.warning(msg)
 
 

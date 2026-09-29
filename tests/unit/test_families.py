@@ -4,9 +4,6 @@ from core import families
 
 
 def test_twelve_families():
-    # Repeat Size was split out of Equal Spacing and Sphere Tangency out of
-    # Tangency (now Surface Contact); Perpendicular was removed (compared in
-    # 3D it held for any box, and nothing could apply it).
     assert len(families.FAMILIES) == 12
 
 

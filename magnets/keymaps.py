@@ -27,7 +27,6 @@ _TOGGLE_KEY = {"type": "M", "value": "PRESS", "shift": True, "alt": True}
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc is None:
@@ -77,7 +76,6 @@ def draw_toggle_keymap(context, layout):
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     for km, kmi in _addon_keymaps + _toggle_keymaps:
         try:
             km.keymap_items.remove(kmi)

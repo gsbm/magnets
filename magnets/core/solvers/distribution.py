@@ -42,7 +42,6 @@ class DistributionSolver(Solver):
     family = "spacing"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.POINT, FeatureType.POINT)
 
     def solve(
@@ -51,7 +50,6 @@ class DistributionSolver(Solver):
         candidates: list[PointFeature],
         ctx: SolveContext,
     ) -> list[Relationship]:
-        """Return relationships between ``moving`` and ``candidates`` features."""
         tol = ctx.world_tol
         metric = getattr(ctx, "spacing_metric", "both")
         want_center = metric in ("center", "both")

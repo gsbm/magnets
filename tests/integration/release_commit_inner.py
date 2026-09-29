@@ -165,11 +165,9 @@ release()
 check(close(loc(ob("Mover")), (3.0, 1.5, 0.0)), "no guide in range, no change")
 check(not ov._session.committed, "unsnapped release does not commit")
 
-# Approach with drag ticks, as a real drag does (mirrors the live "translate"
-# scenario): relationships a move cannot change (edges perpendicular to
-# Target's) must not latch at 0 px on the first tick and block the Y alignment.
-# The start and end are clear of every on-screen alignment, so nothing but
-# those relationships sits at 0 px on the first tick.
+# Approach with drag ticks: relationships a move cannot change (edges
+# perpendicular to Target's) must not latch at 0 px on the first tick and
+# block the Y alignment.
 reset()
 start, end = Vector((2.5, -1.5, 0.0)), Vector((2.4, 4.93, 0.0))
 ob("Mover").location = start

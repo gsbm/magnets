@@ -13,11 +13,9 @@ class ParallelSolver(Solver):
     family = "parallel"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.LINE, FeatureType.LINE)
 
     def solve(self, moving: list[LineFeature], candidates: list[LineFeature], ctx: SolveContext):
-        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         for m in moving:
@@ -53,7 +51,6 @@ class DirectionParallelSolver(Solver):
     family = "parallel"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.DIRECTION, FeatureType.DIRECTION)
 
     def solve(
@@ -62,7 +59,6 @@ class DirectionParallelSolver(Solver):
         candidates: list[DirectionFeature],
         ctx: SolveContext,
     ):
-        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         for m in moving:

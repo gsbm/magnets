@@ -32,15 +32,10 @@ class SymmetrySolver(Solver):
     family = "symmetry"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.POINT, FeatureType.POINT)
 
     def solve(self, moving: list[PointFeature], candidates: list[PointFeature], ctx: SolveContext):
-        """Return the best relationship per rank key (see ``BestPerKey``).
-
-        numpy finds the pairs within tolerance and approximates their rank
-        order; each key's winner is then decided exactly (see ``pair_search``).
-        """
+        """Return the best relationship per rank key (see ``pair_search``)."""
         tol = ctx.world_tol
         # A plane facing an orthographic view is hidden by the view filter.
         planes = [

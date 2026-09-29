@@ -422,7 +422,7 @@ def _draw_icon(icon_id: str, x: float, y: float, size: float, color: Color, scal
 
 
 def _draw_labels(region, rv3d, scale: float):
-    """Draw guide labels (icon + text) with a drop shadow so they read over any geometry."""
+    """Draw guide labels (icon + text) with a drop shadow."""
     s = _state
     r2d = view3d_utils.location_3d_to_region_2d
     font_id = 0
@@ -490,7 +490,7 @@ def _reset_gpu_state():
     try:
         gpu.state.blend_set("NONE")
         gpu.state.line_width_set(1.0)
-    except Exception:  # noqa: BLE001, S110 - GPU state, no headless path
+    except Exception:  # noqa: BLE001, S110 - no GPU context when headless
         pass
 
 
@@ -506,7 +506,7 @@ def _log_draw_error(where: str):
 def _safe_draw_view():
     try:
         _draw_view()
-    except Exception:  # noqa: BLE001 - a draw error must not escape
+    except Exception:  # noqa: BLE001
         _log_draw_error("POST_VIEW")
     finally:
         _reset_gpu_state()
@@ -515,7 +515,7 @@ def _safe_draw_view():
 def _safe_draw_px():
     try:
         _draw_px()
-    except Exception:  # noqa: BLE001 - a draw error must not escape
+    except Exception:  # noqa: BLE001
         _log_draw_error("POST_PIXEL")
     finally:
         _reset_gpu_state()

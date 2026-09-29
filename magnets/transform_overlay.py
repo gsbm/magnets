@@ -802,8 +802,8 @@ def _commit_translate(context, region, rv3d, obj, moving, anchor, edit_mode, bm)
         _redraw(context)
         return
 
-    # Object mode: fold the native move + snap into ONE undo step so a single
-    # Ctrl+Z reverts the whole grab (native + snap), matching Blender's feel.
+    # Object mode: fold the native move and the snap into one undo step, so a
+    # single Ctrl+Z reverts the whole grab.
     poses = _translate_poses(context, correction)
     collapsed = _finish_object_commit(context, poses, "Magnets Move")
     log.debug(
@@ -966,7 +966,7 @@ def _timer_callback():
         interval = _timer_callback_inner()
         _consec_failures = 0
         return interval
-    except Exception:  # noqa: BLE001 - a raising timer is unregistered
+    except Exception:  # noqa: BLE001
         _consec_failures += 1
         if _errors_logged < _MAX_ERRORS_LOGGED:
             _errors_logged += 1
@@ -1034,7 +1034,6 @@ def _timer_callback_inner():
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     global _timer
     scene_cache.register()
     if _timer is not None:
@@ -1043,7 +1042,6 @@ def register():
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     global _timer
     _end_session()
     if _timer is not None:

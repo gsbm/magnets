@@ -13,7 +13,6 @@ class CoplanarSolver(Solver):
     family = "coplanar"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.POINT, FeatureType.PLANE)
 
     def solve(

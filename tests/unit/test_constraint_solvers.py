@@ -1,6 +1,6 @@
 """Constraint-family solver smoke tests (midpoint, spacing, size, etc.)."""
 
-import core.solvers  # noqa: F401
+import core.solvers  # noqa: F401 - register solver table
 from core import families as family_ids
 from core.bbox import bbox_dimensions, bbox_edges, bbox_face_planes
 from core.features import (

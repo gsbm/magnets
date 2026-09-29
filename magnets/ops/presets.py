@@ -64,7 +64,6 @@ class MAGNETS_OT_options_preset(bpy.types.Operator):
     )
 
     def execute(self, context):
-        """Run a non-modal operator action."""
         opts = get_options(context)
         for field, value in _PRESETS[self.preset].items():
             setattr(opts, field, value)
@@ -79,7 +78,6 @@ class MAGNETS_OT_options_reset(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     def execute(self, context):
-        """Run a non-modal operator action."""
         opts = get_options(context)
         for prop in opts.bl_rna.properties:
             if prop.is_readonly or prop.identifier == "rna_type":
@@ -96,7 +94,6 @@ class MAGNETS_OT_toggle(bpy.types.Operator):
     bl_options = {"REGISTER"}
 
     def execute(self, context):
-        """Run a non-modal operator action."""
         opts = get_options(context)
         opts.enabled = not opts.enabled
         # Reports are not translated automatically; pgettext_rpt is Blender 4.0+.
@@ -114,12 +111,10 @@ _classes = (MAGNETS_OT_options_preset, MAGNETS_OT_options_reset, MAGNETS_OT_togg
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     for cls in _classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

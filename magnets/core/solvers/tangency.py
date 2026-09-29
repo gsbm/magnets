@@ -18,11 +18,9 @@ class TangencySolver(Solver):
     family = "sphere_tangency"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.CIRCLE, FeatureType.CIRCLE)
 
     def solve(self, moving: list[CircleFeature], candidates: list[CircleFeature], ctx: SolveContext):
-        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         for m in moving:
@@ -67,7 +65,6 @@ class SurfaceTangencySolver(Solver):
     family = "tangency"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.POINT, FeatureType.SURFACE)
 
     def solve(
@@ -76,7 +73,6 @@ class SurfaceTangencySolver(Solver):
         candidates: list[SurfaceFeature],
         ctx: SolveContext,
     ):
-        """Return relationships between ``moving`` and ``candidates`` features."""
         out: list[Relationship] = []
         tol = ctx.world_tol
         count = 0

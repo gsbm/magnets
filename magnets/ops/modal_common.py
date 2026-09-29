@@ -66,7 +66,7 @@ def is_nav_event(event) -> bool:
 
 
 def header_text(label: str, qualifier: str, readout: str, snapped: bool) -> str:
-    """Translated modal header, e.g. ``Magnets Move [X]: Dx 1.000 ...  (X/Y/Z: lock axis)``.
+    """Translated modal header, e.g. ``Magnets Move [X]: Dx 1.000 ...``.
 
     ``label`` is the operator's bl_label (Operator context) and ``qualifier`` an
     optional word such as "View"; axis letters and numbers are not translated.

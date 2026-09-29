@@ -1,6 +1,6 @@
 """Registry dispatch, frame axes, scoring/NMS, hysteresis, and spatial indexes."""
 
-import core.solvers  # noqa: F401  # populate solver registry
+import core.solvers  # noqa: F401 - register solver table
 from core.features import FeaturePool, FeatureType, PointFeature, PointKind
 from core.frames import Frame, matrix_axes, view_axes, world_axes
 from core.registry import clear_registry, dispatch, register_solver

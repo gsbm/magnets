@@ -13,7 +13,6 @@ class EqualSizeSolver(Solver):
     family = "equal_size"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.BBOX, FeatureType.BBOX)
 
     def solve(self, moving: list[BBoxFeature], candidates: list[BBoxFeature], ctx: SolveContext):

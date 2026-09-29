@@ -1,10 +1,4 @@
-"""Dutch (nl_NL) UI translations for Magnets.
-
-Keys are ``(context, msgid)`` where msgid is the exact English source string.
-Contexts: ``*`` for panels/properties/layout; ``Operator`` for operator labels
-and operator buttons; ``Magnets`` for the frame, spacing and preset options, whose short
-names collide with unrelated entries in Blender's own catalogue.
-"""
+"""Dutch (nl_NL) UI translations for Magnets."""
 
 TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Panels / category ──────────────────────────────────────────────────────

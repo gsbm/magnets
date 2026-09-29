@@ -89,17 +89,14 @@ class PointFeature:
 
     @property
     def entity(self) -> str:
-        """Owning entity name."""
         return self.entity_ref.name
 
     @property
     def priority(self) -> int:
-        """Ranking priority for this feature kind."""
         return self._priority
 
     @property
     def anchor(self) -> Vector:
-        """World-space anchor used for proximity queries."""
         return self.co
 
     @property
@@ -109,7 +106,6 @@ class PointFeature:
 
     @property
     def feature_type(self) -> FeatureType:
-        """FeatureType discriminant for this instance."""
         return FeatureType.POINT
 
 
@@ -123,22 +119,18 @@ class LineFeature:
 
     @property
     def entity(self) -> str:
-        """Owning entity name."""
         return self.entity_ref.name
 
     @property
     def priority(self) -> int:
-        """Ranking priority for this feature kind."""
         return 75
 
     @property
     def anchor(self) -> Vector:
-        """World-space anchor used for proximity queries."""
         return self.point
 
     @property
     def feature_type(self) -> FeatureType:
-        """FeatureType discriminant for this instance."""
         return FeatureType.LINE
 
 
@@ -152,22 +144,18 @@ class PlaneFeature:
 
     @property
     def entity(self) -> str:
-        """Owning entity name."""
         return self.entity_ref.name
 
     @property
     def priority(self) -> int:
-        """Ranking priority for this feature kind."""
         return 75
 
     @property
     def anchor(self) -> Vector:
-        """World-space anchor used for proximity queries."""
         return self.point
 
     @property
     def feature_type(self) -> FeatureType:
-        """FeatureType discriminant for this instance."""
         return FeatureType.PLANE
 
 
@@ -181,22 +169,18 @@ class DirectionFeature:
 
     @property
     def entity(self) -> str:
-        """Owning entity name."""
         return self.entity_ref.name
 
     @property
     def priority(self) -> int:
-        """Ranking priority for this feature kind."""
         return 70
 
     @property
     def anchor(self) -> Vector:
-        """World-space anchor used for proximity queries."""
         return self.origin
 
     @property
     def feature_type(self) -> FeatureType:
-        """FeatureType discriminant for this instance."""
         return FeatureType.DIRECTION
 
 
@@ -209,22 +193,18 @@ class BBoxFeature:
 
     @property
     def entity(self) -> str:
-        """Owning entity name."""
         return self.entity_ref.name
 
     @property
     def priority(self) -> int:
-        """Ranking priority for this feature kind."""
         return 72
 
     @property
     def anchor(self) -> Vector:
-        """World-space anchor used for proximity queries."""
         return self.center
 
     @property
     def feature_type(self) -> FeatureType:
-        """FeatureType discriminant for this instance."""
         return FeatureType.BBOX
 
 
@@ -239,22 +219,18 @@ class CircleFeature:
 
     @property
     def entity(self) -> str:
-        """Owning entity name."""
         return self.entity_ref.name
 
     @property
     def priority(self) -> int:
-        """Ranking priority for this feature kind."""
         return 68
 
     @property
     def anchor(self) -> Vector:
-        """World-space anchor used for proximity queries."""
         return self.center
 
     @property
     def feature_type(self) -> FeatureType:
-        """FeatureType discriminant for this instance."""
         return FeatureType.CIRCLE
 
 
@@ -267,22 +243,18 @@ class SurfaceFeature:
 
     @property
     def entity(self) -> str:
-        """Owning entity name."""
         return self.entity_ref.name
 
     @property
     def priority(self) -> int:
-        """Ranking priority for this feature kind."""
         return 65
 
     @property
     def anchor(self) -> Vector:
-        """World-space anchor used for proximity queries."""
         return self.point
 
     @property
     def feature_type(self) -> FeatureType:
-        """FeatureType discriminant for this instance."""
         return FeatureType.SURFACE
 
 

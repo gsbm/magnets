@@ -37,16 +37,13 @@ class SpacingSolver(Solver):
     family = "repeat_size"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.POINT, FeatureType.POINT)
 
     def solve(self, moving: list[PointFeature], candidates: list[PointFeature], ctx: SolveContext):
-        """Return the best relationship per rank key (see ``BestPerKey``).
+        """Return the best relationship per rank key (see ``pair_search``).
 
         For each pair of points (a, b) of one candidate entity, the moving
         point on their line at distance |ab| from a or b repeats that gap.
-        numpy screens every (moving point, pair, end) combination; each key's
-        winner is decided with the exact per-pair arithmetic (``pair_search``).
         """
         tol = ctx.world_tol
         if not moving or len(candidates) < 2:

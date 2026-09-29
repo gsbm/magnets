@@ -26,7 +26,6 @@ class CollinearSolver(Solver):
     family = "collinear"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.POINT, FeatureType.LINE)
 
     def solve(
@@ -35,11 +34,7 @@ class CollinearSolver(Solver):
         candidates: list[LineFeature],
         ctx: SolveContext,
     ):
-        """Return the best relationship per rank key (see ``BestPerKey``).
-
-        numpy screens every (moving point, line) pair; each key's winner is
-        decided with the exact arithmetic (``pair_search``).
-        """
+        """Return the best relationship per rank key (see ``pair_search``)."""
         tol = ctx.world_tol
         if not moving or not candidates:
             return []

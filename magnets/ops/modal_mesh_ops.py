@@ -13,7 +13,6 @@ class _MagnetsMeshOpBase:
 
     @classmethod
     def poll(cls, context):
-        """Return True when the operator can run in ``context``."""
         return (
             context.mode == "EDIT_MESH"
             and context.active_object is not None
@@ -22,7 +21,6 @@ class _MagnetsMeshOpBase:
         )
 
     def execute(self, context):
-        """Run a non-modal operator action."""
         op = getattr(bpy.ops, self.native_op.split(".")[0])
         mesh_op = getattr(op, self.native_op.split(".")[1])
         if not mesh_op.poll():
@@ -79,12 +77,10 @@ _CLASSES = (
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     for cls in _CLASSES:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     for cls in reversed(_CLASSES):
         bpy.utils.unregister_class(cls)

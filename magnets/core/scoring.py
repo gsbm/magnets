@@ -115,7 +115,7 @@ class RankItem:
     score: float
     screen_dist: float
     payload: Relationship
-    screen_anchor: tuple[float, float] | None = None  # for spatial NMS
+    screen_anchor: tuple[float, float] | None = None
 
 
 def _nms_slot(key: tuple) -> tuple:
@@ -150,7 +150,6 @@ def rank(
     for it in visible:
         if it.key in seen_keys:
             continue
-        # One guide per (family, axis) slot.
         slot = _nms_slot(it.key)
         if slot in used_slots:
             continue

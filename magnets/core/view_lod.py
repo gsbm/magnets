@@ -30,7 +30,6 @@ from .features import FeaturePool, PointFeature, PointKind
 FAR_POINT_KINDS = frozenset(
     (PointKind.CENTROID, PointKind.BBOX_FACE_CENTER, PointKind.ORIGIN)
 )
-# Families that still run against far objects.
 FAR_FAMILIES = frozenset(("alignment",))
 
 

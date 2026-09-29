@@ -38,7 +38,7 @@ def main() -> int:
                 fn()
                 passed += 1
                 print(f"PASS {mod.__name__}.{attr}")
-            except Exception:  # noqa: BLE001 - report any test failure
+            except Exception:  # noqa: BLE001
                 failed += 1
                 print(f"FAIL {mod.__name__}.{attr}")
                 traceback.print_exc()

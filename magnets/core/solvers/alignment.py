@@ -41,15 +41,10 @@ class AlignmentSolver(Solver):
     family = "alignment"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.POINT, FeatureType.POINT)
 
     def solve(self, moving: list[PointFeature], candidates: list[PointFeature], ctx: SolveContext):
-        """Return the best relationship per rank key (see ``BestPerKey``).
-
-        numpy finds the pairs within tolerance; each key's winner is then
-        decided with the exact per-pair arithmetic (see ``pair_search``).
-        """
+        """Return the best relationship per rank key (see ``pair_search``)."""
         tol = ctx.world_tol
         # An axis snapping along the depth of an orthographic view is hidden
         # by the view filter: skip it.
@@ -149,15 +144,10 @@ class EdgeAlignmentSolver(Solver):
     family = "alignment"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.LINE, FeatureType.LINE)
 
     def solve(self, moving: list[LineFeature], candidates: list[LineFeature], ctx: SolveContext):
-        """Return the best relationship per rank key (see ``BestPerKey``).
-
-        numpy screens every (moving edge, candidate edge, axis) triple; each
-        key's winner is decided with the exact arithmetic (``pair_search``).
-        """
+        """Return the best relationship per rank key (see ``pair_search``)."""
         tol = ctx.world_tol
         axes = list(ctx.axes.items())
         if not moving or not candidates or not axes:

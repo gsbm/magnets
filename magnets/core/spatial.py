@@ -52,14 +52,12 @@ class PointIndex(SpatialIndex):
         return len(self._items)
 
     def query_radius(self, center: Vector, radius: float) -> list:
-        """Return payloads within ``radius`` of ``center``."""
         if self._tree is not None:
             return [self._items[i][1] for (_co, i, _d) in self._tree.find_range(center, radius)]
         r2 = radius * radius
         return [p for (co, p) in self._items if (co - center).length_squared <= r2]
 
     def query_nearest(self, center: Vector, n: int) -> list:
-        """Return up to ``n`` nearest payloads to ``center``."""
         if n <= 0 or not self._items:
             return []
         if self._tree is not None:
@@ -86,7 +84,6 @@ class HashGridIndex(SpatialIndex):
         return len(self._items)
 
     def query_radius(self, center: Vector, radius: float) -> list:
-        """Return payloads within ``radius`` of ``center``."""
         r2 = radius * radius
         cells = int(radius / self._cell_size) + 1
         cx, cy, cz = self._cell_key(center)
@@ -105,7 +102,6 @@ class HashGridIndex(SpatialIndex):
         return out
 
     def query_nearest(self, center: Vector, n: int) -> list:
-        """Return up to ``n`` nearest payloads to ``center``."""
         if n <= 0 or not self._items:
             return []
         ordered = sorted(self._items, key=lambda it: (it[0] - center).length_squared)
@@ -122,12 +118,10 @@ class BVHIndex(SpatialIndex):
         return len(self._items)
 
     def query_radius(self, center: Vector, radius: float) -> list:
-        """Return payloads within ``radius`` of ``center``."""
         r2 = radius * radius
         return [p for (co, p) in self._items if (co - center).length_squared <= r2]
 
     def query_nearest(self, center: Vector, n: int) -> list:
-        """Return up to ``n`` nearest payloads to ``center``."""
         if n <= 0 or not self._items:
             return []
         ordered = sorted(self._items, key=lambda it: (it[0] - center).length_squared)

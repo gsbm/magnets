@@ -57,7 +57,6 @@ class MAGNETS_PT_header_popover(bpy.types.Panel):
     bl_ui_units_x = 13
 
     def draw(self, context):
-        """Draw UI controls into ``layout``."""
         opts = get_options(context)
         layout = self.layout
         layout.use_property_split = True
@@ -85,11 +84,9 @@ class MAGNETS_PT_panel(bpy.types.Panel):
     bl_category = "Magnets"
 
     def draw_header(self, context):
-        """Draw the panel header row."""
         self.layout.prop(get_options(context), "enabled", text="")
 
     def draw(self, context):
-        """Draw UI controls into ``layout``."""
         opts = get_options(context)
         layout = self.layout
         layout.use_property_split = True
@@ -108,7 +105,6 @@ class MAGNETS_PT_snapping(bpy.types.Panel):
     bl_parent_id = "MAGNETS_PT_panel"
 
     def draw(self, context):
-        """Draw UI controls into ``layout``."""
         opts = get_options(context)
         layout = self.layout
         layout.use_property_split = True
@@ -140,7 +136,6 @@ class MAGNETS_PT_guides(bpy.types.Panel):
     bl_parent_id = "MAGNETS_PT_panel"
 
     def draw(self, context):
-        """Draw UI controls into ``layout``."""
         opts = get_options(context)
         layout = self.layout
         layout.use_property_split = True
@@ -174,7 +169,6 @@ class MAGNETS_PT_alignment(bpy.types.Panel):
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
-        """Draw UI controls into ``layout``."""
         opts = get_options(context)
         layout = self.layout
         layout.use_property_split = True
@@ -209,7 +203,6 @@ class MAGNETS_PT_families(bpy.types.Panel):
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
-        """Draw UI controls into ``layout``."""
         opts = get_options(context)
         layout = self.layout
         layout.active = opts.enabled
@@ -251,14 +244,12 @@ _CLASSES = (
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     for cls in _CLASSES:
         bpy.utils.register_class(cls)
     bpy.types.VIEW3D_HT_header.append(draw_view3d_header)
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     bpy.types.VIEW3D_HT_header.remove(draw_view3d_header)
     for cls in reversed(_CLASSES):
         bpy.utils.unregister_class(cls)

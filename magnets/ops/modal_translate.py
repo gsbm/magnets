@@ -34,7 +34,6 @@ class MAGNETS_OT_translate(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        """Return True when the operator can run in ``context``."""
         if context.space_data is None or context.space_data.type != "VIEW_3D":
             return False
         if not get_options(context).enabled:
@@ -49,7 +48,6 @@ class MAGNETS_OT_translate(bpy.types.Operator):
         return False
 
     def invoke(self, context, event):
-        """Start the modal snapping session."""
         self.obj = context.active_object
         self.region = context.region
         self.rv3d = context.region_data
@@ -101,7 +99,6 @@ class MAGNETS_OT_translate(bpy.types.Operator):
             v.co = co
 
     def modal(self, context, event):
-        """Handle a modal event."""
         if is_nav_event(event):
             return {"PASS_THROUGH"}
 
@@ -229,10 +226,8 @@ class MAGNETS_OT_translate(bpy.types.Operator):
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     bpy.utils.register_class(MAGNETS_OT_translate)
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     bpy.utils.unregister_class(MAGNETS_OT_translate)

@@ -1,17 +1,14 @@
 """Guide label icons, drawn on Blender's UI icon grid (no bpy).
 
-One definition feeds both the viewport (tessellated to line segments and
-triangles, see ``geometry``) and the landing page (``sprite``). The rules
-follow Blender's icon guidelines (developer.blender.org/docs/features/
-interface/icons/): a 1600-unit canvas on a 100-unit grid, a one-cell margin
-(the drawing area is 100..1500), lines exactly one cell wide, white shapes
-tinted at draw time, and lesser parts at lower opacity. Here the primary
-tone (the selection or the result) is opaque and the secondary tone (the
-reference) is drawn at ``SECONDARY_ALPHA``.
+One definition feeds the viewport (``geometry``) and the landing page
+(``sprite``). Follows Blender's icon guidelines
+(developer.blender.org/docs/features/interface/icons/): a 1600-unit canvas on
+a 100-unit grid, one cell of margin, one-cell-wide lines, white shapes tinted
+at draw time. The secondary tone (the reference) is drawn at
+``SECONDARY_ALPHA``.
 
-At 16 px a cell is one pixel, so straight lines sit on half cells (150,
-250 ... 1450) and filled dots are 4 px across on whole cells, to fill exact
-pixels. Coordinates are SVG-like: x right, y down.
+At 16 px a cell is one pixel, so straight lines sit on half cells and dots on
+whole cells. Coordinates are SVG-like: x right, y down.
 """
 
 from __future__ import annotations

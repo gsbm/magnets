@@ -33,15 +33,10 @@ class MidpointSolver(Solver):
     family = "midpoint"
 
     def feature_types(self) -> tuple[FeatureType, FeatureType]:
-        """Return the (moving, candidate) feature types this solver handles."""
         return (FeatureType.POINT, FeatureType.POINT)
 
     def solve(self, moving: list[PointFeature], candidates: list[PointFeature], ctx: SolveContext):
-        """Return the best relationship per rank key (see ``BestPerKey``).
-
-        numpy screens every (moving point, same-kind pair) combination; each
-        key's winner is decided with the exact arithmetic (``pair_search``).
-        """
+        """Return the best relationship per rank key (see ``pair_search``)."""
         tol = ctx.world_tol
         if not moving or len(candidates) < 2:
             return []

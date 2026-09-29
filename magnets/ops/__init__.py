@@ -13,12 +13,10 @@ _modules = (noop, modal_translate, modal_rotate, modal_scale, modal_mesh_ops, pr
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     for mod in _modules:
         mod.register()
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     for mod in reversed(_modules):
         mod.unregister()

@@ -1,8 +1,8 @@
 """Add-on UI translations for ``bpy.app.translations``.
 
-English is the source language (msgids in RNA/UI code). Locale modules export
-``TRANSLATIONS`` maps keyed by ``(context, msgid)``. Blender selects the active
-locale from Preferences → Interface → Translation.
+English is the source language. Locale modules export ``TRANSLATIONS`` maps
+keyed by ``(context, msgid)``, with context ``*`` (default), ``Operator``
+(operator labels and buttons) or ``CONTEXT``.
 """
 
 from __future__ import annotations
@@ -28,10 +28,8 @@ translations_dict: dict[str, dict[tuple[str, str], str]] = {
 
 
 def register():
-    """Register translation catalogs with Blender."""
     bpy.app.translations.register(__package__, translations_dict)
 
 
 def unregister():
-    """Unregister translation catalogs from Blender."""
     bpy.app.translations.unregister(__package__)

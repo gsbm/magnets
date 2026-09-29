@@ -262,14 +262,12 @@ classes = (MagnetsOptions,)
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.magnets = PointerProperty(type=MagnetsOptions)
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     del bpy.types.Scene.magnets
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)

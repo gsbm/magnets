@@ -9,7 +9,6 @@ _modules = (preferences, properties, ops, ui)
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     for mod in _modules:
         mod.register()
     keymaps.register()
@@ -18,7 +17,6 @@ def register():
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     translations.unregister()
     transform_overlay.unregister()
     keymaps.unregister()

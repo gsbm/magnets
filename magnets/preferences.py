@@ -142,7 +142,6 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
     )
 
     def draw(self, context):
-        """Draw UI controls into ``layout``."""
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
@@ -196,7 +195,6 @@ classes = (MagnetsPreferences,)
 
 
 def register():
-    """Register Blender classes / handlers for this module."""
     for cls in classes:
         bpy.utils.register_class(cls)
     # Honour a saved Debug Logging preference at startup (the update callback
@@ -210,6 +208,5 @@ def register():
 
 
 def unregister():
-    """Unregister Blender classes / handlers for this module."""
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
