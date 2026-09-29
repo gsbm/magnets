@@ -206,6 +206,7 @@ def run_drag(scene_name, build, view_name):
     opts = get_options(bpy.context)
     opts.show_passive_guides = True
     opts.show_guide_labels = True
+    opts.show_guide_ticks = True
     mover = build()
     ov._begin_session(bpy.context, "TRANSFORM_OT_translate", view=view)
     frames.clear()

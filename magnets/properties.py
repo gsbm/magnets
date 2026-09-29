@@ -181,7 +181,7 @@ class MagnetsOptions(bpy.types.PropertyGroup):
     show_guide_ticks: BoolProperty(
         name="Ticks",
         description="Show tick marks at guide reference points",
-        default=True,
+        default=False,
     )
     extend_guides_to_viewport: BoolProperty(
         name="Extend to Viewport",
