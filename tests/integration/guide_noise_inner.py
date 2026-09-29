@@ -248,6 +248,26 @@ for co in drag_path():
 opts.show_passive_guides = True
 frames.clear()
 
+# ── A straight hand drag is not an axis lock ─────────────────────────────────
+# Dragging straight across the top view leaves Y bit-for-bit unchanged, as a
+# G X lock would. Corner-to-corner with a same-size cube, both axes engage.
+clear_scene()
+bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.0))
+mover = add_mover()
+mover.location = (3.0, 1.03, 0.0)
+bpy.context.view_layer.update()
+ov._begin_session(bpy.context, "TRANSFORM_OT_translate", view=TOP)
+for step in range(20):
+    mover.location = (3.0 - 0.1 * step, 1.03, 0.0)
+    bpy.context.view_layer.update()
+    ov._tick(bpy.context, view=TOP)
+check(ov._session.constraint is None, f"straight drag read as a lock: {ov._session.constraint}")
+last = frames[-1]
+engaged_axes = sorted(r.axis for r in last.active_set) if last.snapped else []
+check(engaged_axes == ["X", "Y"], f"straight drag engages both axes: {engaged_axes}")
+ov._end_session()
+frames.clear()
+
 # ── Release: the overlay clears at once, not after the grace frames ──────────
 mover = grid_scene()
 running = {"op": "TRANSFORM_OT_translate"}

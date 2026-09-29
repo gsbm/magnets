@@ -57,6 +57,19 @@ def test_lock_is_inferred_from_axes_that_did_not_move():
     assert inferred_axis_mask(start, (1.001, 2.0, 3.0), 0.01) is None  # not moved yet
 
 
+def test_move_in_the_view_plane_is_not_read_as_a_lock():
+    start = (1.0, 2.0, 3.0)
+    top = (0.0, 0.0, 1.0)
+    # A hand drag straight across the top view leaves Y unchanged: still free.
+    assert inferred_axis_mask(start, (1.5, 2.0, 3.0), 0.01, top) is None
+    assert inferred_axis_mask(start, (1.5, 2.4, 3.0), 0.01, top) is None
+    # Leaving the view plane can only come from a lock (G Z in the top view).
+    assert inferred_axis_mask(start, (1.0, 2.0, 3.5), 0.01, top) == (False, False, True)
+    # In a tilted view, G X leaves the view plane and is still detected.
+    tilted = (0.5, -0.5, 0.707)
+    assert inferred_axis_mask(start, (1.5, 2.0, 3.0), 0.01, tilted) == (True, False, False)
+
+
 def test_lock_mask_drops_guides_pulling_along_locked_axes():
     from core.features import PointFeature, PointKind
     from core.relationship import ConstraintDelta, GuideLine, Relationship

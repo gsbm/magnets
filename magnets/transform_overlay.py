@@ -445,7 +445,8 @@ def _live_constraint(context, anchor, region, rv3d) -> tuple | None:
     if mask is not None or _session.start_anchor is None:
         return mask
     move_eps = world_per_pixel(region, rv3d, anchor) * 2.0
-    return inferred_axis_mask(_session.start_anchor, anchor, move_eps)
+    view_normal = rv3d.view_rotation @ Vector((0.0, 0.0, 1.0))
+    return inferred_axis_mask(_session.start_anchor, anchor, move_eps, view_normal)
 
 
 def _read_native_constraint(context) -> tuple | None:
