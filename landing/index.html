@@ -35,7 +35,6 @@
       </button>
       <nav class="nav__links" id="toc" aria-label="On this page">
         <span class="nav__pill" aria-hidden="true"></span>
-        <a href="#how">How it works</a>
         <a href="#guides">Guide types</a>
         <a href="#modes">Modes</a>
         <a href="#reference">Reference</a>
@@ -74,48 +73,6 @@
           <div class="demo__dots" role="group" aria-label="Examples"></div>
         </figcaption>
       </figure>
-    </section>
-
-    <!-- How it works -->
-    <section class="section" id="how" aria-labelledby="how-title">
-      <div class="section__head">
-        <h2 id="how-title">How a snap happens</h2>
-        <p>Magnets does not replace Blender's transform. It reads the transform in progress, draws the relationships it finds, and applies one snap on release.</p>
-      </div>
-
-      <div class="how" data-how>
-        <div class="steps" role="tablist" aria-label="Stages of a drag">
-          <button role="tab" id="step-0" aria-controls="how-stage" aria-selected="true" data-step="0"><span class="steps__n">Approach</span><span class="steps__d">With Passive Guides on, a faint guide fades in as the selection nears a relationship. Off by default: guides appear only when they engage.</span></button>
-          <button role="tab" id="step-1" aria-controls="how-stage" aria-selected="false" data-step="1"><span class="steps__n">Engage</span><span class="steps__d">Within Snap Tolerance the guide turns solid and flashes once. With Labels on, it also names the relationship.</span></button>
-          <button role="tab" id="step-2" aria-controls="how-stage" aria-selected="false" data-step="2"><span class="steps__n">Preview</span><span class="steps__d">A dashed outline shows where the selection will land.</span></button>
-          <button role="tab" id="step-3" aria-controls="how-stage" aria-selected="false" data-step="3"><span class="steps__n">Release</span><span class="steps__d">The selection snaps. In Object Mode, move and snap are one undo step; in Edit Mode, the snap is a second step.</span></button>
-        </div>
-
-        <div class="how__panel" role="tabpanel" id="how-stage" aria-labelledby="step-0">
-          <div class="how__stage" data-stage="0">
-            <svg class="scene" viewBox="0 0 560 340" aria-hidden="true">
-              <g class="scene__grid"><line x1="0" y1="170" x2="560" y2="170"/><line x1="280" y1="0" x2="280" y2="340"/></g>
-              <g data-part="passive"><line class="g-passive" x1="170" y1="140" x2="350" y2="140"/></g>
-              <g data-part="engaged"><line class="g-engaged" x1="170" y1="140" x2="350" y2="140"/></g>
-              <g data-part="label"><rect class="g-tag" x="245" y="102" width="30" height="24" rx="12"/><text class="g-tagtext" x="260" y="118.5">Y</text></g>
-              <g data-part="ref"><rect class="cube" x="90" y="100" width="80" height="80"/><text class="cube__name" x="90" y="202">Cube</text></g>
-              <g data-part="landing"><rect class="landing" x="350" y="100" width="80" height="80"/></g>
-              <g data-part="dot"><circle class="g-dot" cx="170" cy="140" r="4.5"/><circle class="g-dot" cx="350" cy="140" r="4.5"/></g>
-              <g data-part="sel" class="sel"><rect class="cube cube--sel" x="350" y="100" width="80" height="80"/><text class="cube__name" x="350" y="202">Cube.002</text></g>
-              <g class="cursor"><use href="#cur" x="-8" y="-5" width="28" height="28"/></g>
-            </svg>
-          </div>
-          <p class="how__caption" aria-live="polite" data-how-caption>With Passive Guides on, a faint guide fades in as the selection nears a relationship. Off by default: guides appear only when they engage.</p>
-        </div>
-
-        <ul class="legend" aria-label="What each mark means">
-          <li data-legend="passive"><span class="sw sw--passive"></span><b>Passive guide</b><span>A nearby relationship, at most one per free direction. Neutral color, fades with distance. Off by default: turn on <span class="path">Guides ▸ Passive Guides</span>.</span></li>
-          <li data-legend="engaged"><span class="sw sw--engaged"></span><b>Engaged guide</b><span>Will snap. Drawn in the Active Color, magenta by default. Alignment guides run along the axes, one segment or an L.</span></li>
-          <li data-legend="label"><span class="sw sw--label">Y</span><b>Label</b><span>Names the relationship: an axis letter in its color (X red, Y green, Z blue) or an icon such as <svg class="ico" aria-hidden="true"><use href="icons.svg#i-midpoint"/></svg> or <svg class="ico" aria-hidden="true"><use href="icons.svg#i-parallel"/></svg>, then a length when there is one. Off by default: turn on <span class="path">Guides ▸ Labels</span>. Every icon is listed in the <a href="#reference">Reference</a>.</span></li>
-          <li data-legend="dot"><span class="sw sw--dot"></span><b>Snap anchor dot</b><span>The two points being matched.</span></li>
-          <li data-legend="landing"><span class="sw sw--landing"></span><b>Landing outline</b><span>Where the selection goes on release.</span></li>
-        </ul>
-      </div>
     </section>
 
     <!-- Guide types -->

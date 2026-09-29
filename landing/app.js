@@ -7,7 +7,6 @@
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const easeOut = (t) => 1 - Math.pow(1 - t, 4);
   const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
-  const canHover = matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   // Call fn(true/false) as el enters and leaves the viewport.
   function whenVisible(el, fn, threshold = 0.2) {
@@ -225,51 +224,6 @@
       if (v && !running) { t0 = performance.now() - paused; start(); }
       else if (!v && running) { paused = performance.now() - t0; running = false; cancelAnimationFrame(raf); }
     }, 0.2);
-  })();
-
-  /* ---------------- How it works: user-driven stepper + legend ---------------- */
-  (function how() {
-    const root = $("[data-how]");
-    const stage = $(".how__stage", root);
-    const panel = $(".how__panel", root);
-    const caption = $("[data-how-caption]", root);
-    const tabs = $$("[data-step]", root);
-    let i = 0;
-
-    function show(n) {
-      i = n;
-      stage.dataset.stage = n;
-      tabs.forEach((t, k) => { t.setAttribute("aria-selected", String(k === n)); t.tabIndex = k === n ? 0 : -1; });
-      panel.setAttribute("aria-labelledby", tabs[n].id);
-      caption.textContent = $(".steps__d", tabs[n]).textContent;
-    }
-    tabs.forEach((t, k) => t.addEventListener("click", () => show(k)));
-    root.addEventListener("keydown", (e) => {
-      if (!e.target.matches("[data-step]")) return;
-      const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
-      if (!d) return;
-      e.preventDefault();
-      const n = (i + d + tabs.length) % tabs.length; show(n); tabs[n].focus();
-    });
-    show(0);
-
-    // Pointer hover on a legend item isolates its mark in the scene (fine pointers only).
-    if (!canHover) return;
-    $$("[data-legend]", root).forEach((li) => {
-      let before = 0;
-      li.addEventListener("mouseenter", () => {
-        const part = li.dataset.legend;
-        before = i;
-        show({ passive: 0, landing: 2 }[part] ?? 2);
-        stage.classList.add("is-focus");
-        $$("[data-part]", stage).forEach((p) => p.classList.toggle("is-lit", p.dataset.part === part));
-      });
-      li.addEventListener("mouseleave", () => {
-        stage.classList.remove("is-focus");
-        $$(".is-lit", stage).forEach((p) => p.classList.remove("is-lit"));
-        show(before);
-      });
-    });
   })();
 
   /* ---------------- Segmented controls (tabs use aria-selected, radios aria-checked) ---------------- */

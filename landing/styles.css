@@ -162,7 +162,6 @@ kbd {
 
 /* SVG text is sized in drawing units; bump it where the drawings are scaled down on phones */
 @media (max-width: 680px) {
-  .scene .cube__name { font-size: 18px; }
   .demo .name { font-size: 15px; }
   .demo .tag text { font-size: 15px; }
 }
@@ -240,80 +239,11 @@ kbd {
 .cube-line { stroke: var(--fg-2); stroke-width: 2; stroke-linecap: round; }
 .cube-line--sel { stroke: var(--fg); stroke-width: 3; }
 .plane { fill: var(--surface-2); stroke: var(--passive); }
-.cube__name { font: 400 12px var(--mono); fill: var(--muted); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
 .g-passive { stroke: var(--passive); stroke-width: 1; stroke-dasharray: 4 4; }
 .g-engaged { stroke: var(--active); stroke-width: 1.75; fill: none; }
 .g-a { stroke: var(--active); }
-.g-y { stroke: var(--axis-y); }
 .g-dot { fill: var(--fg); }
-.g-tag { fill: var(--axis-y); }
-.g-tagtext { font: 400 13px var(--mono); fill: var(--bg); text-anchor: middle; }
 .landing { fill: none; stroke: var(--fg); stroke-width: 1.25; stroke-dasharray: 5 4; }
-
-/* How it works */
-.how { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 24px var(--col-gap); }
-.steps { display: grid; gap: 4px; align-content: start; }
-.steps button {
-  position: relative; display: grid; gap: 4px; width: 100%;
-  padding: 16px 18px 18px; border: 0; border-radius: 16px;
-  background: transparent; text-align: left; font: inherit; color: var(--muted); cursor: pointer;
-  transition: background-color .2s ease, color .2s ease;
-}
-.steps button[aria-selected="true"] { color: var(--fg); background: var(--surface); }
-.steps__n { font-weight: 500; font-size: 16px; }
-.steps__d { font-size: var(--fs-ui); line-height: 1.5; }
-
-.how__panel { display: grid; gap: 12px; align-content: start; }
-.how__stage { border-radius: var(--r-panel); background: var(--surface); overflow: hidden; }
-.how__caption { display: none; font-size: var(--fs-ui); color: var(--muted); }
-.scene { display: block; width: 100%; height: auto; }
-.scene__grid line { stroke: var(--line); stroke-width: 1; }
-.scene [data-part], .scene .cursor { transition: opacity .25s ease, transform .3s var(--ease-out); }
-.scene [data-part="passive"], .scene [data-part="engaged"], .scene [data-part="label"],
-.scene [data-part="dot"], .scene [data-part="landing"] { opacity: 0; }
-
-.how__stage[data-stage="0"] .sel { transform: translate(28px, 46px); }
-.how__stage[data-stage="0"] .cursor { transform: translate(418px, 196px); }
-.how__stage[data-stage="0"] [data-part="passive"] { opacity: 1; }
-
-.how__stage[data-stage="1"] .sel, .how__stage[data-stage="2"] .sel { transform: translate(14px, 7px); }
-.how__stage[data-stage="1"] .cursor, .how__stage[data-stage="2"] .cursor,
-.how__stage[data-stage="3"] .cursor { transform: translate(404px, 157px); }
-.how__stage[data-stage="1"] [data-part="engaged"], .how__stage[data-stage="1"] [data-part="label"], .how__stage[data-stage="1"] [data-part="dot"],
-.how__stage[data-stage="2"] [data-part="engaged"], .how__stage[data-stage="2"] [data-part="label"], .how__stage[data-stage="2"] [data-part="dot"] { opacity: 1; }
-.how__stage[data-stage="2"] [data-part="landing"] { opacity: 1; }
-.how__stage[data-stage="2"] .sel { opacity: .5; }
-.how__stage[data-stage="3"] .sel { transform: none; transition: transform .3s var(--ease-out); }
-
-.how__stage.is-focus [data-part] { opacity: .1 !important; }
-.how__stage.is-focus [data-part].is-lit { opacity: 1 !important; }
-.how__stage.is-focus [data-part="ref"], .how__stage.is-focus [data-part="sel"] { opacity: .3 !important; }
-
-/* Items are padded for their hover tint; the negative margin keeps their text on the stage edge */
-.legend { grid-column: 2; list-style: none; margin: 0 -12px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 4px 16px; }
-.legend li {
-  display: grid; grid-template-columns: 28px 1fr; gap: 2px 10px; align-items: center; align-content: start;
-  padding: 10px 12px; border-radius: 12px;
-  transition: background-color .2s ease;
-}
-.legend b { font-weight: 500; font-size: var(--fs-ui); }
-.legend li > span:last-child { grid-column: 2; font-size: var(--fs-ui); line-height: 1.5; color: var(--muted); }
-.sw { display: block; width: 28px; height: 0; }
-.sw--passive { border-top: 1.5px dashed var(--passive); }
-.sw--engaged { height: 2px; background: var(--active); }
-.sw--label { width: 24px; height: 18px; border-radius: 9px; background: var(--axis-y); color: var(--bg); font: 400 11px/18px var(--mono); text-align: center; }
-.sw--dot { width: 8px; height: 8px; margin-left: 10px; border-radius: 50%; background: var(--fg); }
-.sw--landing { width: 22px; height: 14px; border: 1.5px dashed var(--fg); border-radius: 2px; }
-
-@media (max-width: 900px) {
-  .how { grid-template-columns: 1fr; }
-  .legend { grid-column: 1; }
-  .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .steps__d { display: none; }
-  .steps button { padding: 12px 6px 16px; text-align: center; }
-  .steps__n { font-size: var(--fs-ui); }
-  .how__caption { display: block; }
-}
 
 /* Guide type specimens: static at rest, play once on hover (fine pointers) or keyboard focus */
 .specimens { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border-block: 1px solid var(--line); }
@@ -549,8 +479,6 @@ kbd {
   .btn:hover .btn__icon { transform: translateY(2px); }
   .nav__links a:hover { color: var(--fg); }
   .demo__dots button:not([aria-current="true"]):hover .pip { background: var(--muted); }
-  .steps button:hover { color: var(--fg-2); background: var(--surface); }
-  .legend li:hover { background: var(--surface); }
   .spec:not(.spec--note):hover { background: var(--surface); }
   .spec:hover .spec__mover { animation: approach 1.4s var(--ease-out); }
   .spec:hover .spec__guide { animation: engage 1.4s ease; }
