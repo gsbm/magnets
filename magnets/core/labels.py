@@ -68,20 +68,22 @@ def alignment_label(
     return f"{axis} · {format_length(residual, unit_scale, fmt)}"
 
 
+def _kind_words(kind: str) -> str:
+    """A feature kind as plain words: ``bbox_edge`` -> ``edge``.
+
+    The ``bbox_`` prefix is internal; users see the shape they know.
+    """
+    return kind.removeprefix("bbox_").replace("_", " ")
+
+
 def feature_hint(feature: Feature) -> str:
     """Short hint string describing a feature."""
     if isinstance(feature, PointFeature):
         return point_kind_label(feature.kind)
-    if isinstance(feature, LineFeature):
-        return feature.kind.replace("_", " ")
-    if isinstance(feature, PlaneFeature):
-        return feature.kind.replace("_", " ")
-    if isinstance(feature, DirectionFeature):
-        return feature.kind.replace("_", " ")
+    if isinstance(feature, (LineFeature, PlaneFeature, DirectionFeature, CircleFeature)):
+        return _kind_words(feature.kind)
     if isinstance(feature, BBoxFeature):
-        return "bbox"
-    if isinstance(feature, CircleFeature):
-        return feature.kind.replace("_", " ")
+        return "box"
     if isinstance(feature, SurfaceFeature):
         return "surface"
     return ""

@@ -83,7 +83,7 @@ def test_labels():
     dir_feat = DirectionFeature(Vector(), Vector(), "my_dir", EntityRef("a"))
     assert feature_hint(dir_feat) == "my dir"
     bbox = BBoxFeature(Vector(), Vector(), EntityRef("a"))
-    assert feature_hint(bbox) == "bbox"
+    assert feature_hint(bbox) == "box"
     circle = CircleFeature(Vector(), Vector(), 1.0, "hole", EntityRef("a"))
     assert feature_hint(circle) == "hole"
     surface = SurfaceFeature(Vector(), Vector(), EntityRef("a"))
@@ -251,3 +251,15 @@ def test_coplanar_collinear_coverage():
     assert len(CoplanarSolver().solve([m], [cp], _ctx(0.1))) == 0
     cl = LineFeature(Vector((0, 0, 0)), Vector((0, 1, 0)), "line", EntityRef("c"))
     assert len(CollinearSolver().solve([m], [cl], _ctx(0.1))) == 0
+
+
+def test_feature_hint_drops_the_internal_bbox_prefix():
+    from core.features import CircleFeature, EntityRef, LineFeature, PlaneFeature
+    from core.labels import feature_hint
+    from mathutils import Vector
+
+    ref = EntityRef(name="A")
+    o, z = Vector((0, 0, 0)), Vector((0, 0, 1))
+    assert feature_hint(LineFeature(o, z, "bbox_edge", ref)) == "edge"
+    assert feature_hint(PlaneFeature(o, z, "bbox_face", ref)) == "face"
+    assert feature_hint(CircleFeature(o, z, 1.0, "bbox_sphere", ref)) == "sphere"
