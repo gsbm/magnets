@@ -47,12 +47,6 @@ class MagnetsOptions(bpy.types.PropertyGroup):
         description="Show geometric guides and snapping during transforms",
         default=True,
     )
-    soft_snap: BoolProperty(
-        name="Snap to Guides",
-        description="Snap to the engaged guide when the transform is released. "
-        "In Precision Mode, lock onto it while dragging",
-        default=True,
-    )
     defer_to_native_snap: BoolProperty(
         name="Yield to Blender Snapping",
         description="Skip the Magnets snap whenever Blender's own snapping is "

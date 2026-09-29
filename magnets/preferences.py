@@ -16,6 +16,14 @@ def _update_precision_mode(self, context):
     keymaps.set_active(self.precision_mode)
 
 
+def _get_snap_timing(self) -> int:
+    return 1 if self.precision_mode else 0
+
+
+def _set_snap_timing(self, value: int) -> None:
+    self.precision_mode = bool(value)
+
+
 def _update_debug(self, context):
     from . import log
 
@@ -35,6 +43,34 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
         ),
         default=False,
         update=_update_precision_mode,
+    )
+    # Two-way view of ``precision_mode`` for the UI; the bool stays the stored
+    # setting (saved preferences and the keymap switch use it).
+    snap_timing: EnumProperty(
+        name="Snap",
+        description="When the selection snaps to the engaged guides",
+        items=(
+            (
+                "RELEASE",
+                "On Release",
+                (
+                    "Blender's own G / R / S: the selection snaps when the transform "
+                    "is confirmed"
+                ),
+                0,
+            ),
+            (
+                "DRAG",
+                "While Dragging",
+                (
+                    "G / R / S run the Magnets transform, which locks onto guides as "
+                    "you drag (no numeric input or proportional editing)"
+                ),
+                1,
+            ),
+        ),
+        get=_get_snap_timing,
+        set=_set_snap_timing,
     )
     debug: BoolProperty(
         name="Debug Logging",
@@ -146,7 +182,7 @@ class MagnetsPreferences(bpy.types.AddonPreferences):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.prop(self, "precision_mode")
+        layout.row().prop(self, "snap_timing", expand=True)
         layout.prop(self, "show_header_toggle")
         layout.prop(self, "debug")
 

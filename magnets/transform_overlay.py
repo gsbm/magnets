@@ -582,20 +582,20 @@ def _tick(context, view=None):
     ghost_co = None
     ghost_poses: dict = {}
     preview_labels: list = []
-    if options.soft_snap and transform_mode == TransformMode.TRANSLATE:
+    if transform_mode == TransformMode.TRANSLATE:
         if result.snapped:
             corr = _snap_correction(result.translation, rv3d, _session.constraint)
             if corr.length_squared > 1e-12:
                 ghost_co = anchor + corr
                 if not edit_mode:
                     ghost_poses = _translate_poses(context, corr)
-    elif options.soft_snap and transform_mode == TransformMode.ROTATE:
+    elif transform_mode == TransformMode.ROTATE:
         rot = _rotate_snap(context, obj, edit_mode)
         if rot is not None:
             axis, angle, pivot = rot
             ghost_poses = _rotate_poses(context, axis, angle, pivot)
             preview_labels.append((pivot, rotation_snap_label(angle), "rotate"))
-    elif options.soft_snap and transform_mode == TransformMode.SCALE:
+    elif transform_mode == TransformMode.SCALE:
         match = _scale_snap(context, obj, edit_mode)
         if match is not None:
             factor, name, size, pivot = match
@@ -729,8 +729,8 @@ def _commit_release(context, view=None):
     if _session is None or _session.committed:
         return
     options = _options(context)
-    if options is None or not options.enabled or not options.soft_snap:
-        log.debug("commit skip: disabled or soft_snap off")
+    if options is None or not options.enabled:
+        log.debug("commit skip: disabled")
         return
     if _yield_to_native_snap(context, options, finished=True):
         log.debug("commit skip: Blender snapping is active")

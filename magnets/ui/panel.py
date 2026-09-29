@@ -16,23 +16,8 @@ _PRESET_BUTTONS = (
 )
 
 
-def _mode_hint(opts, precision_mode: bool) -> str:
-    """One-line summary of what G / R / S will do with the current settings."""
-    if not opts.soft_snap:
-        return "Guides only, no snapping"
-    if precision_mode:
-        return "Locks onto guides while dragging"
-    return "Snaps when G/R/S is released"
-
-
 def _draw_essentials(layout, context, opts):
-    """Mode, snapping switch and presets: shared by the sidebar and popover."""
-    prefs = get_prefs(context)
-    col = layout.column()
-    col.prop(opts, "soft_snap")
-    col.prop(prefs, "precision_mode")
-    col.label(text=_mode_hint(opts, prefs.precision_mode), icon="INFO")
-
+    """Presets and snap timing: shared by the sidebar and popover."""
     current = matching_preset(opts)
     row = layout.row(align=True)
     row.label(text="", icon="PRESET")
@@ -43,6 +28,8 @@ def _draw_essentials(layout, context, opts):
         op.preset = preset
     row.separator()
     row.operator("magnets.options_reset", text="", icon="LOOP_BACK")
+
+    layout.row().prop(get_prefs(context), "snap_timing", expand=True)
 
 
 class MAGNETS_PT_header_popover(bpy.types.Panel):

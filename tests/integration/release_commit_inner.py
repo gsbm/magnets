@@ -91,7 +91,6 @@ def reset(selected=("Mover",), active=None):
         o.select_set(o.name in selected)
     bpy.context.view_layer.objects.active = ob(active or selected[0])
     opts().enabled = True
-    opts().soft_snap = True
     ts().use_snap = False
     bpy.context.view_layer.update()
     push("reset")
@@ -283,7 +282,6 @@ def guarded(label, setup):
 
 
 guarded("Magnets is off", lambda: setattr(opts(), "enabled", False))
-guarded("soft snap is off", lambda: setattr(opts(), "soft_snap", False))
 guarded("Blender snapping is on", lambda: setattr(ts(), "use_snap", True))
 
 

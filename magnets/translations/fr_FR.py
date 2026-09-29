@@ -14,7 +14,6 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Object"): "Objet",
     ("*", "Indicators"): "Indicateurs",
     # ── Scene options (names) ──────────────────────────────────────────────────
-    ("*", "Snap to Guides"): "Aimanter aux guides",
     ("Magnets", "Even Spacing"): "Espacement régulier",
     ("*", "Angle Snap"): "Aimantation angulaire",
     ("*", "Snap Tolerance"): "Tolérance d’aimantation",
@@ -42,14 +41,6 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Scene options (descriptions) ───────────────────────────────────────────
     ("*", "Show geometric guides and snapping during transforms"): (
         "Afficher les guides géométriques et l’aimantation pendant les transformations"
-    ),
-    (
-        "*",
-        "Snap to the engaged guide when the transform is released. "
-        "In Precision Mode, lock onto it while dragging",
-    ): (
-        "S’aimanter au guide engagé à la fin de la transformation. "
-        "En mode précision, s’y verrouiller pendant le glissement"
     ),
     ("*", "Which gaps the Equal Spacing guides compare between objects"): (
         "Quel écart les guides d’espacement égal égalisent entre les objets"
@@ -273,12 +264,24 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Object whose axes define the alignment frame"): (
         "Objet dont les axes définissent le repère d’alignement"
     ),
-    ("*", "Guides only, no snapping"): "Guides seuls, sans aimantation",
-    ("*", "Locks onto guides while dragging"): "Se verrouille sur les guides pendant le glissement",
-    ("*", "Snaps when G/R/S is released"): "S’aimante au relâchement de G/R/S",
     ("*", "Blender snapping takes over"): "L’aimantation de Blender prend le relais",
     ("*", "Blender Snap"): "Aimantation de Blender",
     ("*", "Yield"): "Céder",
+    ("*", "On Release"): "Au relâchement",
+    ("*", "While Dragging"): "Pendant le glissement",
+    ("*", "When the selection snaps to the engaged guides"): "Moment où la sélection s’aimante aux guides engagés",
+    (
+        "*",
+        "Blender's own G / R / S: the selection snaps when the transform "
+        "is confirmed",
+    ): "G / R / S de Blender : la sélection s’aimante quand la transformation est validée",
+    (
+        "*",
+        "G / R / S run the Magnets transform, which locks onto guides as "
+        "you drag (no numeric input or proportional editing)",
+    ): (
+        "G / R / S lancent la transformation Magnets, qui se verrouille sur les guides pendant le glissement (sans saisie numérique ni édition proportionnelle)"
+    ),
     # ── Header toggle, engaged colours, shortcut ──────────────────────────────
     ("*", "Header Toggle"): (
         "Bouton dans l’en-tête"

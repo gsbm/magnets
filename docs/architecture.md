@@ -11,7 +11,8 @@ Viewport. Inference logic under `core/` has no `bpy` dependency and uses
   only draws guides and a landing ring. When the transform is released it
   re-runs inference once, applies the snap, and folds it into the transform's
   undo step. It stands aside when Blender's own snapping is active.
-- **Precision Mode** (`ops/modal_*.py`): opt-in keymap items bind `G`/`R`/`S`
+- **Snap While Dragging** (`ops/modal_*.py`, the `precision_mode` preference):
+  opt-in keymap items bind `G`/`R`/`S`
   to Magnets' modal operators, which own the transform and lock onto guides
   while dragging.
 

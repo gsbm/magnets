@@ -296,7 +296,7 @@ class _Self:
 import types
 
 ui_panel.get_prefs = lambda _ctx: types.SimpleNamespace(
-    precision_mode=False, guide_fade_passive=True, show_header_toggle=True
+    snap_timing="RELEASE", guide_fade_passive=True, show_header_toggle=True
 )
 ts.use_snap = True
 for cls in ui_panel._CLASSES:

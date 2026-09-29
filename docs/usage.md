@@ -8,9 +8,9 @@
 
 Magnets draws smart guides while you move, rotate, or scale with `G`, `R`, and
 `S` in the 3D Viewport. You keep using Blender's own transform. Magnets never
-replaces the keys unless you turn on Precision Mode.
+replaces the keys unless you set **Snap** to **While Dragging**.
 
-### Default: snap on release
+### Default: Snap On Release
 
 - **While dragging**: guides fade in, in a quiet neutral color, as the
   selection nears a relationship (alignment, even spacing, midpoints, and so
@@ -29,9 +29,10 @@ replaces the keys unless you turn on Precision Mode.
 - **Axis locks** (`G X`, `G Shift+Z`) are respected: the snap only moves along
   the locked axes. In an orthographic view the snap never changes depth.
 
-### Precision Mode
+### Snap While Dragging
 
-Turn it on in the Magnets sidebar panel or in the add-on preferences. `G`, `R`,
+Set **Snap** to **While Dragging** in the Magnets sidebar panel or in the add-on
+preferences. `G`, `R`,
 and `S` then run Magnets' own operators, which lock onto a guide *while* you
 drag. They support `X`/`Y`/`Z` axis locks and mouse-wheel zoom. They do not
 support numeric input, orbiting mid-drag, or proportional editing. Edit-mode
@@ -57,12 +58,10 @@ Magnets snap on release, though its guides still show during that drag. Turn off
 
 3D Viewport sidebar (`N`) ▸ **Magnets**.
 
-- **Snap to Guides**: off shows guides without snapping.
-- **Precision Mode**: see above. A line under it summarises what `G`/`R`/`S`
-  will do.
 - **Presets**: Precise, Balanced (the defaults), and Loose tolerance profiles.
   The active preset is highlighted. The reset button restores every scene
   option.
+- **Snap**: **On Release** (default) or **While Dragging** (see above).
 - **Snapping**: snap tolerance, break distance, re-engage gap, angle snap,
   even-spacing metric, and whether to yield to Blender snapping.
 - **Guides**: range, maximum guides, spacing between guides, what to show,
@@ -79,7 +78,7 @@ HiDPI displays. Distances in labels use the scene's unit system.
 
 Edit ▸ Preferences ▸ Add-ons ▸ Magnets:
 
-- **Precision Mode**: same toggle as in the sidebar.
+- **Snap**: On Release or While Dragging, same as in the sidebar.
 - **Header Toggle**: show or hide the header button.
 - **Colors and lines**: passive and active guide colors, Engaged Colors (axis
   colors, or the Active Color for every guide), line width, solid or dashed

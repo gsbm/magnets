@@ -492,8 +492,7 @@
       ]},
       { g: "General", w: "panel", items: [
         ["Magnets", "The checkbox in the panel header. Same as the header button and Shift Alt M.", "On"],
-        ["Snap to Guides", "Off shows guides without snapping.", "On"],
-        ["Precision Mode", "G, R and S run Magnets' operators, which lock onto guides while dragging. A line under it states what G/R/S will do.", "Off"],
+        ["Snap", "On Release keeps Blender's G, R and S. While Dragging runs Magnets' operators, which lock onto guides as you drag.", "On Release"],
         ["Presets", "Precise, Balanced or Loose tolerance profiles. The active one is highlighted. Reset restores every scene option.", "Balanced"],
       ]},
       { g: "Snapping", w: "panel", items: [

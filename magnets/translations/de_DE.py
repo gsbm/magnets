@@ -14,7 +14,6 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Object"): "Objekt",
     ("*", "Indicators"): "Indikatoren",
     # ── Scene options (names) ──────────────────────────────────────────────────
-    ("*", "Snap to Guides"): "An Hilfslinien einrasten",
     ("Magnets", "Even Spacing"): "Gleichmäßiger Abstand",
     ("*", "Angle Snap"): "Winkeleinrastung",
     ("*", "Snap Tolerance"): "Einrasttoleranz",
@@ -42,14 +41,6 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Scene options (descriptions) ───────────────────────────────────────────
     ("*", "Show geometric guides and snapping during transforms"): (
         "Geometrische Hilfslinien und Einrasten während Transformationen anzeigen"
-    ),
-    (
-        "*",
-        "Snap to the engaged guide when the transform is released. "
-        "In Precision Mode, lock onto it while dragging",
-    ): (
-        "Beim Loslassen der Transformation an der aktiven Hilfslinie einrasten. "
-        "Im Präzisionsmodus während des Ziehens daran festhalten"
     ),
     ("*", "Which gaps the Equal Spacing guides compare between objects"): (
         "Welchen Abstand die Hilfslinien für gleichen Abstand zwischen Objekten ausgleichen"
@@ -273,12 +264,24 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Object whose axes define the alignment frame"): (
         "Objekt, dessen Achsen den Ausrichtungsbezug festlegen"
     ),
-    ("*", "Guides only, no snapping"): "Nur Hilfslinien, kein Einrasten",
-    ("*", "Locks onto guides while dragging"): "Rastet beim Ziehen an Hilfslinien ein",
-    ("*", "Snaps when G/R/S is released"): "Rastet beim Loslassen von G/R/S ein",
     ("*", "Blender snapping takes over"): "Blender-Einrasten hat Vorrang",
     ("*", "Blender Snap"): "Blender-Einrasten",
     ("*", "Yield"): "Vorrang geben",
+    ("*", "On Release"): "Beim Loslassen",
+    ("*", "While Dragging"): "Beim Ziehen",
+    ("*", "When the selection snaps to the engaged guides"): "Wann die Auswahl an den aktiven Hilfslinien einrastet",
+    (
+        "*",
+        "Blender's own G / R / S: the selection snaps when the transform "
+        "is confirmed",
+    ): "Blenders eigenes G / R / S: die Auswahl rastet ein, wenn die Transformation bestätigt wird",
+    (
+        "*",
+        "G / R / S run the Magnets transform, which locks onto guides as "
+        "you drag (no numeric input or proportional editing)",
+    ): (
+        "G / R / S starten die Magnets-Transformation, die beim Ziehen an Hilfslinien einrastet (ohne numerische Eingabe und proportionale Bearbeitung)"
+    ),
     # ── Header toggle, engaged colours, shortcut ──────────────────────────────
     ("*", "Header Toggle"): (
         "Schalter in der Kopfleiste"

@@ -249,14 +249,14 @@
       <div class="band__inner">
         <div class="section__head">
           <h2 id="modes-title">Snapping modes</h2>
-          <p>By default Blender's own <kbd>G</kbd> <kbd>R</kbd> <kbd>S</kbd> stay in charge and Magnets snaps once on release. Precision Mode replaces them with Magnets' operators, which hold the snap while you drag.</p>
+          <p>By default Blender's own <kbd>G</kbd> <kbd>R</kbd> <kbd>S</kbd> stay in charge and Magnets snaps once on release. <b>Snap While Dragging</b> replaces them with Magnets' operators, which hold the snap while you drag.</p>
         </div>
 
         <div class="modes" data-modes>
           <div class="seg" role="tablist" aria-label="Snapping mode">
             <span class="seg__thumb" aria-hidden="true"></span>
-            <button role="tab" aria-selected="true" aria-controls="modes-panel" data-mode="release">Snap on release</button>
-            <button role="tab" aria-selected="false" aria-controls="modes-panel" data-mode="precision">Precision Mode</button>
+            <button role="tab" aria-selected="true" aria-controls="modes-panel" data-mode="release">On Release</button>
+            <button role="tab" aria-selected="false" aria-controls="modes-panel" data-mode="precision">While Dragging</button>
           </div>
 
           <div class="modes__body" id="modes-panel" role="tabpanel">
@@ -285,7 +285,7 @@
                 <div><dt>Not supported</dt><dd>Numeric input, orbiting mid-drag, proportional editing.</dd></div>
                 <div><dt>Edit Mode</dt><dd>Rotate and scale fall back to Blender's transform.</dd></div>
               </dl>
-              <p class="modes__where">Enable in <span class="path">Sidebar ▸ Magnets ▸ Precision Mode</span> or in the add-on preferences.</p>
+              <p class="modes__where">Choose in <span class="path">Sidebar ▸ Magnets ▸ Snap</span> or in the add-on preferences.</p>
             </div>
           </div>
 
@@ -380,7 +380,6 @@
         <h3>Troubleshooting</h3>
         <ul>
           <li><b>No guides at all.</b> Magnets may be off: check the header button or press <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>M</kbd>. Also check that <b>Passive Guides</b> is on.</li>
-          <li><b>Guides show but nothing snaps.</b> <b>Snap to Guides</b> is off. It is the first option in the panel.</li>
           <li><b>Blender's magnet icon is on.</b> Magnets stands aside while Blender snapping is active. Turn it off, or turn off <b>Yield to Blender Snapping</b>.</li>
           <li><b>You pressed <kbd>Esc</kbd> or held <kbd>Ctrl</kbd>.</b> Both skip the snap on release, by design.</li>
           <li><b>A guide type never appears.</b> Repeat Size, Sphere Tangency, Collinear, Concentric and Symmetry are off by default. Turn them on in <span class="path">Sidebar ▸ Magnets ▸ Guide Types</span>.</li>

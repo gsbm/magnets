@@ -257,6 +257,13 @@ check(all(k.active for k in bound.values()), "Precision Mode binds G/R/S")
 check(toggle.active, "toggle unaffected by Precision Mode")
 prefs.precision_mode = False
 check(not any(k.active for k in bound.values()), "turning it off restores native G/R/S")
+check(prefs.snap_timing == "RELEASE", "Snap shows On Release by default")
+prefs.snap_timing = "DRAG"
+check(prefs.precision_mode and all(k.active for k in bound.values()),
+      "Snap While Dragging turns on the Magnets G/R/S")
+prefs.snap_timing = "RELEASE"
+check(not prefs.precision_mode and not any(k.active for k in bound.values()),
+      "Snap On Release restores native G/R/S")
 
 prefs.debug = True
 check(log.debug_enabled(), "debug preference enables debug logging")
