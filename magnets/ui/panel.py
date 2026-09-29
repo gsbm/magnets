@@ -7,6 +7,7 @@ from ..core.frames import Frame
 from ..ops.presets import matching_preset
 from ..preferences import get_prefs
 from ..properties import get_options
+from ..translations import CONTEXT
 
 _PRESET_BUTTONS = (
     ("PRECISE", "Precise"),
@@ -98,6 +99,7 @@ class MAGNETS_PT_panel(bpy.types.Panel):
 class MAGNETS_PT_snapping(bpy.types.Panel):
     """Snapping tolerance sub-panel."""
     bl_label = "Snapping"
+    bl_translation_context = CONTEXT
     bl_idname = "MAGNETS_PT_snapping"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

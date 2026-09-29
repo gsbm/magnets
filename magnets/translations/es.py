@@ -3,7 +3,7 @@
 TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Panels / category ──────────────────────────────────────────────────────
     ("*", "Magnets"): "Magnets",
-    ("*", "Snapping"): "Adherencia",
+    ("Magnets", "Snapping"): "Adherencia",
     ("*", "Guides"): "Guías",
     ("*", "Alignment"): "Alineación",
     ("*", "Guide Types"): "Tipos de guía",
@@ -20,7 +20,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Snap Tolerance"): "Tolerancia de adherencia",
     ("*", "Break Distance"): "Distancia de liberación",
     ("*", "Re-engage Gap"): "Margen de reenganche",
-    ("*", "Range"): "Alcance",
+    ("*", "Range"): "Rango",
     ("*", "Maximum Guides"): "Máximo de guías",
     ("*", "Spacing"): "Espaciado",
     ("*", "X"): "X",
@@ -37,7 +37,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Pivot"): "Pivote",
     ("*", "Centroid"): "Centroide",
     ("*", "Face Centers"): "Centros de caras",
-    ("*", "Bounding Box Corners"): "Esquinas de la caja delimitadora",
+    ("*", "Bounding Box Corners"): "Esquinas del volumen delimitador",
     # ── Scene options (descriptions) ───────────────────────────────────────────
     ("*", "Show geometric guides and snapping during transforms"): (
         "Mostrar guías geométricas y adherencia durante las transformaciones"
@@ -48,9 +48,9 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "In Precision Mode, lock onto it while dragging",
     ): (
         "Adherir a la guía activa al soltar la transformación. "
-        "En modo precisión, bloquearse a ella mientras se arrastra"
+        "En modo de precisión, bloquearse a ella mientras se arrastra"
     ),
-    ("Magnets", "Which gaps the Equal Spacing guides compare between objects"): (
+    ("*", "Which gaps the Equal Spacing guides compare between objects"): (
         "Qué separación igualan las guías de espaciado uniforme entre objetos"
     ),
     ("*", "Snap rotation to this increment in degrees. 0 disables"): (
@@ -113,47 +113,48 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Magnets", "Centers"): "Centros",
     ("Magnets", "Edges"): "Bordes",
     ("Magnets", "Both"): "Ambos",
-    ("Magnets", "Distribute object centers evenly"): (
+    ("*", "Distribute object centers evenly"): (
         "Distribuir los centros de los objetos de forma uniforme"
     ),
-    ("Magnets", "Distribute the visible gaps between bounding boxes"): (
-        "Distribuir los huecos visibles entre las cajas delimitadoras"
+    ("*", "Distribute the visible gaps between bounding boxes"): (
+        "Distribuir los huecos visibles entre los volúmenes delimitadores"
     ),
-    ("Magnets", "Detect even spacing of centers and of edges"): (
+    ("*", "Detect even spacing of centers and of edges"): (
         "Detectar espaciado uniforme de centros y de bordes"
     ),
     # ── Alignment frame enum ───────────────────────────────────────────────────
     ("Magnets", "World"): "Global",
     ("Magnets", "Local"): "Local",
     ("Magnets", "View"): "Vista",
-    ("Magnets", "Parent"): "Padre",
+    ("Magnets", "Parent"): "Superior",
     ("Magnets", "Collection"): "Colección",
     ("Magnets", "Custom"): "Personalizado",
-    ("Magnets", "Align to world X/Y/Z axes"): "Alinear a los ejes X/Y/Z globales",
-    ("Magnets", "Align to the moving object's local axes"): (
+    ("*", "Align to world X/Y/Z axes"): "Alinear a los ejes X/Y/Z globales",
+    ("*", "Align to the moving object's local axes"): (
         "Alinear a los ejes locales del objeto en movimiento"
     ),
-    ("Magnets", "Align to the 3D Viewport axes"): "Alinear a los ejes de la vista 3D",
-    ("Magnets", "Align to the parent object's local axes"): (
-        "Alinear a los ejes locales del objeto padre"
+    ("*", "Align to the 3D Viewport axes"): "Alinear a los ejes de la vista 3D",
+    ("*", "Align to the parent object's local axes"): (
+        "Alinear a los ejes locales del objeto superior"
     ),
-    ("Magnets", "Align to a collection instance empty"): (
+    ("*", "Align to a collection instance empty"): (
         "Alinear al vacío de una instancia de colección"
     ),
-    ("Magnets", "Align to a custom reference object"): (
+    ("*", "Align to a custom reference object"): (
         "Alinear a un objeto de referencia personalizado"
     ),
     # ── Constraint families ────────────────────────────────────────────────────
-    ("*", "Equal Spacing"): "Espaciado igual",
-    ("*", "Equal Size"): "Tamaño igual",
-    ("*", "Midpoint"): "Punto medio",
-    ("*", "Surface Contact"): "Contacto de superficie",
-    ("*", "Sphere Tangency"): "Tangencia esférica",
-    ("*", "Parallel"): "Paralelo",
-    ("*", "Collinear"): "Colineal",
-    ("*", "Coplanar"): "Coplanar",
-    ("*", "Concentric"): "Concéntrico",
-    ("*", "Symmetry"): "Simetría",
+    ("Magnets", "Alignment"): "Alineación",
+    ("Magnets", "Equal Spacing"): "Espaciado igual",
+    ("Magnets", "Equal Size"): "Tamaño igual",
+    ("Magnets", "Midpoint"): "Punto medio",
+    ("Magnets", "Surface Contact"): "Contacto de superficie",
+    ("Magnets", "Sphere Tangency"): "Tangencia esférica",
+    ("Magnets", "Parallel"): "Paralelo",
+    ("Magnets", "Collinear"): "Colineal",
+    ("Magnets", "Coplanar"): "Coplanar",
+    ("Magnets", "Concentric"): "Concéntrico",
+    ("Magnets", "Symmetry"): "Simetría",
     ("*", "Detect and show Alignment markers"): (
         "Detectar y mostrar marcadores de alineación"
     ),
@@ -188,11 +189,11 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Detectar y mostrar marcadores de simetría"
     ),
     # ── Candidate and depth options, Repeat Size ────────────────────────────
-    ("*", "Repeat Size"): (
-        "Repetir tamaño"
+    ("Magnets", "Repeat Size"): (
+        "Repetición de tamaño"
     ),
     ("*", "Detect and show Repeat Size markers"): (
-        "Detectar y mostrar marcadores de repetir tamaño"
+        "Detectar y mostrar marcadores de repetición de tamaño"
     ),
     ("*", "Prioritize Nearby Objects"): (
         "Priorizar objetos cercanos"
@@ -204,7 +205,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Guías diagonales"
     ),
     ("*", "Also offer Midpoint and Repeat Size guides between points that lie diagonally on an object, not only along the alignment axes"): (
-        "Ofrecer también guías de punto medio y de repetir tamaño entre puntos en diagonal de un objeto, no solo a lo largo de los ejes de alineación"
+        "Ofrecer también guías de punto medio y de repetición de tamaño entre puntos en diagonal de un objeto, no solo a lo largo de los ejes de alineación"
     ),
     ("*", "Depth Axis Cutoff"): (
         "Límite del eje de profundidad"
@@ -213,11 +214,11 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Ignorar guías y adherencias en direcciones dentro de este ángulo de la dirección de vista, donde un movimiento hacia dentro de la pantalla es difícil de ver"
     ),
     # ── Preferences ────────────────────────────────────────────────────────────
-    ("*", "Precision Mode"): "Modo precisión",
+    ("*", "Precision Mode"): "Modo de precisión",
     ("*", "Debug Logging"): "Registro de depuración",
     ("*", "Passive Color"): "Color pasivo",
     ("*", "Active Color"): "Color activo",
-    ("*", "Line Width"): "Grosor de línea",
+    ("*", "Line Width"): "Grosor de líneas",
     ("*", "Solid Lines"): "Líneas continuas",
     ("*", "Snap Anchor Dot"): "Punto de anclaje de adherencia",
     ("*", "Dot Radius"): "Radio del punto",
@@ -236,13 +237,13 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "(Window ▸ Toggle System Console)",
     ): (
         "Registrar diagnósticos de Magnets en la consola del sistema "
-        "(Ventana ▸ Alternar consola del sistema)"
+        "(Ventana ▸ Consola del sistema)"
     ),
     ("*", "Guide color while approaching the snap zone"): (
         "Color de la guía al acercarse a la zona de adherencia"
     ),
     ("*", "Guide color while engaged"): "Color de la guía cuando está activa",
-    ("*", "Guide line width in pixels"): "Grosor de línea de las guías en píxeles",
+    ("*", "Guide line width in pixels"): "Grosor de líneas de las guías en píxeles",
     ("*", "Draw solid guide lines, otherwise dashed"): (
         "Dibujar líneas de guía continuas; de lo contrario, discontinuas"
     ),
@@ -263,7 +264,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Ceder a la adherencia de Blender"
     ),
     ("*", "Skip the Magnets snap whenever Blender's own snapping is active for the transform, so the two never fight"): (
-        "Omitir la adherencia de Magnets cuando la adherencia propia de Blender está activo en la transformación, para que ambos nunca entren en conflicto"
+        "Omitir la adherencia de Magnets cuando la adherencia propia de Blender está activa en la transformación, para que ambas nunca entren en conflicto"
     ),
     ("*", "Object whose axes define the alignment frame"): (
         "Objeto cuyos ejes definen el sistema de alineación"
@@ -276,10 +277,10 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Yield"): "Ceder",
     # ── Header toggle, engaged colours, shortcut ──────────────────────────────
     ("*", "Header Toggle"): (
-        "Botón en la cabecera"
+        "Botón en el encabezado"
     ),
     ("*", "Show the Magnets on/off button and settings popover in the 3D Viewport header"): (
-        "Mostrar el botón de activar/desactivar Magnets y el panel de adherencias en la cabecera de la vista 3D"
+        "Mostrar el botón de activar/desactivar Magnets y el menú de ajustes en el encabezado de la vista 3D"
     ),
     ("*", "Engaged Colors"): (
         "Colores de guía activa"
@@ -311,12 +312,12 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Magnets", "Precise"): "Preciso",
     ("Magnets", "Balanced"): "Equilibrado",
     ("Magnets", "Loose"): "Amplio",
-    ("Magnets", "Tight tolerances for close work"): (
+    ("*", "Tight tolerances for close work"): (
         "Tolerancias estrechas para trabajo de precisión"
     ),
-    ("Magnets", "Default tolerances"): "Tolerancias predeterminadas",
-    ("Magnets", "Wide tolerances for blocking out"): (
-        "Tolerancias amplias para el boceto / bloqueo de formas"
+    ("*", "Default tolerances"): "Tolerancias predeterminadas",
+    ("*", "Wide tolerances for blocking out"): (
+        "Tolerancias amplias para el esbozo de formas"
     ),
     # ── Preset buttons (drawn as operator buttons) and reports ─────────────────
     ("Operator", "Precise"): "Preciso",
@@ -332,8 +333,8 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Operator", "Magnets Scale"): "Magnets: Escalar",
     ("Operator", "Magnets Extrude"): "Magnets: Extrudir",
     ("Operator", "Magnets Bevel"): "Magnets: Biselar",
-    ("Operator", "Magnets Inset"): "Magnets: Insetar",
-    ("Operator", "Magnets Knife"): "Magnets: Cuchilla",
+    ("Operator", "Magnets Inset"): "Magnets: Incrustar",
+    ("Operator", "Magnets Knife"): "Magnets: Cortar",
     ("Operator", "Magnets Preset"): "Magnets: Preajuste",
     ("Operator", "Reset Magnets Options"): "Restablecer opciones de Magnets",
     ("Operator", "Magnets: No-op"): "Magnets: No-op",
@@ -354,10 +355,10 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Biselar y luego ajustar con las guías de Magnets"
     ),
     ("*", "Inset faces then move with Magnets guides"): (
-        "Insetar caras y luego mover con las guías de Magnets"
+        "Incrustar caras y luego mover con las guías de Magnets"
     ),
     ("*", "Knife project cut then move with Magnets guides"): (
-        "Cortar con cuchilla y luego mover con las guías de Magnets"
+        "Proyectar cortes y luego mover con las guías de Magnets"
     ),
     ("*", "Set snap tolerances to a preset profile"): (
         "Aplicar un perfil de tolerancias de adherencia"

@@ -3,7 +3,7 @@
 TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Panels / category ──────────────────────────────────────────────────────
     ("*", "Magnets"): "Magnets",
-    ("*", "Snapping"): "Aimantation",
+    ("Magnets", "Snapping"): "Aimantation",
     ("*", "Guides"): "Guides",
     ("*", "Alignment"): "Alignement",
     ("*", "Guide Types"): "Types de guides",
@@ -16,12 +16,12 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Scene options (names) ──────────────────────────────────────────────────
     ("*", "Snap to Guides"): "Aimanter aux guides",
     ("Magnets", "Even Spacing"): "Espacement régulier",
-    ("*", "Angle Snap"): "Aimantation d’angle",
+    ("*", "Angle Snap"): "Aimantation angulaire",
     ("*", "Snap Tolerance"): "Tolérance d’aimantation",
     ("*", "Break Distance"): "Distance de rupture",
     ("*", "Re-engage Gap"): "Écart de réengagement",
-    ("*", "Range"): "Portée",
-    ("*", "Maximum Guides"): "Nombre max. de guides",
+    ("*", "Range"): "Intervalle",
+    ("*", "Maximum Guides"): "Nombre maximal de guides",
     ("*", "Spacing"): "Espacement",
     ("*", "X"): "X",
     ("*", "Y"): "Y",
@@ -50,7 +50,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "S’aimanter au guide engagé à la fin de la transformation. "
         "En mode précision, s’y verrouiller pendant le glissement"
     ),
-    ("Magnets", "Which gaps the Equal Spacing guides compare between objects"): (
+    ("*", "Which gaps the Equal Spacing guides compare between objects"): (
         "Quel écart les guides d’espacement égal égalisent entre les objets"
     ),
     ("*", "Snap rotation to this increment in degrees. 0 disables"): (
@@ -106,20 +106,20 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Étirer les guides d’arêtes à travers la vue 3D (les guides d’alignement relient les deux objets)"
     ),
     ("*", "Fade guide opacity in as the cursor approaches the snap zone"): (
-        "Faire apparaître progressivement l’opacité des guides "
-        "quand le curseur approche la zone d’aimantation"
+        "Faire apparaître progressivement les guides "
+        "quand le curseur approche de la zone d’aimantation"
     ),
     # ── Spacing metric enum ────────────────────────────────────────────────────
     ("Magnets", "Centers"): "Centres",
     ("Magnets", "Edges"): "Bords",
     ("Magnets", "Both"): "Les deux",
-    ("Magnets", "Distribute object centers evenly"): (
+    ("*", "Distribute object centers evenly"): (
         "Répartir régulièrement les centres des objets"
     ),
-    ("Magnets", "Distribute the visible gaps between bounding boxes"): (
+    ("*", "Distribute the visible gaps between bounding boxes"): (
         "Répartir les écarts visibles entre les boîtes englobantes"
     ),
-    ("Magnets", "Detect even spacing of centers and of edges"): (
+    ("*", "Detect even spacing of centers and of edges"): (
         "Détecter un espacement régulier des centres et des bords"
     ),
     # ── Alignment frame enum ───────────────────────────────────────────────────
@@ -129,31 +129,32 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Magnets", "Parent"): "Parent",
     ("Magnets", "Collection"): "Collection",
     ("Magnets", "Custom"): "Personnalisé",
-    ("Magnets", "Align to world X/Y/Z axes"): "Aligner sur les axes X/Y/Z du monde",
-    ("Magnets", "Align to the moving object's local axes"): (
+    ("*", "Align to world X/Y/Z axes"): "Aligner sur les axes X/Y/Z du monde",
+    ("*", "Align to the moving object's local axes"): (
         "Aligner sur les axes locaux de l’objet en mouvement"
     ),
-    ("Magnets", "Align to the 3D Viewport axes"): "Aligner sur les axes de la vue 3D",
-    ("Magnets", "Align to the parent object's local axes"): (
+    ("*", "Align to the 3D Viewport axes"): "Aligner sur les axes de la vue 3D",
+    ("*", "Align to the parent object's local axes"): (
         "Aligner sur les axes locaux de l’objet parent"
     ),
-    ("Magnets", "Align to a collection instance empty"): (
-        "Aligner sur l’empty d’une instance de collection"
+    ("*", "Align to a collection instance empty"): (
+        "Aligner sur l’objet vide d’une instance de collection"
     ),
-    ("Magnets", "Align to a custom reference object"): (
+    ("*", "Align to a custom reference object"): (
         "Aligner sur un objet de référence personnalisé"
     ),
     # ── Constraint families ────────────────────────────────────────────────────
-    ("*", "Equal Spacing"): "Espacement égal",
-    ("*", "Equal Size"): "Taille égale",
-    ("*", "Midpoint"): "Milieu",
-    ("*", "Surface Contact"): "Contact de surface",
-    ("*", "Sphere Tangency"): "Tangence de sphère",
-    ("*", "Parallel"): "Parallèle",
-    ("*", "Collinear"): "Colinéaire",
-    ("*", "Coplanar"): "Coplanaire",
-    ("*", "Concentric"): "Concentrique",
-    ("*", "Symmetry"): "Symétrie",
+    ("Magnets", "Alignment"): "Alignement",
+    ("Magnets", "Equal Spacing"): "Espacement égal",
+    ("Magnets", "Equal Size"): "Taille égale",
+    ("Magnets", "Midpoint"): "Point milieu",
+    ("Magnets", "Surface Contact"): "Contact de surface",
+    ("Magnets", "Sphere Tangency"): "Tangence de sphère",
+    ("Magnets", "Parallel"): "Parallèle",
+    ("Magnets", "Collinear"): "Colinéaire",
+    ("Magnets", "Coplanar"): "Coplanaire",
+    ("Magnets", "Concentric"): "Concentrique",
+    ("Magnets", "Symmetry"): "Symétrie",
     ("*", "Detect and show Alignment markers"): (
         "Détecter et afficher les marqueurs d’alignement"
     ),
@@ -164,7 +165,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Détecter et afficher les marqueurs de taille égale"
     ),
     ("*", "Detect and show Midpoint markers"): (
-        "Détecter et afficher les marqueurs de milieu"
+        "Détecter et afficher les marqueurs de point milieu"
     ),
     ("*", "Detect and show Surface Contact markers"): (
         "Détecter et afficher les marqueurs de contact de surface"
@@ -188,7 +189,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Détecter et afficher les marqueurs de symétrie"
     ),
     # ── Candidate and depth options, Repeat Size ────────────────────────────
-    ("*", "Repeat Size"): (
+    ("Magnets", "Repeat Size"): (
         "Répétition de taille"
     ),
     ("*", "Detect and show Repeat Size markers"): (
@@ -204,7 +205,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Guides diagonaux"
     ),
     ("*", "Also offer Midpoint and Repeat Size guides between points that lie diagonally on an object, not only along the alignment axes"): (
-        "Proposer aussi des guides Milieu et Répétition de taille entre des points en diagonale sur un objet, pas seulement le long des axes d’alignement"
+        "Proposer aussi des guides de point milieu et de répétition de taille entre des points en diagonale sur un objet, pas seulement le long des axes d’alignement"
     ),
     ("*", "Depth Axis Cutoff"): (
         "Seuil de l’axe de profondeur"
@@ -228,7 +229,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Replace G / R / S with the Magnets transform, which locks onto a guide while "
         "dragging. When off, Blender's own transform is used and the snap is applied on release",
     ): (
-        "Remplacer G / R / S par la transformation Magnets, qui se verrouille sur un guide pendant le glissement. Désactivé, la transformation de Blender est utilisée et l’aimantation est appliquée au relâchement"
+        "Remplacer G / R / S par la transformation Magnets, qui se verrouille sur un guide pendant le glissement. Si désactivé, la transformation de Blender est utilisée et l’aimantation est appliquée au relâchement"
     ),
     (
         "*",
@@ -236,7 +237,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "(Window ▸ Toggle System Console)",
     ): (
         "Journaliser les diagnostics Magnets dans la console système "
-        "(Fenêtre ▸ Afficher la console système)"
+        "(Fenêtre ▸ (Dés)activer la console système)"
     ),
     ("*", "Guide color while approaching the snap zone"): (
         "Couleur du guide à l’approche de la zone d’aimantation"
@@ -263,16 +264,16 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Céder à l’aimantation de Blender"
     ),
     ("*", "Skip the Magnets snap whenever Blender's own snapping is active for the transform, so the two never fight"): (
-        "Ignorer l’aimantation Magnets lorsque l’aimantation natif de Blender est actif pour la transformation, afin que les deux ne se contredisent jamais"
+        "Ignorer l’aimantation Magnets lorsque l’aimantation de Blender est active pour la transformation, afin que les deux n’entrent jamais en conflit"
     ),
     ("*", "Object whose axes define the alignment frame"): (
         "Objet dont les axes définissent le repère d’alignement"
     ),
     ("*", "Guides only, no snapping"): "Guides seuls, sans aimantation",
-    ("*", "Locks onto guides while dragging"): "Se fige sur les guides en glissant",
+    ("*", "Locks onto guides while dragging"): "Se verrouille sur les guides pendant le glissement",
     ("*", "Snaps when G/R/S is released"): "S’aimante au relâchement de G/R/S",
-    ("*", "Blender snapping takes over"): "L’aimantation Blender prime",
-    ("*", "Blender Snap"): "Aimantation Blender",
+    ("*", "Blender snapping takes over"): "L’aimantation de Blender prend le relais",
+    ("*", "Blender Snap"): "Aimantation de Blender",
     ("*", "Yield"): "Céder",
     # ── Header toggle, engaged colours, shortcut ──────────────────────────────
     ("*", "Header Toggle"): (
@@ -282,7 +283,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Afficher le bouton marche/arrêt Magnets et le menu des réglages dans l’en-tête de la vue 3D"
     ),
     ("*", "Engaged Colors"): (
-        "Couleurs engagées"
+        "Couleurs des guides engagés"
     ),
     ("*", "How engaged guides are colored"): (
         "Couleur des guides engagés"
@@ -300,7 +301,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Raccourci"
     ),
     ("Operator", "Toggle Magnets"): (
-        "Activer/désactiver Magnets"
+        "(Dés)activer Magnets"
     ),
     ("*", "Turn Magnets guides and snapping on or off"): (
         "Activer ou désactiver les guides et l’aimantation Magnets"
@@ -311,12 +312,12 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Magnets", "Precise"): "Précis",
     ("Magnets", "Balanced"): "Équilibré",
     ("Magnets", "Loose"): "Large",
-    ("Magnets", "Tight tolerances for close work"): (
+    ("*", "Tight tolerances for close work"): (
         "Tolérances serrées pour le travail de précision"
     ),
-    ("Magnets", "Default tolerances"): "Tolérances par défaut",
-    ("Magnets", "Wide tolerances for blocking out"): (
-        "Tolérances larges pour l’ébauche / le blocage des formes"
+    ("*", "Default tolerances"): "Tolérances par défaut",
+    ("*", "Wide tolerances for blocking out"): (
+        "Tolérances larges pour l’ébauche"
     ),
     # ── Preset buttons (drawn as operator buttons) and reports ─────────────────
     ("Operator", "Precise"): "Précis",
@@ -332,7 +333,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Operator", "Magnets Scale"): "Magnets : Redimensionner",
     ("Operator", "Magnets Extrude"): "Magnets : Extruder",
     ("Operator", "Magnets Bevel"): "Magnets : Biseauter",
-    ("Operator", "Magnets Inset"): "Magnets : Insérer",
+    ("Operator", "Magnets Inset"): "Magnets : Incruster",
     ("Operator", "Magnets Knife"): "Magnets : Couteau",
     ("Operator", "Magnets Preset"): "Magnets : Préréglage",
     ("Operator", "Reset Magnets Options"): "Réinitialiser les options Magnets",
@@ -354,10 +355,10 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Biseauter puis ajuster avec les guides Magnets"
     ),
     ("*", "Inset faces then move with Magnets guides"): (
-        "Insérer les faces puis déplacer avec les guides Magnets"
+        "Incruster les faces puis déplacer avec les guides Magnets"
     ),
     ("*", "Knife project cut then move with Magnets guides"): (
-        "Couper au couteau puis déplacer avec les guides Magnets"
+        "Projeter une découpe au couteau puis déplacer avec les guides Magnets"
     ),
     ("*", "Set snap tolerances to a preset profile"): (
         "Appliquer un profil de tolérances d’aimantation"

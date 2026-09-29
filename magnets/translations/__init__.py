@@ -9,11 +9,12 @@ from __future__ import annotations
 
 import bpy
 
-from . import de_DE, es, fr_FR, it_IT, nl_NL
+from . import de_DE, es, fr_FR, it_IT
 
 # Translation context for short msgids that Blender's own catalogue already
-# translates with an unrelated meaning ("Frame" is an animation frame there).
-# Blender's catalogue wins over add-on catalogues for a shared (context, msgid).
+# translates with an unrelated or unwanted meaning ("Frame" is an animation
+# frame there). Blender's catalogue wins over add-on catalogues for a shared
+# (context, msgid). Tooltips are always looked up in the default context.
 CONTEXT = "Magnets"
 
 # Keys and module names match Blender's UI language codes
@@ -23,7 +24,6 @@ translations_dict: dict[str, dict[tuple[str, str], str]] = {
     "es": es.TRANSLATIONS,
     "it_IT": it_IT.TRANSLATIONS,
     "de_DE": de_DE.TRANSLATIONS,
-    "nl_NL": nl_NL.TRANSLATIONS,
 }
 
 

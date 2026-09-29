@@ -3,7 +3,7 @@
 TRANSLATIONS: dict[tuple[str, str], str] = {
     # ── Panels / category ──────────────────────────────────────────────────────
     ("*", "Magnets"): "Magnets",
-    ("*", "Snapping"): "Einrasten",
+    ("Magnets", "Snapping"): "Einrasten",
     ("*", "Guides"): "Hilfslinien",
     ("*", "Alignment"): "Ausrichtung",
     ("*", "Guide Types"): "Hilfslinien-Typen",
@@ -19,9 +19,9 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Angle Snap"): "Winkeleinrastung",
     ("*", "Snap Tolerance"): "Einrasttoleranz",
     ("*", "Break Distance"): "Löseabstand",
-    ("*", "Re-engage Gap"): "Wiedereingriff-Abstand",
-    ("*", "Range"): "Reichweite",
-    ("*", "Maximum Guides"): "Max. Hilfslinien",
+    ("*", "Re-engage Gap"): "Abstand zum Wiedereinrasten",
+    ("*", "Range"): "Bereich",
+    ("*", "Maximum Guides"): "Maximale Anzahl Hilfslinien",
     ("*", "Spacing"): "Abstand",
     ("*", "X"): "X",
     ("*", "Y"): "Y",
@@ -29,15 +29,15 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Passive Guides"): "Passive Hilfslinien",
     ("*", "Feature Hints"): "Elementhinweise",
     ("*", "Ticks"): "Teilstriche",
-    ("*", "Extend to Viewport"): "Auf Ansicht ausdehnen",
-    ("*", "Proximity Fade"): "Nähe-Einblendung",
+    ("*", "Extend to Viewport"): "Auf Ansichtsfenster ausdehnen",
+    ("*", "Proximity Fade"): "Einblenden bei Annäherung",
     ("Magnets", "Alignment Frame"): "Ausrichtungsbezug",
     ("*", "Custom Frame Object"): "Benutzerdefiniertes Bezugsobjekt",
     ("*", "Origin"): "Ursprung",
     ("*", "Pivot"): "Drehpunkt",
     ("*", "Centroid"): "Schwerpunkt",
     ("*", "Face Centers"): "Flächenmittelpunkte",
-    ("*", "Bounding Box Corners"): "Ecken der Begrenzungsbox",
+    ("*", "Bounding Box Corners"): "Ecken des Begrenzungsrahmens",
     # ── Scene options (descriptions) ───────────────────────────────────────────
     ("*", "Show geometric guides and snapping during transforms"): (
         "Geometrische Hilfslinien und Einrasten während Transformationen anzeigen"
@@ -50,7 +50,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Beim Loslassen der Transformation an der aktiven Hilfslinie einrasten. "
         "Im Präzisionsmodus während des Ziehens daran festhalten"
     ),
-    ("Magnets", "Which gaps the Equal Spacing guides compare between objects"): (
+    ("*", "Which gaps the Equal Spacing guides compare between objects"): (
         "Welchen Abstand die Hilfslinien für gleichen Abstand zwischen Objekten ausgleichen"
     ),
     ("*", "Snap rotation to this increment in degrees. 0 disables"): (
@@ -103,7 +103,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Teilstriche an den Bezugspunkten der Hilfslinien anzeigen"
     ),
     ("*", "Stretch edge guide lines across the 3D Viewport (alignment guides join the two objects)"): (
-        "Kanten-Hilfslinien über die 3D-Ansicht strecken (Ausrichtungs-Hilfslinien verbinden die beiden Objekte)"
+        "Kanten-Hilfslinien über das 3D-Ansichtsfenster strecken (Ausrichtungs-Hilfslinien verbinden die beiden Objekte)"
     ),
     ("*", "Fade guide opacity in as the cursor approaches the snap zone"): (
         "Deckkraft der Hilfslinien schrittweise erhöhen, "
@@ -113,47 +113,48 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Magnets", "Centers"): "Mittelpunkte",
     ("Magnets", "Edges"): "Kanten",
     ("Magnets", "Both"): "Beides",
-    ("Magnets", "Distribute object centers evenly"): (
+    ("*", "Distribute object centers evenly"): (
         "Objektmittelpunkte gleichmäßig verteilen"
     ),
-    ("Magnets", "Distribute the visible gaps between bounding boxes"): (
-        "Sichtbare Abstände zwischen Begrenzungsboxen verteilen"
+    ("*", "Distribute the visible gaps between bounding boxes"): (
+        "Sichtbare Abstände zwischen Begrenzungsrahmen verteilen"
     ),
-    ("Magnets", "Detect even spacing of centers and of edges"): (
+    ("*", "Detect even spacing of centers and of edges"): (
         "Gleichmäßigen Abstand von Mittelpunkten und Kanten erkennen"
     ),
     # ── Alignment frame enum ───────────────────────────────────────────────────
     ("Magnets", "World"): "Welt",
     ("Magnets", "Local"): "Lokal",
     ("Magnets", "View"): "Ansicht",
-    ("Magnets", "Parent"): "Elternobjekt",
+    ("Magnets", "Parent"): "Elternteil",
     ("Magnets", "Collection"): "Sammlung",
     ("Magnets", "Custom"): "Benutzerdefiniert",
-    ("Magnets", "Align to world X/Y/Z axes"): "An den Weltachsen X/Y/Z ausrichten",
-    ("Magnets", "Align to the moving object's local axes"): (
+    ("*", "Align to world X/Y/Z axes"): "An den Weltachsen X/Y/Z ausrichten",
+    ("*", "Align to the moving object's local axes"): (
         "An den lokalen Achsen des bewegten Objekts ausrichten"
     ),
-    ("Magnets", "Align to the 3D Viewport axes"): "An den Achsen der 3D-Ansicht ausrichten",
-    ("Magnets", "Align to the parent object's local axes"): (
+    ("*", "Align to the 3D Viewport axes"): "An den Achsen des 3D-Ansichtsfensters ausrichten",
+    ("*", "Align to the parent object's local axes"): (
         "An den lokalen Achsen des Elternobjekts ausrichten"
     ),
-    ("Magnets", "Align to a collection instance empty"): (
-        "Am Empty einer Sammlungsinstanz ausrichten"
+    ("*", "Align to a collection instance empty"): (
+        "Am leeren Objekt einer Sammlungsinstanz ausrichten"
     ),
-    ("Magnets", "Align to a custom reference object"): (
+    ("*", "Align to a custom reference object"): (
         "An einem benutzerdefinierten Bezugsobjekt ausrichten"
     ),
     # ── Constraint families ────────────────────────────────────────────────────
-    ("*", "Equal Spacing"): "Gleicher Abstand",
-    ("*", "Equal Size"): "Gleiche Größe",
-    ("*", "Midpoint"): "Mittelpunkt",
-    ("*", "Surface Contact"): "Oberflächenkontakt",
-    ("*", "Sphere Tangency"): "Kugeltangente",
-    ("*", "Parallel"): "Parallel",
-    ("*", "Collinear"): "Kollinear",
-    ("*", "Coplanar"): "Komplanar",
-    ("*", "Concentric"): "Konzentrisch",
-    ("*", "Symmetry"): "Symmetrie",
+    ("Magnets", "Alignment"): "Ausrichtung",
+    ("Magnets", "Equal Spacing"): "Gleicher Abstand",
+    ("Magnets", "Equal Size"): "Gleiche Größe",
+    ("Magnets", "Midpoint"): "Mittelpunkt",
+    ("Magnets", "Surface Contact"): "Oberflächenkontakt",
+    ("Magnets", "Sphere Tangency"): "Kugeltangente",
+    ("Magnets", "Parallel"): "Parallel",
+    ("Magnets", "Collinear"): "Kollinear",
+    ("Magnets", "Coplanar"): "Komplanar",
+    ("Magnets", "Concentric"): "Konzentrisch",
+    ("Magnets", "Symmetry"): "Symmetrie",
     ("*", "Detect and show Alignment markers"): (
         "Ausrichtungsmarker erkennen und anzeigen"
     ),
@@ -188,11 +189,11 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Symmetriemarker erkennen und anzeigen"
     ),
     # ── Candidate and depth options, Repeat Size ────────────────────────────
-    ("*", "Repeat Size"): (
-        "Größe wiederholen"
+    ("Magnets", "Repeat Size"): (
+        "Größenwiederholung"
     ),
     ("*", "Detect and show Repeat Size markers"): (
-        "Marker für Größe wiederholen erkennen und anzeigen"
+        "Marker für Größenwiederholung erkennen und anzeigen"
     ),
     ("*", "Prioritize Nearby Objects"): (
         "Nahe Objekte bevorzugen"
@@ -204,7 +205,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Diagonale Hilfslinien"
     ),
     ("*", "Also offer Midpoint and Repeat Size guides between points that lie diagonally on an object, not only along the alignment axes"): (
-        "Mittelpunkt- und Größe-wiederholen-Hilfslinien auch zwischen diagonal liegenden Punkten eines Objekts anbieten, nicht nur entlang der Ausrichtungsachsen"
+        "Hilfslinien für Mittelpunkt und Größenwiederholung auch zwischen diagonal liegenden Punkten eines Objekts anbieten, nicht nur entlang der Ausrichtungsachsen"
     ),
     ("*", "Depth Axis Cutoff"): (
         "Grenzwinkel der Tiefenachse"
@@ -217,7 +218,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("*", "Debug Logging"): "Debug-Protokollierung",
     ("*", "Passive Color"): "Passive Farbe",
     ("*", "Active Color"): "Aktive Farbe",
-    ("*", "Line Width"): "Linienstärke",
+    ("*", "Line Width"): "Linienbreite",
     ("*", "Solid Lines"): "Durchgezogene Linien",
     ("*", "Snap Anchor Dot"): "Einrast-Ankerpunkt",
     ("*", "Dot Radius"): "Punktradius",
@@ -242,7 +243,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Farbe der Hilfslinie beim Annähern an die Einrastzone"
     ),
     ("*", "Guide color while engaged"): "Farbe der Hilfslinie im aktiven Zustand",
-    ("*", "Guide line width in pixels"): "Linienstärke der Hilfslinien in Pixeln",
+    ("*", "Guide line width in pixels"): "Linienbreite der Hilfslinien in Pixeln",
     ("*", "Draw solid guide lines, otherwise dashed"): (
         "Durchgezogene Hilfslinien zeichnen, sonst gestrichelt"
     ),
@@ -269,32 +270,32 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Objekt, dessen Achsen den Ausrichtungsbezug festlegen"
     ),
     ("*", "Guides only, no snapping"): "Nur Hilfslinien, kein Einrasten",
-    ("*", "Locks onto guides while dragging"): "Rastet beim Ziehen ein",
-    ("*", "Snaps when G/R/S is released"): "Rastet beim Loslassen ein",
+    ("*", "Locks onto guides while dragging"): "Rastet beim Ziehen an Hilfslinien ein",
+    ("*", "Snaps when G/R/S is released"): "Rastet beim Loslassen von G/R/S ein",
     ("*", "Blender snapping takes over"): "Blender-Einrasten hat Vorrang",
     ("*", "Blender Snap"): "Blender-Einrasten",
     ("*", "Yield"): "Vorrang geben",
     # ── Header toggle, engaged colours, shortcut ──────────────────────────────
     ("*", "Header Toggle"): (
-        "Schalter in der Kopfzeile"
+        "Schalter in der Kopfleiste"
     ),
     ("*", "Show the Magnets on/off button and settings popover in the 3D Viewport header"): (
-        "Den Magnets-Ein/Aus-Schalter und das Einstellungs-Popover in der Kopfzeile des 3D-Viewports anzeigen"
+        "Den Magnets-Ein/Aus-Schalter und das Einstellungsmenü in der Kopfleiste des 3D-Ansichtsfensters anzeigen"
     ),
     ("*", "Engaged Colors"): (
-        "Farben beim Einrasten"
+        "Farben aktiver Hilfslinien"
     ),
     ("*", "How engaged guides are colored"): (
-        "Wie eingerastete Hilfslinien eingefärbt werden"
+        "Wie aktive Hilfslinien eingefärbt werden"
     ),
     ("*", "Axis Colors"): (
         "Achsenfarben"
     ),
     ("*", "Alignment labels use the theme's X/Y/Z axis colors; guide lines use the Active Color"): (
-        "Ausrichtungs-Beschriftungen nutzen die X/Y/Z-Achsenfarben des Themes; Hilfslinien die aktive Farbe"
+        "Ausrichtungs-Beschriftungen nutzen die X/Y/Z-Achsenfarben des Themas; Hilfslinien die aktive Farbe"
     ),
     ("*", "Every engaged guide uses the Active Color"): (
-        "Alle eingerasteten Hilfslinien nutzen die aktive Farbe"
+        "Alle aktiven Hilfslinien nutzen die aktive Farbe"
     ),
     ("*", "Shortcut"): (
         "Tastenkürzel"
@@ -311,11 +312,11 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Magnets", "Precise"): "Präzise",
     ("Magnets", "Balanced"): "Ausgewogen",
     ("Magnets", "Loose"): "Weit",
-    ("Magnets", "Tight tolerances for close work"): (
+    ("*", "Tight tolerances for close work"): (
         "Enge Toleranzen für Feinarbeit"
     ),
-    ("Magnets", "Default tolerances"): "Standardtoleranzen",
-    ("Magnets", "Wide tolerances for blocking out"): (
+    ("*", "Default tolerances"): "Standardtoleranzen",
+    ("*", "Wide tolerances for blocking out"): (
         "Weite Toleranzen für das Groblayout"
     ),
     # ── Preset buttons (drawn as operator buttons) and reports ─────────────────
@@ -332,7 +333,7 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
     ("Operator", "Magnets Scale"): "Magnets: Skalieren",
     ("Operator", "Magnets Extrude"): "Magnets: Extrudieren",
     ("Operator", "Magnets Bevel"): "Magnets: Abschrägen",
-    ("Operator", "Magnets Inset"): "Magnets: Einfügen",
+    ("Operator", "Magnets Inset"): "Magnets: Einrücken",
     ("Operator", "Magnets Knife"): "Magnets: Messer",
     ("Operator", "Magnets Preset"): "Magnets: Voreinstellung",
     ("Operator", "Reset Magnets Options"): "Magnets-Optionen zurücksetzen",
@@ -354,10 +355,10 @@ TRANSLATIONS: dict[tuple[str, str], str] = {
         "Abschrägen und danach mit Magnets-Hilfslinien anpassen"
     ),
     ("*", "Inset faces then move with Magnets guides"): (
-        "Flächen einfügen und danach mit Magnets-Hilfslinien verschieben"
+        "Flächen einrücken und danach mit Magnets-Hilfslinien verschieben"
     ),
     ("*", "Knife project cut then move with Magnets guides"): (
-        "Mit Messer schneiden und danach mit Magnets-Hilfslinien verschieben"
+        "Messerschnitt projizieren und danach mit Magnets-Hilfslinien verschieben"
     ),
     ("*", "Set snap tolerances to a preset profile"): (
         "Einrasttoleranzen auf ein Voreinstellungsprofil setzen"

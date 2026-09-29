@@ -24,6 +24,7 @@ def _family_toggle_annotations() -> dict:
         ann[f"enable_{fid}"] = BoolProperty(
             name=label,
             description=f"Detect and show {label} markers",
+            translation_context=CONTEXT,
             default=fid not in DEFAULT_OFF,
         )
     return ann
