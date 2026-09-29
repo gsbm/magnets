@@ -12,10 +12,11 @@ replaces the keys unless you set **Snap** to **While Dragging**.
 
 ### Default: Snap On Release
 
-- **While dragging**: guides fade in, in a quiet neutral color, as the
-  selection nears a relationship (alignment, even spacing, midpoints, and so
-  on). When a guide engages it turns bold, flashes briefly, and gets a label.
-  Engaged alignment guides take Blender's axis colors (X red, Y green, Z blue).
+- **While dragging**: a guide appears when it engages: bold, with a brief
+  flash. With Passive Guides on, guides also fade in, in a quiet neutral
+  color, as the selection nears a relationship (alignment, even spacing,
+  midpoints, and so on). With Labels on, engaged guides get a label; alignment
+  labels take Blender's axis colors (X red, Y green, Z blue).
   A dashed outline shows exactly where the selection will land on release.
 - **On release**: the selection snaps to the engaged guides. In Object Mode the
   move and the snap are a single undo step. In Edit Mode the snap is a second

@@ -470,7 +470,7 @@
     const where = {
       panel: "Sidebar ▸ Magnets",
       prefs: "Preferences ▸ Add-ons ▸ Magnets",
-      labels: "Shown next to guides in the viewport",
+      labels: "Shown next to engaged guides when Labels is on",
     };
     // [name, description, default or type, extra search words]
     const D = [
@@ -509,9 +509,10 @@
         ["Range", "Screen distance within which guides appear.", "72 px"],
         ["Maximum Guides", "Largest number of guides shown at once. Beyond the engaged ones, at most one per free direction.", "5"],
         ["Spacing", "Minimum screen distance between shown guides.", "24 px"],
-        ["Passive Guides", "Show guides before they engage.", "On"],
-        ["Feature Hints", "Show the reference feature next to each guide: origin, center, face, corner…", "On"],
-        ["Ticks", "Tick marks at guide reference points.", "On"],
+        ["Passive Guides", "Show guides before they engage. Off, a guide appears when it engages.", "Off"],
+        ["Ticks", "Tick marks at guide reference points.", "Off"],
+        ["Labels", "Text next to each engaged guide: the axis or icon, and a length.", "Off", "text name"],
+        ["Feature Hints", "Add the reference feature to each label: origin, center, face, corner… Needs Labels.", "On"],
         ["Extend to Viewport", "Stretch edge guide lines across the 3D viewport. Alignment guides always join the two objects.", "On"],
       ]},
       { g: "Alignment", w: "panel", items: [

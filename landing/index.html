@@ -85,8 +85,8 @@
 
       <div class="how" data-how>
         <div class="steps" role="tablist" aria-label="Stages of a drag">
-          <button role="tab" id="step-0" aria-controls="how-stage" aria-selected="true" data-step="0"><span class="steps__n">Approach</span><span class="steps__d">A faint guide fades in as the selection nears a relationship.</span></button>
-          <button role="tab" id="step-1" aria-controls="how-stage" aria-selected="false" data-step="1"><span class="steps__n">Engage</span><span class="steps__d">Within Snap Tolerance the guide turns solid, flashes once and shows its label.</span></button>
+          <button role="tab" id="step-0" aria-controls="how-stage" aria-selected="true" data-step="0"><span class="steps__n">Approach</span><span class="steps__d">With Passive Guides on, a faint guide fades in as the selection nears a relationship. Off by default: guides appear only when they engage.</span></button>
+          <button role="tab" id="step-1" aria-controls="how-stage" aria-selected="false" data-step="1"><span class="steps__n">Engage</span><span class="steps__d">Within Snap Tolerance the guide turns solid and flashes once. With Labels on, it also names the relationship.</span></button>
           <button role="tab" id="step-2" aria-controls="how-stage" aria-selected="false" data-step="2"><span class="steps__n">Preview</span><span class="steps__d">A dashed outline shows where the selection will land.</span></button>
           <button role="tab" id="step-3" aria-controls="how-stage" aria-selected="false" data-step="3"><span class="steps__n">Release</span><span class="steps__d">The selection snaps. In Object Mode, move and snap are one undo step; in Edit Mode, the snap is a second step.</span></button>
         </div>
@@ -105,13 +105,13 @@
               <g class="cursor"><use href="#cur" x="-8" y="-5" width="28" height="28"/></g>
             </svg>
           </div>
-          <p class="how__caption" aria-live="polite" data-how-caption>A faint guide fades in as the selection nears a relationship.</p>
+          <p class="how__caption" aria-live="polite" data-how-caption>With Passive Guides on, a faint guide fades in as the selection nears a relationship. Off by default: guides appear only when they engage.</p>
         </div>
 
         <ul class="legend" aria-label="What each mark means">
-          <li data-legend="passive"><span class="sw sw--passive"></span><b>Passive guide</b><span>A nearby relationship, at most one per free direction. Neutral color, fades with distance.</span></li>
+          <li data-legend="passive"><span class="sw sw--passive"></span><b>Passive guide</b><span>A nearby relationship, at most one per free direction. Neutral color, fades with distance. Off by default: turn on <span class="path">Guides ▸ Passive Guides</span>.</span></li>
           <li data-legend="engaged"><span class="sw sw--engaged"></span><b>Engaged guide</b><span>Will snap. Drawn in the Active Color, magenta by default. Alignment guides run along the axes, one segment or an L.</span></li>
-          <li data-legend="label"><span class="sw sw--label">Y</span><b>Label</b><span>Names the relationship: an axis letter in its color (X red, Y green, Z blue) or an icon such as <svg class="ico" aria-hidden="true"><use href="icons.svg#i-midpoint"/></svg> or <svg class="ico" aria-hidden="true"><use href="icons.svg#i-parallel"/></svg>, then a length when there is one. Every icon is listed in the <a href="#reference">Reference</a>.</span></li>
+          <li data-legend="label"><span class="sw sw--label">Y</span><b>Label</b><span>Names the relationship: an axis letter in its color (X red, Y green, Z blue) or an icon such as <svg class="ico" aria-hidden="true"><use href="icons.svg#i-midpoint"/></svg> or <svg class="ico" aria-hidden="true"><use href="icons.svg#i-parallel"/></svg>, then a length when there is one. Off by default: turn on <span class="path">Guides ▸ Labels</span>. Every icon is listed in the <a href="#reference">Reference</a>.</span></li>
           <li data-legend="dot"><span class="sw sw--dot"></span><b>Snap anchor dot</b><span>The two points being matched.</span></li>
           <li data-legend="landing"><span class="sw sw--landing"></span><b>Landing outline</b><span>Where the selection goes on release.</span></li>
         </ul>
@@ -122,7 +122,7 @@
     <section class="section" id="guides" aria-labelledby="guides-title">
       <div class="section__head">
         <h2 id="guides-title">Guide types</h2>
-        <p>Magnets detects twelve kinds of relationships. Seven are on by default; the five marked <em>Off by default</em> are rarer and can be turned on in <span class="path">Sidebar ▸ Magnets ▸ Guide Types</span>. The label is the icon and text shown next to the guide in the viewport.</p>
+        <p>Magnets detects twelve kinds of relationships. Seven are on by default; the five marked <em>Off by default</em> are rarer and can be turned on in <span class="path">Sidebar ▸ Magnets ▸ Guide Types</span>. The label is the icon and text shown next to an engaged guide when <b>Labels</b> is on.</p>
       </div>
 
       <div class="specimens">
@@ -143,7 +143,7 @@
             <g class="spec__mover" style="--dx:32px"><rect class="cube cube--sel" x="170" y="55" width="40" height="40"/></g>
           </svg>
           <div class="spec__head"><h3>Equal Spacing</h3><span class="lbl" data-term="Equal Spacing"><svg class="ico" aria-hidden="true"><use href="icons.svg#i-spacing"/></svg> 2 m</span></div>
-          <p>Repeats a gap to extend an even row, or centers an object between two neighbors. Measures centers, edges or both (Even Spacing setting).</p>
+          <p>Repeats a gap to extend an even row, or centers an object between two neighbors. Measures centers, edges or both (Even Spacing setting). Sliding along a row that is already aligned, the met alignment steps aside so the spacing can engage, and the selection stays on its row.</p>
         </article>
         <article class="spec" tabindex="0" id="type-equal-size">
           <svg viewBox="0 0 240 150" aria-hidden="true">
@@ -373,13 +373,14 @@
       <ol class="install">
         <li><span class="install__n" aria-hidden="true"></span><div><h3>Download the zip</h3><p>Get <code>magnets-&lt;version&gt;.zip</code> from the <a href="https://github.com/gsbm/magnets/releases" target="_blank">releases page</a>. Keep it zipped.</p></div></li>
         <li><span class="install__n" aria-hidden="true"></span><div><h3>Install from disk</h3><p>Open <span class="path">Edit ▸ Preferences ▸ Get Extensions</span>, use the menu at the top right, choose <b>Install from Disk</b> and select the zip.</p></div></li>
-        <li><span class="install__n" aria-hidden="true"></span><div><h3>Try it</h3><p>Press <kbd>G</kbd> and move an object toward another one. Guides appear as you approach. Release to snap.</p></div></li>
+        <li><span class="install__n" aria-hidden="true"></span><div><h3>Try it</h3><p>Press <kbd>G</kbd> and move an object toward another one. A guide appears once it is close enough to snap. Release to snap.</p></div></li>
       </ol>
 
       <div class="trouble">
         <h3>Troubleshooting</h3>
         <ul>
-          <li><b>No guides at all.</b> Magnets may be off: check the header button or press <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>M</kbd>. Also check that <b>Passive Guides</b> is on.</li>
+          <li><b>No guides at all.</b> Magnets may be off: check the header button or press <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>M</kbd>. Guides only show once they engage; turn on <b>Passive Guides</b> to see them coming.</li>
+          <li><b>Guides have no text.</b> <b>Labels</b> is off by default. Turn it on in <span class="path">Sidebar ▸ Magnets ▸ Guides</span>.</li>
           <li><b>Blender's magnet icon is on.</b> Magnets stands aside while Blender snapping is active. Turn it off, or turn off <b>Yield to Blender Snapping</b>.</li>
           <li><b>You pressed <kbd>Esc</kbd> or held <kbd>Ctrl</kbd>.</b> Both skip the snap on release, by design.</li>
           <li><b>A guide type never appears.</b> Repeat Size, Sphere Tangency, Collinear, Concentric and Symmetry are off by default. Turn them on in <span class="path">Sidebar ▸ Magnets ▸ Guide Types</span>.</li>
