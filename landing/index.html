@@ -142,7 +142,7 @@
             <g class="spec__guide"><path class="g-engaged g-a" d="M60 115h35M135 115h35M60 110v10M95 110v10M135 110v10M170 110v10"/></g>
             <g class="spec__mover" style="--dx:32px"><rect class="cube cube--sel" x="170" y="55" width="40" height="40"/></g>
           </svg>
-          <div class="spec__head"><h3>Equal Spacing</h3><span class="lbl">⇔ 2 m</span></div>
+          <div class="spec__head"><h3>Equal Spacing</h3><span class="lbl">↔ · 2 m</span></div>
           <p>Repeats a gap to extend an even row, or centers an object between two neighbors. Measures centers, edges or both (Even Spacing setting).</p>
         </article>
         <article class="spec" tabindex="0" id="type-equal-size">
@@ -170,8 +170,8 @@
             <g class="spec__guide"><line class="g-engaged g-a" x1="70" y1="80" x2="170" y2="80"/><circle class="g-dot" cx="120" cy="80" r="3.5"/></g>
             <g class="spec__mover" style="--dy:-36px"><circle class="cube cube--sel" cx="120" cy="80" r="7"/></g>
           </svg>
-          <div class="spec__head"><h3>Surface Contact</h3><span class="lbl">↔ surf</span></div>
-          <p>Brings a point onto another object's surface, or to a set offset from it, for example to rest an object on the floor.</p>
+          <div class="spec__head"><h3>Surface Contact</h3><span class="lbl">⊥</span></div>
+          <p>Brings a point onto another object's surface, for example to rest an object on the floor.</p>
         </article>
         <article class="spec" tabindex="0" id="type-parallel">
           <svg viewBox="0 0 240 150" aria-hidden="true">
@@ -188,7 +188,7 @@
             <g class="spec__guide"><path class="g-engaged g-a" d="M20 100l80-40h120l-80 40z"/></g>
             <g class="spec__mover" style="--dy:-44px"><circle class="cube cube--sel" cx="120" cy="80" r="7"/></g>
           </svg>
-          <div class="spec__head"><h3>Coplanar</h3><span class="lbl">▭</span></div>
+          <div class="spec__head"><h3>Coplanar</h3><span class="lbl">▱</span></div>
           <p>Places a point on the plane of a face, including faces of rotated objects.</p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-repeat-size">
@@ -197,7 +197,7 @@
             <g class="spec__guide"><path class="g-engaged g-a" d="M90 115h60M90 110v10M150 110v10"/></g>
             <g class="spec__mover" style="--dx:30px"><rect class="cube cube--sel" x="150" y="55" width="40" height="40"/></g>
           </svg>
-          <div class="spec__head"><h3>Repeat Size</h3><span class="lbl">= · 2 m</span></div>
+          <div class="spec__head"><h3>Repeat Size</h3><span class="lbl">⧉ · 2 m</span></div>
           <p>Places the selection one object's length away from it: the gap equals that object's own size. <em>Off by default.</em></p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-sphere-tangency">
@@ -206,7 +206,7 @@
             <g class="spec__guide"><circle class="g-engaged g-a" cx="85" cy="75" r="40"/><circle class="g-dot" cx="125" cy="75" r="3.5"/></g>
             <g class="spec__mover" style="--dx:30px"><circle class="cube cube--sel" cx="152" cy="75" r="27"/></g>
           </svg>
-          <div class="spec__head"><h3>Sphere Tangency</h3><span class="lbl">○∘</span></div>
+          <div class="spec__head"><h3>Sphere Tangency</h3><span class="lbl">○◦</span></div>
           <p>Brings two objects' bounding spheres into contact. For boxes the sphere is not a shape you see, so it is <em>off by default</em>.</p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-collinear">
@@ -215,7 +215,7 @@
             <g class="spec__guide"><line class="g-engaged g-a" x1="110" y1="65" x2="222" y2="-5"/></g>
             <g class="spec__mover" style="--dy:34px;--dx:10px"><circle class="cube cube--sel" cx="174" cy="25" r="7"/></g>
           </svg>
-          <div class="spec__head"><h3>Collinear</h3><span class="lbl">-</span></div>
+          <div class="spec__head"><h3>Collinear</h3><span class="lbl">⋯</span></div>
           <p>Places a point on the line that continues an edge. <em>Off by default.</em></p>
         </article>
         <article class="spec spec--off" tabindex="0" id="type-concentric">
@@ -234,12 +234,12 @@
             <g class="spec__guide"><line class="g-engaged g-a" x1="120" y1="10" x2="120" y2="140"/></g>
             <g class="spec__mover" style="--dx:28px;--dy:16px"><rect class="cube cube--sel" x="156" y="50" width="44" height="44"/></g>
           </svg>
-          <div class="spec__head"><h3>Symmetry</h3><span class="lbl">⇔ YZ</span></div>
+          <div class="spec__head"><h3>Symmetry</h3><span class="lbl">⇹ YZ</span></div>
           <p>Mirrors a point across a world plane (XY, XZ or YZ) through its midpoint with another point. <em>Off by default.</em></p>
         </article>
         <aside class="spec spec--note" aria-labelledby="rot-title">
           <h3 id="rot-title">Rotation and scale</h3>
-          <p>Rotation snaps to the nearest <b>Angle Snap</b> increment (15° by default) when you release close to one; no guides are drawn while rotating. Scale matches a nearby object's size within Snap Tolerance, shown by the Equal Size guide. Both preview the result and print a note at the pivot, for example <code>→ 45°</code> or <code>= Cube.002 · 2 m</code>. No note means no snap.</p>
+          <p>Rotation snaps to the nearest <b>Angle Snap</b> increment (15° by default) when you release close to one; no guides are drawn while rotating. Scale matches a nearby object's size within Snap Tolerance, shown by the Equal Size guide. Both preview the result and print a note at the pivot, for example <code>↻ 45°</code> or <code>▭ Cube.002 · 2 m</code>. No note means no snap.</p>
         </aside>
       </div>
     </section>

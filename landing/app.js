@@ -105,14 +105,14 @@
         refs: [{ x: 40, y: 140, w: 70, h: 70, name: "Cube" }, { x: 170, y: 140, w: 70, h: 70, name: "Cube.001" }],
         sel: { w: 70, h: 70, from: [400, 60], to: [300, 140] },
         guide: "M110 250H170M240 250H300M110 244v12M170 244v12M240 244v12M300 244v12",
-        color: "--active", tag: { x: 270, y: 282, t: "⇔ 2 m" },
+        color: "--active", tag: { x: 270, y: 282, t: "↔ · 2 m" },
       },
       {
         title: "Equal Spacing", text: "The selection lands centered between Cube and Cube.001: equal gaps on both sides.",
         refs: [{ x: 50, y: 150, w: 60, h: 60, name: "Cube" }, { x: 370, y: 150, w: 60, h: 60, name: "Cube.001" }],
         sel: { w: 40, h: 40, from: [290, 290], to: [220, 160] },
         guide: "M110 250H220M260 250H370M110 244v12M220 244v12M260 244v12M370 244v12",
-        color: "--active", tag: { x: 240, y: 282, t: "⇔ 1.1 m" },
+        color: "--active", tag: { x: 240, y: 282, t: "↔ · 1.1 m" },
       },
     ];
     const T = { drag: [400, 1900], release: 2400, snap: 200, fade: 3300, end: 3800 };
@@ -405,7 +405,7 @@
     btn.className = span.className;
     btn.textContent = span.textContent;
     const first = span.textContent.split(/\s+/)[0];
-    const term = { X: "alignment", "-": "collinear" }[first] || first;
+    const term = { X: "alignment" }[first] || first;
     btn.setAttribute("aria-label", `Look up label ${span.textContent} in the reference`);
     btn.title = "Look up in the reference";
     btn.addEventListener("click", () => lookup(term));
@@ -475,19 +475,19 @@
     const D = [
       { g: "Viewport labels", w: "labels", glyph: true, items: [
         ["X  Y  Z", "Alignment on that axis, in the axis color. A length after it (X · 0.02 m) is the distance still to close.", "Alignment", "axis alignment face flush"],
-        ["⇔ 2 m", "Equal Spacing: the repeated gap between objects.", "Equal Spacing", "gap distribute distribution spacing"],
-        ["= · 2 m", "Repeat Size: the gap equals that object's own size. Off by default.", "Repeat Size", "span repeat size"],
-        ["▭ X · 2 m", "Equal Size: the matched size along that axis.", "Equal Size", "size scale"],
+        ["↔ · 2 m", "Equal Spacing: the repeated or centered gap between objects.", "Equal Spacing", "gap distribute distribution spacing"],
+        ["⧉ · 2 m", "Repeat Size: the gap equals that object's own size. Off by default.", "Repeat Size", "span repeat size"],
+        ["▭ X · 2 m", "Equal Size: the matched size along that axis. The scale preview uses the same symbol.", "Equal Size", "size scale"],
         ["◇", "Midpoint between two points of one object.", "Midpoint", "middle half"],
-        ["○∘", "Sphere Tangency: two bounding spheres touching. Off by default.", "Sphere Tangency", "circle tangent tangency sphere contact touching"],
+        ["○◦", "Sphere Tangency: two bounding spheres touching. Off by default.", "Sphere Tangency", "circle tangent tangency sphere contact touching"],
         ["◎", "Concentric: a shared center. Off by default.", "Concentric", "circle center concentric ring"],
-        ["↔ surf", "Surface Contact: a point on a surface, or at an offset from it.", "Surface Contact", "surface offset contact tangency floor"],
+        ["⊥", "Surface Contact: a point resting on another object's surface.", "Surface Contact", "surface contact tangency floor rest"],
         ["∥", "Parallel: an edge moved onto the line of another object's edge.", "Parallel", "parallel edge line"],
-        ["-", "Collinear: the point lies on an edge's line.", "Collinear", "line collinear"],
-        ["▭", "Coplanar: the point lies on a face's plane. With an axis and a length, it is Equal Size instead.", "Coplanar", "plane face coplanar"],
-        ["⇔ YZ", "Symmetry across the XY, XZ or YZ plane.", "Symmetry", "mirror symmetry plane xy xz"],
-        ["→ 45°", "Rotation preview: the angle the rotation snaps to on release.", "Rotate", "rotation angle snap degrees"],
-        ["= Cube.002 · 2 m", "Scale preview: the object whose size is matched.", "Scale", "scale size match"],
+        ["⋯", "Collinear: the point lies on an edge's line. Off by default.", "Collinear", "line collinear"],
+        ["▱", "Coplanar: the point lies on a face's plane.", "Coplanar", "plane face coplanar"],
+        ["⇹ YZ", "Symmetry across the XY, XZ or YZ plane. Off by default.", "Symmetry", "mirror symmetry plane xy xz"],
+        ["↻ 45°", "Rotation preview: the angle the rotation snaps to on release.", "Rotate", "rotation angle snap degrees"],
+        ["▭ Cube.002 · 2 m", "Scale preview: the object whose size is matched.", "Scale", "scale size match"],
       ]},
       { g: "General", w: "panel", items: [
         ["Magnets", "The checkbox in the panel header. Same as the header button and Shift Alt M.", "On"],

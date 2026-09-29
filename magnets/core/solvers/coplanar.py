@@ -44,7 +44,7 @@ class CoplanarSolver(Solver):
         return Relationship(
             family=self.family,
             axis=f"cop_{c.entity}",
-            label="▭",
+            label="▱",  # a plane in perspective; ▭ is Equal Size
             moving=m,
             targets=(c,),
             residual=residual,

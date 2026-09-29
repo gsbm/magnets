@@ -152,7 +152,7 @@ class DistributionSolver(Solver):
                 Relationship(
                     family=self.family,
                     axis=axis_name,
-                    label=f"⇔ {ctx.format_length(gap)}",
+                    label=f"↔ · {ctx.format_length(gap)}",
                     moving=m_center_pt,
                     targets=(a.center_pt, b.center_pt),
                     residual=residual,

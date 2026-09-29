@@ -268,7 +268,7 @@ def test_symmetry_matches_reference_scan():
             got = solver.solve(moving, cands, ctx)
             ref = _symmetry_reference(moving, cands, ctx)
             assert [(id(r.moving), id(r.targets[0]), r.label, r.residual) for r in got] == [
-                (id(m), id(c), f"⇔ {plane}", res) for m, c, plane, res in ref
+                (id(m), id(c), f"⇹ {plane}", res) for m, c, plane, res in ref
             ]
 
 

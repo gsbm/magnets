@@ -109,7 +109,7 @@ class SymmetrySolver(Solver):
         return Relationship(
             family=self.family,
             axis=f"sym_{plane_name}_{c.entity}",
-            label=f"⇔ {plane_name}",
+            label=f"⇹ {plane_name}",  # arrows either side of a mirror
             moving=m,
             targets=(c,),
             residual=residual,

@@ -26,7 +26,7 @@ _BLOCK = 64
 
 
 def _gap_label(ctx: SolveContext, ab: float) -> str:
-    return f"= · {ctx.format_length(ab)}"
+    return f"⧉ · {ctx.format_length(ab)}"
 
 
 class SpacingSolver(Solver):
